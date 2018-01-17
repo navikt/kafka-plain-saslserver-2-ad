@@ -1,0 +1,4 @@
+host: localhost
+port: 10389
+baseDN:
+filter: (&(objectClass=person)(objectClass=inetOrgPerson))
