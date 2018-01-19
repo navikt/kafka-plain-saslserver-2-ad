@@ -67,10 +67,10 @@ class LDAPProxy private constructor(
                     adConfig["filter"]?.toString() ?: ""
                 )
             }
-            else {
+            else { //defaulting to connection error
                 LDAPProxy(
-                    "localhost",
-                    10389,
+                    "",
+                    0,
                     "dc=example,dc=com",
                     "(&(objectClass=person)(objectClass=inetOrgPerson))"
                 )

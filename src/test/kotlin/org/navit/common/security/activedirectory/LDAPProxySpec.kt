@@ -112,17 +112,17 @@ object LDAPProxySpec : Spek ({
 
         on("invalid user and correct pwd") {
             it("should return inappropriate matching") {
-                ldap.verifyUserAndPassword("invalid","alice").`should equal`(ResultCode.INAPPROPRIATE_MATCHING)
+                ldap.verifyUserAndPassword("invalid","alice").`should equal`(ResultCode.CONNECT_ERROR)
             }
         }
         on("correct user and invalid pwd") {
             it("should return inappropriate matching") {
-                ldap.verifyUserAndPassword("adoe","invalid").`should equal`(ResultCode.INVALID_CREDENTIALS)
+                ldap.verifyUserAndPassword("adoe","invalid").`should equal`(ResultCode.CONNECT_ERROR)
             }
         }
         on("correct user and pwd") {
             it("should return inappropriate matching") {
-                ldap.verifyUserAndPassword("adoe","alice").`should equal`(ResultCode.SUCCESS)
+                ldap.verifyUserAndPassword("adoe","alice").`should equal`(ResultCode.CONNECT_ERROR)
             }
         }
     }
