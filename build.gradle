@@ -11,13 +11,15 @@ buildscript {
     }
 }
 
-
 plugins{
     id "org.jetbrains.kotlin.jvm" version "1.2.10"
     id 'org.junit.platform.gradle.plugin' version '1.0.1'
     id 'com.github.johnrengelman.shadow' version '2.0.2'
 }
 
+apply plugin: 'maven'
+
+group 'org.navit.security'
 version '1.0'
 
 sourceCompatibility = 1.8
@@ -43,4 +45,14 @@ compileKotlin {
 }
 compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
+}
+
+uploadShadow {
+    repositories {
+        mavenDeployer {
+            repository(url: "https://repo.adeo.no/repository/maven-snapshots/") {
+                authentication(userName: "$nexusUser", password: "$nexusPassword")
+            }
+        }
+    }
 }
