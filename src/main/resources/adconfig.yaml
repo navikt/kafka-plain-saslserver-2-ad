@@ -1,6 +1,0 @@
-host: localhost
-port: 10389
-# Combining multiple branches in AD structure - ou=services,ou=users,dc=security?
-baseDN: dc=example,dc=com
-# MS AD supports(?) the following (&(objectClass=person)(|(ou:=services)(ou:=users)))
-filter: (&(objectClass=person)(objectClass=inetOrgPerson))

@@ -8,7 +8,8 @@ class LDAPProxy private constructor(
         val host: String,
         val port: Int,
         val baseDN: String,
-        val filter: String) {
+        val filter: String,
+        val uid: String) {
 
     fun verifyUserAndPassword(user: String = "", pwd: String = ""): ResultCode {
 
@@ -21,11 +22,11 @@ class LDAPProxy private constructor(
             //eventually narrow down the provided filter with AND uid = <user>
             val filter = if (!filter.isEmpty()) {
                 Filter.createANDFilter(
-                    Filter.createEqualityFilter("uid",user),
+                    Filter.createEqualityFilter(uid, user),
                     Filter.create(filter)
             )}
             else {
-                Filter.createEqualityFilter("uid",user)
+                Filter.createEqualityFilter(uid, user)
             }
 
             val sResult = ldapConnection.search(SearchRequest(baseDN, SearchScope.SUB, filter, SearchRequest.NO_ATTRIBUTES))
@@ -64,16 +65,12 @@ class LDAPProxy private constructor(
                     adConfig["host"]?.toString() ?: "",
                     adConfig["port"]?.toString()?.toInt() ?: 0,
                     adConfig["baseDN"]?.toString() ?: "",
-                    adConfig["filter"]?.toString() ?: ""
+                    adConfig["filter"]?.toString() ?: "",
+                        adConfig["uid"]?.toString() ?: "uid"
                 )
             }
-            else { //defaulting to connection error
-                LDAPProxy(
-                    "",
-                    0,
-                    "dc=example,dc=com",
-                    "(&(objectClass=person)(objectClass=inetOrgPerson))"
-                )
+            else { //defaulting to connection error in case of no config YAML
+                LDAPProxy("",0,"","", "")
 
             }
         }

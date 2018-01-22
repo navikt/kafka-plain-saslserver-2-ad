@@ -2,3 +2,4 @@ host: localhost
 port: 10389
 baseDN: dc=nav,dc=no
 filter: (&(objectClass=person)(objectClass=inetOrgPerson))
+uid: uid

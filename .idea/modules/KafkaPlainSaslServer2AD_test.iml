@@ -37,15 +37,33 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="KafkaPlainSaslServer2AD_main" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="file://$USER_HOME$/Downloads/MyLibrary/adconfig.yaml" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
     <orderEntry type="library" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.2.20" level="project" />
     <orderEntry type="library" name="Gradle: com.unboundid:unboundid-ldapsdk:4.0.3" level="project" />
     <orderEntry type="library" name="Gradle: org.yaml:snakeyaml:1.19" level="project" />
     <orderEntry type="library" name="Gradle: org.jetbrains.spek:spek-api:1.1.5" level="project" />
+    <orderEntry type="module-library" scope="RUNTIME">
+      <library>
+        <CLASSES>
+          <root url="jar://$USER_HOME$/Downloads/MyLibrary/KafkaPlainSaslServer2AD-1.0-all.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
     <orderEntry type="library" name="Gradle: org.amshove.kluent:kluent:1.33" level="project" />
     <orderEntry type="library" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.2.20" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="Gradle: org.jetbrains.spek:spek-junit-platform-engine:1.1.5" level="project" />
     <orderEntry type="library" name="Gradle: com.nhaarman:mockito-kotlin-kt1.1:1.5.0" level="project" />
     <orderEntry type="library" name="Gradle: com.nhaarman:mockito-kotlin:1.5.0" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="Gradle: org.jetbrains.spek:spek-junit-platform-engine:1.1.5" level="project" />
     <orderEntry type="library" name="Gradle: org.jetbrains.kotlin:kotlin-reflect:1.2.10" level="project" />
     <orderEntry type="library" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.2.20" level="project" />
     <orderEntry type="library" name="Gradle: junit:junit:4.12" level="project" />

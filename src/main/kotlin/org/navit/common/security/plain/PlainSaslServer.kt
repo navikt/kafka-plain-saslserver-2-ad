@@ -63,7 +63,6 @@ class PlainSaslServer/*(private jaasContext: JaasContext)*/ : SaslServer {
 
         //TTN
         //TODO Brutal establishment of LDAP connection and closing just after - where to place LDAP proxy for longer living?
-        //TODO ...
         val ldap = LDAPProxy.init(ClassLoader.getSystemClassLoader().getResource("adconfig.yaml")?.path ?: "")
 
         val resultID = ldap.verifyUserAndPassword(username, password)

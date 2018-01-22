@@ -73,6 +73,24 @@ object LDAPProxySpec : Spek ({
                 ldap.verifyUserAndPassword("adoe","alice").`should equal`(ResultCode.SUCCESS)
             }
         }
+        on("yaml - invalid UID") {
+            it("should return inappropriate matching") {
+                val ldap = LDAPProxy.init("src/test/resources/adcInvalidUID.yaml")
+                ldap.verifyUserAndPassword("adoe","alice").`should equal`(ResultCode.INAPPROPRIATE_MATCHING)
+            }
+        }
+        on("yaml - empty UID") {
+            it("should return success") {
+                val ldap = LDAPProxy.init("src/test/resources/adcEmptyUID.yaml")
+                ldap.verifyUserAndPassword("adoe","alice").`should equal`(ResultCode.SUCCESS)
+            }
+        }
+        on("yaml - missing UID") {
+            it("should return success") {
+                val ldap = LDAPProxy.init("src/test/resources/adcMissingUID.yaml")
+                ldap.verifyUserAndPassword("adoe","alice").`should equal`(ResultCode.SUCCESS)
+            }
+        }
     }
 
     given("incorrect path to YAML config and correct user, pwd") {
@@ -111,18 +129,41 @@ object LDAPProxySpec : Spek ({
         val ldap = LDAPProxy.init("")
 
         on("invalid user and correct pwd") {
-            it("should return inappropriate matching") {
+            it("should return connection error") {
                 ldap.verifyUserAndPassword("invalid","alice").`should equal`(ResultCode.CONNECT_ERROR)
             }
         }
         on("correct user and invalid pwd") {
-            it("should return inappropriate matching") {
+            it("should return connection error") {
                 ldap.verifyUserAndPassword("adoe","invalid").`should equal`(ResultCode.CONNECT_ERROR)
             }
         }
         on("correct user and pwd") {
-            it("should return inappropriate matching") {
+            it("should return connection error") {
                 ldap.verifyUserAndPassword("adoe","alice").`should equal`(ResultCode.CONNECT_ERROR)
+            }
+        }
+    }
+
+    given("ClassLoader for config file path (test AD) - verification of user and pwd") {
+
+        //hosting adconfig.YAML in a directory part of CLASSPATH
+
+        val ldap = LDAPProxy.init(ClassLoader.getSystemClassLoader().getResource("adconfig.yaml")?.path ?: "")
+
+        on("invalid user and correct pwd") {
+            it("should return inappropriate matching") {
+                ldap.verifyUserAndPassword("invalid","alice").`should equal`(ResultCode.INAPPROPRIATE_MATCHING)
+            }
+        }
+        on("correct user and invalid pwd") {
+            it("should return inappropriate matching") {
+                ldap.verifyUserAndPassword("adoe","invalid").`should equal`(ResultCode.INVALID_CREDENTIALS)
+            }
+        }
+        on("correct user and pwd") {
+            it("should return inappropriate matching") {
+                ldap.verifyUserAndPassword("adoe","alice").`should equal`(ResultCode.SUCCESS)
             }
         }
     }
