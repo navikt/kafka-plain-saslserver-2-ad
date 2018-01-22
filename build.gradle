@@ -17,9 +17,9 @@ plugins{
     id 'com.github.johnrengelman.shadow' version '2.0.2'
 }
 
-apply plugin: 'maven'
+apply plugin: 'maven-publish'
 
-group 'org.navit.security'
+group 'org.navit.common.security'
 version '1.0'
 
 sourceCompatibility = 1.8
@@ -47,12 +47,19 @@ compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
 
-uploadShadow {
+publishing {
+    publications {
+        shadow(MavenPublication) { publication ->
+            project.shadow.component(publication)
+        }
+    }
     repositories {
-        mavenDeployer {
-            repository(url: "https://repo.adeo.no/repository/maven-snapshots/") {
-                authentication(userName: "$nexusUser", password: "$nexusPassword")
+        maven {
+            credentials {
+                username "$nexusUser"
+                password "$nexusPassword"
             }
+            url "https://repo.adeo.no/repository/maven-snapshots/"
         }
     }
 }
