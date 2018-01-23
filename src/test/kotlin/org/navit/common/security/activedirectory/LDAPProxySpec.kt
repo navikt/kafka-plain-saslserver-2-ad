@@ -1,5 +1,7 @@
 package org.navit.common.security.activedirectory
 
+import com.unboundid.ldap.listener.InMemoryDirectoryServer
+import com.unboundid.ldap.listener.InMemoryDirectoryServerConfig
 import com.unboundid.ldap.sdk.ResultCode
 import org.amshove.kluent.`should equal`
 import org.jetbrains.spek.api.Spek
@@ -8,6 +10,11 @@ import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 
 object LDAPProxySpec : Spek ({
+
+    //In-memory configuration for minimum LDAP server for satisfying integration tests
+
+    val inMemDSConfig = InMemoryDirectoryServerConfig("dc=example,dc=com")
+    val inMemDS = InMemoryDirectoryServer(inMemDSConfig)
 
     given("correct path to YAML config and correct user,pwd") {
 
