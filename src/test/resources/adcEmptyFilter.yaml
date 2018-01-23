@@ -1,5 +1,5 @@
 host: localhost
-port: 10389
-baseDN: dc=example,dc=com
+port: 11389
+baseDN: ou=ServiceAccounts,dc=adeo,dc=example,dc=com
 filter:
 uid: uid

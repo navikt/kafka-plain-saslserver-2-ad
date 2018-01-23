@@ -1,0 +1,39 @@
+dn: dc=adeo,dc=example,dc=com
+objectClass: top
+objectClass: Domain
+dc: adeo
+
+dn: ou=ServiceAccounts,dc=adeo,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: ServiceAccounts
+
+dn: uid=adoe,ou=ServiceAccounts,dc=adeo,dc=example,dc=com
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: organizationalPerson
+cn: Alice Doe
+sn: Doe
+uid: adoe
+userPassword: alice
+
+dn: uid=bdoe,ou=ServiceAccounts,dc=adeo,dc=example,dc=com
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: organizationalPerson
+cn: Bob Doe
+sn: Doe
+uid: bdoe
+userPassword: bob
+
+dn: uid=cdoe,ou=ServiceAccounts,dc=adeo,dc=example,dc=com
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: organizationalPerson
+cn: Charlie Doe
+sn: Doe
+uid: cdoe
+userPassword: charlie

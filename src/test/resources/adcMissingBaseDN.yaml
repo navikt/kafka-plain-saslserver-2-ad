@@ -1,4 +1,4 @@
 host: localhost
-port: 10389
-filter: (&(objectClass=person)(objectClass=inetOrgPerson))
+port: 11389
+filter: (objectClass=person)
 uid: uid

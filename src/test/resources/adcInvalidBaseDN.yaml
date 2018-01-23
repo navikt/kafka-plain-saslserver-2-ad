@@ -1,5 +1,5 @@
 host: localhost
-port: 10389
+port: 11389
 baseDN: dc=nav,dc=no
-filter: (&(objectClass=person)(objectClass=inetOrgPerson))
+filter: (objectClass=person)
 uid: uid

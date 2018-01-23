@@ -1,10 +1,10 @@
 #host of the LDAP server
 host: localhost
 #port of the LDAP server
-port: 10389
+port: 11389
 # Starting point of the search
-baseDN: dc=example,dc=com
+baseDN: ou=ServiceAccounts,dc=adeo,dc=example,dc=com
 # Filter of records to be searched
 filter: (objectClass=person)
-# Unique ID tag, a field hosting the user name, automatically included into search
+# Unique ID tag, a field hosting the unique user name, automatically included into search
 uid: uid
