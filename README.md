@@ -6,7 +6,7 @@ Enhancing kafka PlainSaslServer with LDAP binding.
 - Gradle build tool
 ## Components
 
-1. Use of Unbinded LDAP SDK for LDAPProxy class
+1. Use of Unboundid LDAP SDK for LDAPProxy class
 2. The LDAPProxy is based on adconfig.yaml - see src/test/resources/adconfig.yaml for details
 3. Kafka PlainSaslServer use LDAPProxy instead of listed users/pwds in classic JAAS config
 
@@ -22,7 +22,7 @@ password="y";
 
 ## Testing
 
-LDAPProxySpec use Unbinded's in-memory LDAP server for all test cases
+LDAPProxySpec use Unboundid's in-memory LDAP server for all test cases
 
 ## Build 
 
