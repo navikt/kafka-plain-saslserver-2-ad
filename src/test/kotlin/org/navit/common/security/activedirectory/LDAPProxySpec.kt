@@ -134,7 +134,7 @@ object LDAPProxySpec : Spek ({
                 }
             }
             on("correct user and invalid pwd") {
-                it("should return inappropriate matching") {
+                it("should return invalid credentials") {
                     ldap.verifyUserAndPassword("adoe", "invalid").`should equal`(ResultCode.INVALID_CREDENTIALS)
                 }
             }
@@ -178,7 +178,7 @@ object LDAPProxySpec : Spek ({
                 }
             }
             on("correct user and invalid pwd") {
-                it("should return inappropriate matching") {
+                it("should return invalid credentials") {
                     ldap.verifyUserAndPassword("adoe", "invalid").`should equal`(ResultCode.INVALID_CREDENTIALS)
                 }
             }
