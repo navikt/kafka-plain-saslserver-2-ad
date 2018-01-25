@@ -72,7 +72,7 @@ class PlainSaslServer/*(private jaasContext: JaasContext)*/ : SaslServer {
             ResultCode.NO_SUCH_OBJECT -> throw SaslException("Authentication failed: Invalid baseDN as start point")
             ResultCode.FILTER_ERROR -> throw SaslException("Authentication failed: Invalid filter in YAML config")
             ResultCode.INAPPROPRIATE_MATCHING -> throw SaslException("Authentication failed: check baseDN and filter in YAML config")
-            ResultCode.INVALID_CREDENTIALS -> throw SaslException("Authentication failed: Invalid username or password")
+            ResultCode.INVALID_CREDENTIALS -> throw SaslException("Authentication failed: Invalid username($username) or password")
             ResultCode.SUCCESS -> {}
             else -> throw SaslException("Authentication failed: Unknown exception")
         }
