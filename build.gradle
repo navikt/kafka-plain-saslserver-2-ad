@@ -18,7 +18,6 @@ plugins{
 }
 
 apply plugin: 'maven-publish'
-apply plugin: 'kotlin'
 
 group 'org.navit.common.security'
 version '1.0-SNAPSHOT'
@@ -34,6 +33,7 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     compile "com.unboundid:unboundid-ldapsdk:4.0.3"
     compile 'org.yaml:snakeyaml:1.19'
+    compile 'org.apache.kafka:kafka-clients:1.0.0'
 
     testImplementation "org.amshove.kluent:kluent:1.33"
     testCompile "org.jetbrains.spek:spek-api:1.1.5"
@@ -46,6 +46,15 @@ compileKotlin {
 }
 compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
+}
+
+shadowJar {
+    dependencies {
+        exclude(dependency('org.apache.kafka::'))
+        exclude(dependency('org.lz4::'))
+        exclude(dependency('org.xerial.snappy::'))
+        exclude(dependency('org.slf4j::'))
+    }
 }
 
 publishing {
@@ -63,4 +72,14 @@ publishing {
             url "https://repo.adeo.no/repository/maven-snapshots/"
         }
     }
+}
+
+task copyJarToKafka(type: Copy) {
+    from 'build/libs/KafkaPlainSaslServer2AD-1.0-SNAPSHOT-all.jar'
+    into "/Users/torsteinnesby/confluent-4.0.0-SA/share/java/kafka/"
+}
+
+task copyJarToSchema(type: Copy) {
+    from 'build/libs/KafkaPlainSaslServer2AD-1.0-SNAPSHOT-all.jar'
+    into "/Users/torsteinnesby/confluent-4.0.0-SA/share/java/schema-registry/"
 }

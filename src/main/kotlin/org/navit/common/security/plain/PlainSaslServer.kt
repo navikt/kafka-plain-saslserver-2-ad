@@ -11,13 +11,17 @@ import javax.security.sasl.SaslServerFactory
 import java.util.Arrays
 import java.io.UnsupportedEncodingException
 
+import org.apache.kafka.common.errors.SaslAuthenticationException
+//TTN import org.apache.kafka.common.security.JaasContext
+//TTN import org.apache.kafka.common.security.authenticator.SaslServerCallbackHandler
 
-class PlainSaslServer/*(private jaasContext: JaasContext)*/ : SaslServer {
+
+class PlainSaslServer/*TTN (val jaasContext: JaasContext)*/ : SaslServer {
 
     private var complete: Boolean = false
     private var authorizationId: String = ""
 
-    @Throws(SaslException::class)
+    @Throws(SaslException::class, SaslAuthenticationException::class)
     override fun evaluateResponse(response: ByteArray): ByteArray {
         /*
          * Message format (from https://tools.ietf.org/html/rfc4616):
@@ -36,20 +40,20 @@ class PlainSaslServer/*(private jaasContext: JaasContext)*/ : SaslServer {
         try {
             tokens = String(response, Charsets.UTF_8).split("\u0000".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
         } catch (e: UnsupportedEncodingException) {
-            throw SaslException("UTF-8 encoding not supported", e)
+            throw SaslAuthenticationException("UTF-8 encoding not supported", e)
         }
 
         if (tokens.size != 3)
-            throw SaslException("Invalid SASL/PLAIN response: expected 3 tokens, got " + tokens.size)
+            throw SaslAuthenticationException("Invalid SASL/PLAIN response: expected 3 tokens, got " + tokens.size)
         val authorizationIdFromClient = tokens[0]
         val username = tokens[1]
         val password = tokens[2]
 
         if (username.isEmpty()) {
-            throw SaslException("Authentication failed: username not specified")
+            throw SaslAuthenticationException("Authentication failed: username not specified")
         }
         if (password.isEmpty()) {
-            throw SaslException("Authentication failed: password not specified")
+            throw SaslAuthenticationException("Authentication failed: password not specified")
         }
 
 
@@ -59,20 +63,25 @@ class PlainSaslServer/*(private jaasContext: JaasContext)*/ : SaslServer {
         if (password != expectedPassword) {
             throw SaslAuthenticationException("Authentication failed: Invalid username or password")
         }
-        NTT */
+        */
 
         //TTN
         //TODO Brutal establishment of LDAP connection and closing just after - where to place LDAP proxy for longer living?
-        val ldap = LDAPProxy.init(ClassLoader.getSystemClassLoader().getResource("adconfig.yaml")?.path ?: "")
 
+        // need to have the directory containing the adconfig.yaml as part of the classpath
+        val configFile = ClassLoader.getSystemResource("adconfig.yaml")?.path ?: ""
+
+        if (configFile.isEmpty()) throw SaslAuthenticationException("Authentication will fail, no adconfig.yaml found!")
+
+        val ldap = LDAPProxy.init(configFile)
         val resultID = ldap.verifyUserAndPassword(username, password)
 
         when (resultID) {
-            ResultCode.CONNECT_ERROR -> throw SaslException("Authentication failed: Cannot reach AD (host/port)")
-            ResultCode.NO_SUCH_OBJECT -> throw SaslException("Authentication failed: Invalid baseDN as start point")
-            ResultCode.FILTER_ERROR -> throw SaslException("Authentication failed: Invalid filter in YAML config")
-            ResultCode.INAPPROPRIATE_MATCHING -> throw SaslException("Authentication failed: check baseDN and filter in YAML config")
-            ResultCode.INVALID_CREDENTIALS -> throw SaslException("Authentication failed: Invalid username($username) or password")
+            ResultCode.CONNECT_ERROR -> throw SaslAuthenticationException("Authentication failed: Cannot reach LDAP (${ldap.host}/${ldap.port})")
+            ResultCode.NO_SUCH_OBJECT -> throw SaslAuthenticationException("Authentication failed: Invalid baseDN (${ldap.baseDN}) as start point")
+            ResultCode.FILTER_ERROR -> throw SaslAuthenticationException("Authentication failed: Invalid filter (${ldap.filter}) in YAML config")
+            ResultCode.INAPPROPRIATE_MATCHING -> throw SaslAuthenticationException("Authentication failed: check baseDN (${ldap.baseDN}) and filter (${ldap.filter}) in YAML config")
+            ResultCode.INVALID_CREDENTIALS -> throw SaslAuthenticationException("Authentication failed: Invalid username($username) or password")
             ResultCode.SUCCESS -> {}
             else -> throw SaslException("Authentication failed: Unknown exception")
         }
@@ -135,8 +144,8 @@ class PlainSaslServer/*(private jaasContext: JaasContext)*/ : SaslServer {
             if (PLAIN_MECHANISM != mechanism)
                 throw SaslException(String.format("Mechanism \'%s\' is not supported. Only PLAIN is supported.", mechanism))
 
-//TTN            if (cbh !is SaslServerCallbackHandler)
-//TTN                throw SaslException("CallbackHandler must be of type SaslServerCallbackHandler, but it is: " + cbh.javaClass)
+/*TTN            if (cbh !is SaslServerCallbackHandler)
+                throw SaslException("CallbackHandler must be of type SaslServerCallbackHandler, but it is: " + cbh.javaClass)*/
 
 //TTN            return PlainSaslServer(cbh.jaasContext())
             return PlainSaslServer()

@@ -1,5 +1,4 @@
 pluginManagement {
-
     resolutionStrategy {
         eachPlugin {
             if (requested.id.id == 'org.junit.platform.gradle.plugin') {
@@ -7,7 +6,6 @@ pluginManagement {
             }
         }
     }
-
     repositories {
         maven {
             url "https://repo1.maven.org/maven2"
