@@ -32,7 +32,8 @@ class LDAPProxy private constructor(
 
         return  try {
             //Search for user DN
-            val userDN = getUserDN(user)
+            //val userDN = getUserDN(user)
+            val userDN = "$uid=$user,"+baseDN
 
             log.info("user DN is $userDN")
 
