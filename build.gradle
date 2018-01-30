@@ -78,8 +78,3 @@ task copyJarToKafka(type: Copy) {
     from 'build/libs/KafkaPlainSaslServer2AD-1.0-SNAPSHOT-all.jar'
     into "/Users/torsteinnesby/confluent-4.0.0-SA/share/java/kafka/"
 }
-
-task copyJarToSchema(type: Copy) {
-    from 'build/libs/KafkaPlainSaslServer2AD-1.0-SNAPSHOT-all.jar'
-    into "/Users/torsteinnesby/confluent-4.0.0-SA/share/java/schema-registry/"
-}

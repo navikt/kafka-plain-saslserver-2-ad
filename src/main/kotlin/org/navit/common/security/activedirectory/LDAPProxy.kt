@@ -1,6 +1,7 @@
 package org.navit.common.security.activedirectory
 
 import com.unboundid.ldap.sdk.*
+import org.slf4j.LoggerFactory
 import org.yaml.snakeyaml.Yaml
 import java.io.*
 
@@ -9,47 +10,107 @@ class LDAPProxy private constructor(
         val port: Int,
         val baseDN: String,
         val filter: String,
-        val uid: String) {
+        val uid: String,
+        val grpBaseDN: String,
+        val grpFilter: String,
+        val grpUid: String) {
 
-    fun verifyUserAndPassword(user: String = "", pwd: String = ""): ResultCode {
+    private val ldapConnection = LDAPConnection()
 
-        var result: ResultCode
-        val ldapConnection = LDAPConnection()
-
+    init {
         try {
             ldapConnection.connect(host, port)
+            log.info("Successfully connected to LDAP($host,$port)")
+        }
+        catch (e: LDAPException) {
+            log.error("Exception when connecting to LDAP($host,$port)")
+            ldapConnection.setDisconnectInfo(DisconnectType.IO_ERROR,"Exception when connecting to LDAP($host,$port)", e)
+        }
+    }
 
-            //eventually narrow down the provided filter with AND uid = <user>
-            val filter = if (!filter.isEmpty()) {
-                Filter.createANDFilter(
+    fun verifyUserAndPassword(user: String, pwd: String): ResultCode {
+
+        return  try {
+            //Search for user DN
+            val userDN = getUserDN(user)
+
+            log.info("user DN is $userDN")
+
+            //do the simple bind with userDN and given password
+            if (!userDN.isEmpty()) {
+                log.info("Binding verification of $userDN and $pwd")
+                ldapConnection.bind(userDN, pwd).resultCode
+            }
+            else {
+                log.info("Could not find user DN for $user")
+                ResultCode.INAPPROPRIATE_MATCHING
+            }
+        }
+        catch (e: LDAPSearchException) {
+            e.searchResult.resultCode
+        }
+        catch(e: LDAPException) {
+            e.resultCode
+        }
+    }
+
+    fun isUserMemberOf(user: String, group: String): Boolean {
+
+        return try {
+            //Search for user DN
+            val userDN = getUserDN(user)
+            val groupDN = getGroupDN(group)
+
+            ldapConnection.compare(CompareRequest(groupDN,"uniqueMember",userDN)).compareMatched()
+        }
+        catch(e: LDAPException) {
+            false
+        }
+    }
+
+    private fun getUserDN( user: String): String {
+
+        //eventually narrow down the provided filter with AND uid = <user>
+        val filter = if (!filter.isEmpty()) {
+            Filter.createANDFilter(
                     Filter.createEqualityFilter(uid, user),
                     Filter.create(filter)
             )}
-            else {
-                Filter.createEqualityFilter(uid, user)
-            }
-
-            val sResult = ldapConnection.search(SearchRequest(baseDN, SearchScope.SUB, filter, SearchRequest.NO_ATTRIBUTES))
-
-            //do the simple bind with found dn
-            result = if (sResult.resultCode == ResultCode.SUCCESS && sResult.entryCount == 1)
-                ldapConnection.bind(sResult.searchEntries[0].dn, pwd).resultCode
-            else
-                ResultCode.INAPPROPRIATE_MATCHING
-
-            ldapConnection.close()
-        }
-        catch(e: LDAPException) {
-            result = e.resultCode
-        }
-        finally {
-            ldapConnection.close()
+        else {
+            Filter.createEqualityFilter(uid, user)
         }
 
-        return result
+        val sResult = ldapConnection.search(SearchRequest(baseDN, SearchScope.SUB, filter, SearchRequest.NO_ATTRIBUTES))
+
+        return if (sResult.resultCode == ResultCode.SUCCESS && sResult.entryCount == 1)
+            sResult.searchEntries[0].dn
+        else
+            ""
+    }
+
+    private fun getGroupDN(group: String): String {
+
+        //eventually narrow down the provided filter with AND groupUID = <group>
+        val filter = if (!grpFilter.isEmpty()) {
+            Filter.createANDFilter(
+                    Filter.createEqualityFilter(grpUid, group),
+                    Filter.create(grpFilter)
+            )}
+        else {
+            Filter.createEqualityFilter(grpUid, group)
+        }
+
+        val sResult = ldapConnection.search(SearchRequest(grpBaseDN, SearchScope.SUB, filter, SearchRequest.NO_ATTRIBUTES))
+
+        return if (sResult.resultCode == ResultCode.SUCCESS && sResult.entryCount == 1)
+            sResult.searchEntries[0].dn
+        else
+            ""
     }
 
     companion object {
+
+        private val log = LoggerFactory.getLogger(LDAPProxy::class.java)
 
         fun init(configFile: String) : LDAPProxy {
 
@@ -62,15 +123,18 @@ class LDAPProxy private constructor(
                 }
 
                 LDAPProxy(
-                    adConfig["host"]?.toString() ?: "",
-                    adConfig["port"]?.toString()?.toInt() ?: 0,
-                    adConfig["baseDN"]?.toString() ?: "",
-                    adConfig["filter"]?.toString() ?: "",
-                        adConfig["uid"]?.toString() ?: "uid"
+                        adConfig["host"]?.toString() ?: "",
+                        adConfig["port"]?.toString()?.toInt() ?: 0,
+                        adConfig["baseDN"]?.toString() ?: "",
+                        adConfig["filter"]?.toString() ?: "",
+                        adConfig["uid"]?.toString() ?: "uid",
+                        adConfig["grpBaseDN"]?.toString() ?: "",
+                        adConfig["grpFilter"]?.toString() ?: "",
+                        adConfig["grpUid"]?.toString() ?: "cn"
                 )
             }
             else { //defaulting to connection error in case of no config YAML
-                LDAPProxy("",0,"","", "")
+                LDAPProxy("",0,"","", "","","","")
 
             }
         }

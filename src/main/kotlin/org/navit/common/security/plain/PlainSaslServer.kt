@@ -12,11 +12,11 @@ import java.util.Arrays
 import java.io.UnsupportedEncodingException
 
 import org.apache.kafka.common.errors.SaslAuthenticationException
-//TTN import org.apache.kafka.common.security.JaasContext
-//TTN import org.apache.kafka.common.security.authenticator.SaslServerCallbackHandler
+import org.apache.kafka.common.security.JaasContext
+import org.apache.kafka.common.security.authenticator.SaslServerCallbackHandler
+import org.slf4j.LoggerFactory
 
-
-class PlainSaslServer/*TTN (val jaasContext: JaasContext)*/ : SaslServer {
+class PlainSaslServer(val jaasContext: JaasContext, private val ldap: LDAPProxy) : SaslServer {
 
     private var complete: Boolean = false
     private var authorizationId: String = ""
@@ -56,8 +56,7 @@ class PlainSaslServer/*TTN (val jaasContext: JaasContext)*/ : SaslServer {
             throw SaslAuthenticationException("Authentication failed: password not specified")
         }
 
-
-        /* TTN
+        /* TTN Replaced by LDAP binding
         val expectedPassword = jaasContext.configEntryOption(JAAS_USER_PREFIX + username,
                 PlainLoginModule::class.java.name)
         if (password != expectedPassword) {
@@ -66,24 +65,36 @@ class PlainSaslServer/*TTN (val jaasContext: JaasContext)*/ : SaslServer {
         */
 
         //TTN
-        //TODO Brutal establishment of LDAP connection and closing just after - where to place LDAP proxy for longer living?
-
-        // need to have the directory containing the adconfig.yaml as part of the classpath
-        val configFile = ClassLoader.getSystemResource("adconfig.yaml")?.path ?: ""
-
-        if (configFile.isEmpty()) throw SaslAuthenticationException("Authentication will fail, no adconfig.yaml found!")
-
-        val ldap = LDAPProxy.init(configFile)
         val resultID = ldap.verifyUserAndPassword(username, password)
 
         when (resultID) {
-            ResultCode.CONNECT_ERROR -> throw SaslAuthenticationException("Authentication failed: Cannot reach LDAP (${ldap.host}/${ldap.port})")
-            ResultCode.NO_SUCH_OBJECT -> throw SaslAuthenticationException("Authentication failed: Invalid baseDN (${ldap.baseDN}) as start point")
-            ResultCode.FILTER_ERROR -> throw SaslAuthenticationException("Authentication failed: Invalid filter (${ldap.filter}) in YAML config")
-            ResultCode.INAPPROPRIATE_MATCHING -> throw SaslAuthenticationException("Authentication failed: check baseDN (${ldap.baseDN}) and filter (${ldap.filter}) in YAML config")
-            ResultCode.INVALID_CREDENTIALS -> throw SaslAuthenticationException("Authentication failed: Invalid username($username) or password")
-            ResultCode.SUCCESS -> {}
-            else -> throw SaslException("Authentication failed: Unknown exception")
+            ResultCode.CONNECT_ERROR -> {
+                log.error("Authentication failed: Cannot reach LDAP (${ldap.host}/${ldap.port})")
+                throw SaslAuthenticationException("Authentication failed: Cannot reach LDAP (${ldap.host}/${ldap.port})")
+            }
+            ResultCode.NO_SUCH_OBJECT -> {
+                log.error("Authentication failed: Invalid baseDN (${ldap.baseDN}) as start point")
+                throw SaslAuthenticationException("Authentication failed: Invalid baseDN (${ldap.baseDN}) as start point")
+            }
+            ResultCode.FILTER_ERROR -> {
+                log.error("Authentication failed: Invalid filter (${ldap.filter}) in YAML config")
+                throw SaslAuthenticationException("Authentication failed: Invalid filter (${ldap.filter}) in YAML config")
+            }
+            ResultCode.INAPPROPRIATE_MATCHING -> {
+                log.error("Authentication failed: check baseDN (${ldap.baseDN}) and filter (${ldap.filter}) in YAML config")
+                throw SaslAuthenticationException("Authentication failed: check baseDN (${ldap.baseDN}) and filter (${ldap.filter}) in YAML config")
+            }
+            ResultCode.INVALID_CREDENTIALS -> {
+                log.error("Authentication failed: Invalid username($username) or password($password)")
+                throw SaslAuthenticationException("Authentication failed: Invalid username($username) or password($password)")
+            }
+            ResultCode.SUCCESS -> {
+                log.debug("Successful verification of $username")
+            }
+            else -> {
+                log.error("Authentication failed: Unknown exception")
+                throw SaslException("Authentication failed: Unknown exception")
+            }
         }
         //NTT
 
@@ -144,11 +155,18 @@ class PlainSaslServer/*TTN (val jaasContext: JaasContext)*/ : SaslServer {
             if (PLAIN_MECHANISM != mechanism)
                 throw SaslException(String.format("Mechanism \'%s\' is not supported. Only PLAIN is supported.", mechanism))
 
-/*TTN            if (cbh !is SaslServerCallbackHandler)
-                throw SaslException("CallbackHandler must be of type SaslServerCallbackHandler, but it is: " + cbh.javaClass)*/
+            if (cbh !is SaslServerCallbackHandler)
+                throw SaslException("CallbackHandler must be of type SaslServerCallbackHandler, but it is: " + cbh.javaClass)
 
-//TTN            return PlainSaslServer(cbh.jaasContext())
-            return PlainSaslServer()
+            // need to have the directory containing the adconfig.yaml as part of the classpath
+            val configFile = ClassLoader.getSystemResource("adconfig.yaml")?.path ?: ""
+
+            if (configFile.isEmpty()) {
+                log.error("Authentication will fail, no adconfig.yaml found!")
+                throw SaslAuthenticationException("Authentication will fail, no adconfig.yaml found!")
+            }
+
+            return PlainSaslServer(cbh.jaasContext(),  LDAPProxy.init(configFile))
         }
 
         override fun getMechanismNames(props: Map<String, *>?): Array<String> {
@@ -165,5 +183,8 @@ class PlainSaslServer/*TTN (val jaasContext: JaasContext)*/ : SaslServer {
 
         val PLAIN_MECHANISM = "PLAIN"
         //TTN private val JAAS_USER_PREFIX = "user_"
+
+        //TTN added logging capabilities
+        private val log = LoggerFactory.getLogger(PlainSaslServer::class.java)
     }
 }

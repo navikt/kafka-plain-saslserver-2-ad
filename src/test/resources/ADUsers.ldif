@@ -37,3 +37,21 @@ cn: Charlie Doe
 sn: Doe
 uid: cdoe
 userPassword: charlie
+
+dn: ou=KafkaGroups,dc=adeo,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: KafkaGroups
+
+dn: cn=ktACons,ou=KafkaGroups,dc=adeo,dc=example,dc=com
+objectClass: top
+objectClass: groupOfUniqueNames
+cn: ktACons
+uniqueMember: uid=cdoe,ou=ServiceAccounts,dc=adeo,dc=example,dc=com
+uniqueMember: uid=bdoe,ou=ServiceAccounts,dc=adeo,dc=example,dc=com
+
+dn: cn=ktAProd,ou=KafkaGroups,dc=adeo,dc=example,dc=com
+objectClass: top
+objectClass: groupOfUniqueNames
+cn: ktAProd
+uniqueMember: uid=adoe,ou=ServiceAccounts,dc=adeo,dc=example,dc=com
