@@ -1,0 +1,4 @@
+host: localhost
+port: 11389
+usrBaseDN:
+usrUid: uid

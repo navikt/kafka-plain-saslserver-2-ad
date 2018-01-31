@@ -6,7 +6,7 @@ import java.security.Provider
 class PlainSaslServerProvider protected constructor() : Provider(
         "NAV IT",
         1.0,
-        "SASL/PLAIN Server Provider using binding verification against Active Directory") {
+        "SASL/PLAIN Server Provider using LDAP binding verification") {
 
     init {
         put("SaslServerFactory." + PlainSaslServer.PLAIN_MECHANISM, PlainSaslServer.PlainSaslServerFactory::class.java.name)

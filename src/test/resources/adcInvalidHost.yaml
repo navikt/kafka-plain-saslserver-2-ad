@@ -1,5 +1,4 @@
 host: https://torstein.nesby.com
 port: 11389
-baseDN: ou=ServiceAccounts,dc=adeo,dc=example,dc=com
-filter: (objectClass=person)
-uid: uid
+usrBaseDN: ou=ServiceAccounts,dc=adeo,dc=example,dc=com
+usrUid: uid

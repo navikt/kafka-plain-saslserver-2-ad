@@ -3,10 +3,8 @@ package org.navit.common.security.activedirectory
 import com.unboundid.ldap.listener.InMemoryDirectoryServer
 import com.unboundid.ldap.listener.InMemoryDirectoryServerConfig
 import com.unboundid.ldap.listener.InMemoryListenerConfig
-import com.unboundid.ldap.sdk.ResultCode
 import org.amshove.kluent.`should be false`
 import org.amshove.kluent.`should be true`
-import org.amshove.kluent.`should equal`
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.*
 
@@ -21,7 +19,7 @@ object LDAPProxySpec : Spek ({
 
     imDS.importFromLDIF(true,"src/test/resources/ADUsers.ldif")
 
-    xdescribe("LDAPProxy class test specifications") {
+    describe("LDAPProxy class test specifications") {
 
         beforeGroup {
             imDS.startListening("LDAP")
@@ -30,83 +28,59 @@ object LDAPProxySpec : Spek ({
         given("correct path to different YAML configs and correct user,pwd") {
 
             on("yaml - correct") {
-                it("should return success") {
+                it("should return true") {
 
                     val ldap = LDAPProxy.init("src/test/resources/adconfig.yaml")
-                    ldap.verifyUserAndPassword("adoe", "alice").`should equal`(ResultCode.SUCCESS)
+                    ldap.canUserAuthenticate("adoe", "alice").`should be true`()
                 }
             }
             on("yaml - invalid host") {
-                it("should return server down") {
+                it("should return false") {
 
                     val ldap = LDAPProxy.init("src/test/resources/adcInvalidHost.yaml")
-                    ldap.verifyUserAndPassword("adoe", "alice").`should equal`(ResultCode.SERVER_DOWN)
+                    ldap.canUserAuthenticate("adoe", "alice").`should be false`()
                 }
             }
             on("yaml - invalid port") {
-                it("should return server down") {
+                it("should return false") {
                     val ldap = LDAPProxy.init("src/test/resources/adcInvalidPort.yaml")
-                    ldap.verifyUserAndPassword("adoe", "alice").`should equal`(ResultCode.SERVER_DOWN)
+                    ldap.canUserAuthenticate("adoe", "alice").`should be false`()
                 }
             }
-            on("yaml - invalid baseDN") {
-                it("should return no such object") {
-                    val ldap = LDAPProxy.init("src/test/resources/adcInvalidBaseDN.yaml")
-                    ldap.verifyUserAndPassword("adoe", "alice").`should equal`(ResultCode.NO_SUCH_OBJECT)
+            on("yaml - invalid usrBaseDN") {
+                it("should return false") {
+                    val ldap = LDAPProxy.init("src/test/resources/adcInvalidusrBaseDN.yaml")
+                    ldap.canUserAuthenticate("adoe", "alice").`should be false`()
                 }
             }
-            on("yaml - empty baseDN") {
-                it("should return success") {
-                    val ldap = LDAPProxy.init("src/test/resources/adcEmptyBaseDN.yaml")
-                    ldap.verifyUserAndPassword("adoe", "alice").`should equal`(ResultCode.SUCCESS)
+            on("yaml - empty usrBaseDN") {
+                it("should return false") {
+                    val ldap = LDAPProxy.init("src/test/resources/adcEmptyusrBaseDN.yaml")
+                    ldap.canUserAuthenticate("adoe", "alice").`should be false`()
                 }
             }
-            on("yaml - missing baseDN") {
-                it("should return success") {
-                    val ldap = LDAPProxy.init("src/test/resources/adcMissingBaseDN.yaml")
-                    ldap.verifyUserAndPassword("adoe", "alice").`should equal`(ResultCode.SUCCESS)
-                }
-            }
-            on("yaml - invalid filter") {
-                it("should return filter error") {
-                    val ldap = LDAPProxy.init("src/test/resources/adcInvalidFilter.yaml")
-                    ldap.verifyUserAndPassword("adoe", "alice").`should equal`(ResultCode.FILTER_ERROR)
-                }
-            }
-            on("yaml - empty filter") {
-                it("should return success") {
-                    val ldap = LDAPProxy.init("src/test/resources/adcEmptyFilter.yaml")
-                    ldap.verifyUserAndPassword("adoe", "alice").`should equal`(ResultCode.SUCCESS)
-                }
-            }
-            on("yaml - too tight filter") {
-                it("should return inappropriate matchin") {
-                    val ldap = LDAPProxy.init("src/test/resources/adcClosedFilter.yaml")
-                    ldap.verifyUserAndPassword("adoe", "alice").`should equal`(ResultCode.INAPPROPRIATE_MATCHING)
-                }
-            }
-            on("yaml - missing filter") {
-                it("should return success") {
-                    val ldap = LDAPProxy.init("src/test/resources/adcMissingFilter.yaml")
-                    ldap.verifyUserAndPassword("adoe", "alice").`should equal`(ResultCode.SUCCESS)
+            on("yaml - missing usrBaseDN") {
+                it("should return false") {
+                    val ldap = LDAPProxy.init("src/test/resources/adcMissingusrBaseDN.yaml")
+                    ldap.canUserAuthenticate("adoe", "alice").`should be false`()
                 }
             }
             on("yaml - invalid UID") {
-                it("should return inappropriate matching") {
-                    val ldap = LDAPProxy.init("src/test/resources/adcInvalidUID.yaml")
-                    ldap.verifyUserAndPassword("adoe", "alice").`should equal`(ResultCode.INAPPROPRIATE_MATCHING)
+                it("should return false") {
+                    val ldap = LDAPProxy.init("src/test/resources/adcInvalidusrUid.yaml")
+                    ldap.canUserAuthenticate("adoe", "alice").`should be false`()
                 }
             }
             on("yaml - empty UID") {
-                it("should return success") {
-                    val ldap = LDAPProxy.init("src/test/resources/adcEmptyUID.yaml")
-                    ldap.verifyUserAndPassword("adoe", "alice").`should equal`(ResultCode.SUCCESS)
+                it("should return false") {
+                    val ldap = LDAPProxy.init("src/test/resources/adcEmptyusrUid.yaml")
+                    ldap.canUserAuthenticate("adoe", "alice").`should be false`()
                 }
             }
             on("yaml - missing UID") {
-                it("should return success") {
-                    val ldap = LDAPProxy.init("src/test/resources/adcMissingUID.yaml")
-                    ldap.verifyUserAndPassword("adoe", "alice").`should equal`(ResultCode.SUCCESS)
+                it("should return false") {
+                    val ldap = LDAPProxy.init("src/test/resources/adcMissingusrUid.yaml")
+                    ldap.canUserAuthenticate("adoe", "alice").`should be false`()
                 }
             }
 
@@ -114,9 +88,9 @@ object LDAPProxySpec : Spek ({
 
         given("incorrect path to YAML config and correct user, pwd") {
             on("as given") {
-                it("should return server down") {
+                it("should return false") {
                     val ldap = LDAPProxy.init("src/test/resources/notexisting.yaml")
-                    ldap.verifyUserAndPassword("adoe", "alice").`should equal`(ResultCode.SERVER_DOWN)
+                    ldap.canUserAuthenticate("adoe", "alice").`should be false`()
                 }
             }
         }
@@ -126,21 +100,21 @@ object LDAPProxySpec : Spek ({
             val correctYAML = "src/test/resources/adconfig.yaml"
 
             on("invalid user and correct pwd") {
-                it("should return inappropriate matching") {
+                it("should return false") {
                     val ldap = LDAPProxy.init(correctYAML)
-                    ldap.verifyUserAndPassword("invalid", "alice").`should equal`(ResultCode.INAPPROPRIATE_MATCHING)
+                    ldap.canUserAuthenticate("invalid", "alice").`should be false`()
                 }
             }
             on("correct user and invalid pwd") {
-                it("should return invalid credentials") {
+                it("should return false") {
                     val ldap = LDAPProxy.init(correctYAML)
-                    ldap.verifyUserAndPassword("adoe", "invalid").`should equal`(ResultCode.INVALID_CREDENTIALS)
+                    ldap.canUserAuthenticate("adoe", "invalid").`should be false`()
                 }
             }
             on("correct user and pwd") {
-                it("should return inappropriate matching") {
+                it("should return true") {
                     val ldap = LDAPProxy.init(correctYAML)
-                    ldap.verifyUserAndPassword("adoe", "alice").`should equal`(ResultCode.SUCCESS)
+                    ldap.canUserAuthenticate("adoe", "alice").`should be true`()
                 }
             }
         }
@@ -148,21 +122,21 @@ object LDAPProxySpec : Spek ({
         given("empty string as config file path (test AD) - verification of user and pwd") {
 
             on("invalid user and correct pwd") {
-                it("should return connection error") {
+                it("should return false") {
                     val ldap = LDAPProxy.init("")
-                    ldap.verifyUserAndPassword("invalid", "alice").`should equal`(ResultCode.SERVER_DOWN)
+                    ldap.canUserAuthenticate("invalid", "alice").`should be false`()
                 }
             }
             on("correct user and invalid pwd") {
-                it("should return connection error") {
+                it("should return false") {
                     val ldap = LDAPProxy.init("")
-                    ldap.verifyUserAndPassword("adoe", "invalid").`should equal`(ResultCode.SERVER_DOWN)
+                    ldap.canUserAuthenticate("adoe", "invalid").`should be false`()
                 }
             }
             on("correct user and pwd") {
-                it("should return connection error") {
+                it("should return false") {
                     val ldap = LDAPProxy.init("")
-                    ldap.verifyUserAndPassword("adoe", "alice").`should equal`(ResultCode.SERVER_DOWN)
+                    ldap.canUserAuthenticate("adoe", "alice").`should be false`()
                 }
             }
         }
@@ -172,21 +146,21 @@ object LDAPProxySpec : Spek ({
             //will find adconfig.yaml resource under build/resources/adconfig.yaml...
 
             on("invalid user and correct pwd") {
-                it("should return inappropriate matching") {
+                it("should return false") {
                     val ldap = LDAPProxy.init(ClassLoader.getSystemClassLoader().getResource("adconfig.yaml")?.path ?: "")
-                    ldap.verifyUserAndPassword("invalid", "alice").`should equal`(ResultCode.INAPPROPRIATE_MATCHING)
+                    ldap.canUserAuthenticate("invalid", "alice").`should be false`()
                 }
             }
             on("correct user and invalid pwd") {
-                it("should return invalid credentials") {
+                it("should return false") {
                     val ldap = LDAPProxy.init(ClassLoader.getSystemClassLoader().getResource("adconfig.yaml")?.path ?: "")
-                    ldap.verifyUserAndPassword("adoe", "invalid").`should equal`(ResultCode.INVALID_CREDENTIALS)
+                    ldap.canUserAuthenticate("adoe", "invalid").`should be false`()
                 }
             }
             on("correct user and pwd") {
-                it("should return inappropriate matching") {
+                it("should return true") {
                     val ldap = LDAPProxy.init(ClassLoader.getSystemClassLoader().getResource("adconfig.yaml")?.path ?: "")
-                    ldap.verifyUserAndPassword("adoe", "alice").`should equal`(ResultCode.SUCCESS)
+                    ldap.canUserAuthenticate("adoe", "alice").`should be true`()
                 }
             }
         }

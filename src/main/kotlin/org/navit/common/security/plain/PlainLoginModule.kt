@@ -8,12 +8,10 @@ import javax.security.auth.spi.LoginModule
 class PlainLoginModule : LoginModule {
 
     override fun initialize(subject: Subject, callbackHandler: CallbackHandler, sharedState: Map<String, *>, options: Map<String, *>) {
-        val username = options[USERNAME_CONFIG] as String
-        if (username != null)
-            subject.publicCredentials.add(username)
-        val password = options[PASSWORD_CONFIG] as String
-        if (password != null)
-            subject.privateCredentials.add(password)
+
+        // TTN change to more kotlin-like code
+        subject.publicCredentials.add(options[USERNAME_CONFIG] as String)
+        subject.privateCredentials.add(options[PASSWORD_CONFIG] as String)
     }
 
     @Throws(LoginException::class)
@@ -38,8 +36,9 @@ class PlainLoginModule : LoginModule {
 
     companion object {
 
-        private val USERNAME_CONFIG = "username"
-        private val PASSWORD_CONFIG = "password"
+        //TTN added const
+        private const val USERNAME_CONFIG = "username"
+        private const val PASSWORD_CONFIG = "password"
 
         init {
             PlainSaslServerProvider.initialize()

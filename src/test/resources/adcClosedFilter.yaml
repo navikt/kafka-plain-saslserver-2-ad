@@ -1,6 +1,0 @@
-host: localhost
-port: 11389
-baseDN: ou=ServiceAccounts,dc=adeo,dc=example,dc=com
-filter: (objectClass=notExisting)
-uid: uid
-

@@ -1,4 +1,4 @@
 host: localhost
-port: 666
+port: 11389
 usrBaseDN: ou=ServiceAccounts,dc=adeo,dc=example,dc=com
-usrUid: uid
+usrUid:

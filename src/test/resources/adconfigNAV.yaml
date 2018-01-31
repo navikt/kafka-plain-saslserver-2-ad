@@ -2,9 +2,13 @@
 host: ldapgw.preprod.local
 #port of the LDAP server
 port: 389
-# Starting point of the search
-baseDN: ou=ServiceAccounts,dc=preprod,dc=local
-# Filter of records to be searched
-filter: (objectClass=person)
-# Unique ID tag, a field hosting the unique user name, automatically included into search
-uid: sAMAccountName
+# Placement of users in LDAP tree
+usrBaseDN: ou=ServiceAccounts,dc=preprod,dc=local
+# User attribute for DN completion
+usrUid: cn
+# Placement of groups in LDAP tree
+grpBaseDN: ou=AccountGroups,ou=Groups,ou=NAV,ou=BusinessUnits,dc=preprod,dc=local
+# Group attribute for DN completion
+grpUid: cn
+# Group membership attribute name
+grpAttrName: ??

@@ -1,5 +1,0 @@
-host: localhost
-port: 11389
-baseDN:
-filter: (objectClass=person)
-uid: uid

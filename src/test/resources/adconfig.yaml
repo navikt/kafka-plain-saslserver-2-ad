@@ -2,15 +2,13 @@
 host: localhost
 #port of the LDAP server
 port: 11389
-# Starting point of the search for user
-baseDN: ou=ServiceAccounts,dc=adeo,dc=example,dc=com
-# Filter of records to be used in user search
-filter: (objectClass=person)
-# Which field hosting the unique user name, automatically included into search
-uid: uid
-# Starting point of the search for group
-grpBaseDN: dc=adeo,dc=example,dc=com
-# Filter of records to be used in group search
-grpFilter: (objectClass=groupOfUniqueNames)
-# Which field hosting the unique group name, automatically included into search
+# Placement of users in LDAP tree
+usrBaseDN: ou=ServiceAccounts,dc=adeo,dc=example,dc=com
+# User attribute for DN completion
+usrUid: uid
+# Placement of groups in LDAP tree
+grpBaseDN: ou=KafkaGroups,dc=adeo,dc=example,dc=com
+# Group attribute for DN completion
 grpUid: cn
+# Group membership attribute name
+grpAttrName: uniqueMember
