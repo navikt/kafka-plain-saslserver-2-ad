@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory
 import org.yaml.snakeyaml.Yaml
 import java.io.*
 
+// Added
 class LDAPProxy private constructor(
         val host: String,
         val port: Int,
