@@ -34,6 +34,7 @@ dependencies {
     compile "com.unboundid:unboundid-ldapsdk:4.0.3"
     compile 'org.yaml:snakeyaml:1.19'
     compile 'org.apache.kafka:kafka-clients:1.0.0'
+    compile 'org.apache.kafka:kafka_2.12:1.0.0'
 
     testImplementation "org.amshove.kluent:kluent:1.33"
     testCompile "org.jetbrains.spek:spek-api:1.1.5"
@@ -54,6 +55,13 @@ shadowJar {
         exclude(dependency('org.lz4::'))
         exclude(dependency('org.xerial.snappy::'))
         exclude(dependency('org.slf4j::'))
+        exclude(dependency('com.yammer.metrics::'))
+        exclude(dependency('com.101tec::'))
+        exclude(dependency('org.apache.zookeeper::'))
+        exclude(dependency('log4j::'))
+        exclude(dependency('com.fasterxml.jackson.core::'))
+        exclude(dependency('net.sf.jopt-simple::'))
+        exclude(dependency('org.scala-lang::'))
     }
 }
 

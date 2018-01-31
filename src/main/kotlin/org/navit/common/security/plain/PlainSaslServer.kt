@@ -1,6 +1,6 @@
 package org.navit.common.security.plain
 
-import org.navit.common.security.activedirectory.LDAPProxy
+import org.navit.common.security.authentication.LDAPProxy
 import javax.security.sasl.Sasl
 import javax.security.sasl.SaslException
 import javax.security.auth.callback.CallbackHandler

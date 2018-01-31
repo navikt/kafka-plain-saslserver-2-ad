@@ -1,4 +1,4 @@
-package org.navit.common.security.authorizer
+package org.navit.common.security.authorization
 
 import kafka.network.RequestChannel
 import kafka.security.auth.Operation
@@ -9,9 +9,18 @@ import org.slf4j.LoggerFactory
 class LDAPAuthorizer : SimpleAclAuthorizer() {
 
     override fun authorize(session: RequestChannel.Session?, operation: Operation?, resource: Resource?): Boolean {
+
         val authorized = super.authorize(session, operation, resource)
 
-        return authorized
+        val principal = session?.principal()
+        val host = session?.clientAddress()?.hostAddress
+        val op = operation?.toString()
+        val res = resource?.name()
+        val resType = resource?.resourceType()?.toString()
+
+        log.info("Principal $principal trying operation($op) from host($host) on resource($res/$resType) ($authorized)")
+
+        return true
     }
 
     companion object {
