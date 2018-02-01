@@ -9,11 +9,13 @@ import java.io.*
 class LDAPProxy private constructor(
         val host: String,
         val port: Int,
-        val usrBaseDN: String,
-        val usrUid: String,
-        val grpBaseDN: String,
-        val grpUid: String,
-        val grpAttrName: String) {
+        private val usrBaseDN: String,
+        private val usrUid: String,
+        private val grpBaseDN: String,
+        private val grpUid: String,
+        private val grpAttrName: String,
+        private val bindDN: String,
+        private val bindPwd: String) {
 
     private val ldapConnection = LDAPConnection()
 
@@ -57,7 +59,7 @@ class LDAPProxy private constructor(
                 log.info("Trying LDAP compare matched for $groupDN - $grpAttrName - $userDN")
                 result = result || try {
                     // must bind first
-                    ldapConnection.bind("uid=srvkafkabroker,ou=users,dc=security,dc=example,dc=com","broker")
+                    ldapConnection.bind(bindDN,bindPwd)
                     ldapConnection.compare(CompareRequest(groupDN, grpAttrName, userDN)).compareMatched()
                 }
                 catch(e: LDAPException) {
@@ -90,11 +92,13 @@ class LDAPProxy private constructor(
                         adConfig["usrUid"]?.toString() ?: "",
                         adConfig["grpBaseDN"]?.toString() ?: "",
                         adConfig["grpUid"]?.toString() ?: "",
-                        adConfig["grpAttrName"]?.toString() ?: ""
+                        adConfig["grpAttrName"]?.toString() ?: "",
+                        adConfig["bindDN"]?.toString() ?: "",
+                        adConfig["bindPwd"]?.toString() ?: ""
                 )
             }
             else { //defaulting to connection error in case of no config YAML
-                LDAPProxy("",0,"","","","","")
+                LDAPProxy("",0,"","","","","","","")
             }
         }
     }

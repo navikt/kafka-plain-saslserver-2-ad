@@ -18,6 +18,7 @@ class LDAPAuthorizer : SimpleAclAuthorizer() {
         if (configFile.isEmpty()) log.error("Authorization will fail, no adconfig.yaml found!")
 
         ldapProxy = LDAPProxy.init(configFile)
+        log.info("LDAPAuthorizer has initialized ldap proxy")
     }
 
     override fun authorize(session: RequestChannel.Session?, operation: Operation?, resource: Resource?): Boolean {
@@ -31,6 +32,7 @@ class LDAPAuthorizer : SimpleAclAuthorizer() {
                 "from host(${session?.clientAddress()?.hostAddress}) " +
                 "on resource(${resource?.toString()}) ($authorized)")
 
+        //TODO ResourceType.GROUP - under change in minor version - CAREFUL!
         // Warning! Assuming no group considerations, thus implicitly always empty group acls
         if (resource?.resourceType()?.toJava() == ResourceType.GROUP) {
             log.info("Warning - no group considerations - principal ${session?.principal()} " +
@@ -38,6 +40,7 @@ class LDAPAuthorizer : SimpleAclAuthorizer() {
             return true
         }
 
+        //TODO AclPermissionType.ALLOW - under change in minor version - CAREFUL!
         // get allow acls for current operation, also hurry inside the kotlin turf
         val sacls = getAcls(resource).filter { it.operation() == operation && it.permissionType().toJava() == AclPermissionType.ALLOW }
         var acls: Set<Acl> = emptySet()

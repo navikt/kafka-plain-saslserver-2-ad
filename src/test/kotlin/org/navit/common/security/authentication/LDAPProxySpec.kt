@@ -165,7 +165,7 @@ object LDAPProxySpec : Spek ({
             }
         }
 
-        xgiven("correct path to correct YAML config - verification of membership") {
+        given("correct path to correct YAML config - verification of membership") {
 
             val correctYAML = "src/test/resources/adconfig.yaml"
 

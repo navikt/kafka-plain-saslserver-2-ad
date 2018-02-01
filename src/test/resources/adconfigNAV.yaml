@@ -12,3 +12,6 @@ grpBaseDN: ou=AccountGroups,ou=Groups,ou=NAV,ou=BusinessUnits,dc=preprod,dc=loca
 grpUid: cn
 # Group membership attribute name
 grpAttrName: ??
+# Need bind DN and password for verifying group membership of user
+bindDN: uid=srvbinder,ou=ServiceAccounts,dc=adeo,dc=example,dc=com
+bindPwd: binder
