@@ -45,19 +45,28 @@ class LDAPProxy private constructor(
         }
     }
 
-    fun isUserMemberOf(user: String, group: String): Boolean {
+    fun isUserMemberOfAny(user: String, groups: List<String>): Boolean {
 
-        return try {
+            var result = false
             val userDN = "$usrUid=$user,$usrBaseDN"
-            val groupDN = "$grpUid=$group,$grpBaseDN"
 
-            log.info("Trying LDAP compare matched for $groupDN - $grpAttrName - $userDN")
-            ldapConnection.compare(CompareRequest(groupDN,grpAttrName,userDN)).compareMatched()
-        }
-        catch(e: LDAPException) {
-            log.error("LDAP compare exception, ${e.exceptionMessage}")
-            false
-        }
+            groups.forEach {
+
+                val groupDN = "$grpUid=$it,$grpBaseDN"
+
+                log.info("Trying LDAP compare matched for $groupDN - $grpAttrName - $userDN")
+                result = result || try {
+                    // must bind first
+                    ldapConnection.bind("uid=srvkafkabroker,ou=users,dc=security,dc=example,dc=com","broker")
+                    ldapConnection.compare(CompareRequest(groupDN, grpAttrName, userDN)).compareMatched()
+                }
+                catch(e: LDAPException) {
+                    log.error("LDAP compare exception - invalid group!, ${e.exceptionMessage}")
+                    false
+                }
+            }
+
+            return result
     }
 
     companion object {

@@ -8,6 +8,16 @@ objectClass: top
 objectClass: organizationalUnit
 ou: ServiceAccounts
 
+dn: uid=srvkafkabroker,ou=ServiceAccounts,dc=adeo,dc=example,dc=com
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: organizationalPerson
+cn: Kafka Broker
+sn: Broker
+uid: srvkafkabroker
+userPassword: broker
+
 dn: uid=adoe,ou=ServiceAccounts,dc=adeo,dc=example,dc=com
 objectClass: top
 objectClass: inetOrgPerson
