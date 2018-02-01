@@ -157,7 +157,8 @@ class PlainSaslServer(val jaasContext: JaasContext, private val ldap: LDAPProxy)
 
     companion object {
 
-        val PLAIN_MECHANISM = "PLAIN"
+        //TTN added const
+        const val PLAIN_MECHANISM = "PLAIN"
         //TTN private val JAAS_USER_PREFIX = "user_"
 
         //TTN ADDED logging capabilities

@@ -3,7 +3,7 @@ package org.navit.common.security.plain
 import java.security.Security
 import java.security.Provider
 
-class PlainSaslServerProvider protected constructor() : Provider(
+class PlainSaslServerProvider private constructor() : Provider(
         "NAV IT",
         1.0,
         "SASL/PLAIN Server Provider using LDAP binding verification") {
@@ -14,7 +14,7 @@ class PlainSaslServerProvider protected constructor() : Provider(
 
     companion object {
 
-        private val serialVersionUID = 1L
+        private const val serialVersionUID = 1L
 
         fun initialize() {
             Security.addProvider(PlainSaslServerProvider())

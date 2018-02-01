@@ -12,15 +12,20 @@ class LDAPAuthorizer : SimpleAclAuthorizer() {
 
         val authorized = super.authorize(session, operation, resource)
 
-        val principal = session?.principal()
-        val host = session?.clientAddress()?.hostAddress
-        val op = operation?.toString()
-        val res = resource?.name()
-        val resType = resource?.resourceType()?.toString()
+        if (!authorized) {
+            log.info("Principal ${session?.principal()} trying operation(${operation?.toString()}) " +
+                    "from host(${session?.clientAddress()?.hostAddress}) " +
+                    "on resource(${resource?.toString()}) ($authorized)")
 
-        log.info("Principal $principal trying operation($op) from host($host) on resource($res/$resType) ($authorized)")
+            val acls = super.getAcls(resource)
 
-        return true
+            if (acls.size() == 0)
+                log.info("ACLs for resource ${resource?.name()} is empty")
+            else
+                acls.foreach { log.info("acl - $it") }
+        }
+
+        return authorized
     }
 
     companion object {
