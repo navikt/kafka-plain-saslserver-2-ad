@@ -14,8 +14,8 @@ class LDAPProxy private constructor(
         private val grpBaseDN: String,
         private val grpUid: String,
         private val grpAttrName: String,
-        private val bindDN: String,
-        private val bindPwd: String) {
+        bindDN: String,
+        bindPwd: String) {
 
     private val ldapConnection = LDAPConnection()
 
@@ -28,6 +28,17 @@ class LDAPProxy private constructor(
             log.error("Authentication will fail! Exception when connecting to LDAP($host,$port)")
             ldapConnection.setDisconnectInfo(DisconnectType.IO_ERROR,"Exception when connecting to LDAP($host,$port)", e)
         }
+
+        try {
+            //must perform binding for function isUserMemberOfAny
+            ldapConnection.bind(bindDN,bindPwd)
+            log.info("Successfully bind to LDAP($host,$port)")
+        }
+        catch (e: LDAPException) {
+            log.error("LDAP compare will fail! Exception when bind to LDAP($host,$port) - ${e.diagnosticMessage}")
+        }
+
+
     }
 
     fun canUserAuthenticate(user: String, pwd: String): Boolean {
@@ -59,7 +70,7 @@ class LDAPProxy private constructor(
                 log.info("Trying LDAP compare matched for $groupDN - $grpAttrName - $userDN")
                 result = result || try {
                     // must bind first
-                    ldapConnection.bind(bindDN,bindPwd)
+                    //ldapConnection.bind(bindDN,bindPwd)
                     ldapConnection.compare(CompareRequest(groupDN, grpAttrName, userDN)).compareMatched()
                 }
                 catch(e: LDAPException) {
@@ -86,15 +97,15 @@ class LDAPProxy private constructor(
                 }
 
                 LDAPProxy(
-                        adConfig["host"]?.toString() ?: "",
+                        adConfig["host"].toString(),
                         adConfig["port"]?.toString()?.toInt() ?: 0,
-                        adConfig["usrBaseDN"]?.toString() ?: "",
-                        adConfig["usrUid"]?.toString() ?: "",
-                        adConfig["grpBaseDN"]?.toString() ?: "",
-                        adConfig["grpUid"]?.toString() ?: "",
-                        adConfig["grpAttrName"]?.toString() ?: "",
-                        adConfig["bindDN"]?.toString() ?: "",
-                        adConfig["bindPwd"]?.toString() ?: ""
+                        adConfig["usrBaseDN"].toString(),
+                        adConfig["usrUid"].toString(),
+                        adConfig["grpBaseDN"].toString(),
+                        adConfig["grpUid"].toString(),
+                        adConfig["grpAttrName"].toString(),
+                        adConfig["bindDN"].toString(),
+                        adConfig["bindPwd"].toString()
                 )
             }
             else { //defaulting to connection error in case of no config YAML
