@@ -1,3 +1,5 @@
 host: localhost
 port: 11389
 usrUid: uid
+bindDN: uid=srvbinder,ou=ServiceAccounts,dc=adeo,dc=example,dc=com
+bindPwd: binder

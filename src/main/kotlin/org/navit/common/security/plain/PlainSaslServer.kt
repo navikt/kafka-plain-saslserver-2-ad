@@ -67,7 +67,7 @@ class PlainSaslServer(val jaasContext: JaasContext, private val ldap: LDAPProxy)
         if (ldap.canUserAuthenticate(username, password))
             log.info("Successful authentication of $username")
         else {
-            log.error("Authentication failed: see LDAP bind exception in server log")
+            log.error("Authentication failed for $username: see LDAP bind exception in server log")
             throw SaslAuthenticationException("Authentication failed! See LDAP bind exception in server log")
         }
         //NTT

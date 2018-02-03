@@ -48,6 +48,16 @@ sn: Doe
 uid: cdoe
 userPassword: charlie
 
+dn: uid=ddoe,ou=ServiceAccounts,dc=adeo,dc=example,dc=com
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: organizationalPerson
+cn: Don Doe
+sn: Doe
+uid: ddoe
+userPassword: don
+
 dn: ou=KafkaGroups,dc=adeo,dc=example,dc=com
 objectClass: top
 objectClass: organizationalUnit

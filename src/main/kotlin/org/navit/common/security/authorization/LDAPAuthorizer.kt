@@ -4,66 +4,54 @@ import kafka.network.RequestChannel
 import kafka.security.auth.*
 import org.apache.kafka.common.acl.AclPermissionType
 import org.apache.kafka.common.resource.ResourceType
-import org.navit.common.security.authentication.LDAPProxy
+import org.apache.kafka.common.security.auth.KafkaPrincipal
 import org.slf4j.LoggerFactory
 
 class LDAPAuthorizer : SimpleAclAuthorizer() {
 
-    private val ldapProxy: LDAPProxy
-
-    init {
-
-        val configFile = ClassLoader.getSystemResource("adconfig.yaml")?.path ?: ""
-
-        if (configFile.isEmpty()) log.error("Authorization will fail, no adconfig.yaml found!")
-
-        ldapProxy = LDAPProxy.init(configFile)
-        log.info("LDAPAuthorizer has initialized ldap proxy")
-    }
+    private val navAuthorizer = NAVAuthorizer()
 
     override fun authorize(session: RequestChannel.Session?, operation: Operation?, resource: Resource?): Boolean {
 
-        val authorized = super.authorize(session, operation, resource)
-
         // nothing to do if already authorized
-        if (authorized) return true
+        if (super.authorize(session, operation, resource)) return true
 
-        log.info("Principal ${session?.principal()} trying operation(${operation?.toString()}) " +
-                "from host(${session?.clientAddress()?.hostAddress}) " +
-                "on resource(${resource?.toString()}) ($authorized)")
+        val principal = session?.principal()
+        val lOperation = operation?.toString()
+        val host = session?.clientAddress()?.hostAddress
+        val lResource = resource?.toString()
+
+        log.warn("Switch to ldap authorization: $principal trying $lOperation from $host on $lResource")
 
         //TODO ResourceType.GROUP - under change in minor version - CAREFUL!
-        // Warning! Assuming no group considerations, thus implicitly always empty group acls
+        // Warning! Assuming no group considerations, thus implicitly always empty group access control lists
         if (resource?.resourceType()?.toJava() == ResourceType.GROUP) {
-            log.info("Warning - no group considerations - principal ${session?.principal()} " +
-                    "trying operation(${operation?.toString()}) on resource($resource) is ALLOWED!")
+            log.warn("$ldapAuthorization $principal trying $lOperation from $host on $lResource is authorized")
             return true
         }
 
         //TODO AclPermissionType.ALLOW - under change in minor version - CAREFUL!
-        // get allow acls for current operation, also hurry inside the kotlin turf
+        // get allow access control lists for resource and given operation
         val sacls = getAcls(resource).filter { it.operation() == operation && it.permissionType().toJava() == AclPermissionType.ALLOW }
-        var acls: Set<Acl> = emptySet()
 
+        // switch to kotlin set, making testing easier
+        var acls: Set<Acl> = emptySet()
         sacls.foreach { acls += it }
 
         // nothing to do if empty acl set
         if (acls.isEmpty()) {
-            log.info("Allow ACLs empty for resource ${resource?.name()}, operation ${operation?.toString()} - NOT ALLOWED")
+            log.warn("$ldapAuthorization empty ALLOW ACL for [$lResource,$lOperation] - not authorized")
             return false
         }
 
-        acls.forEach { log.info("acl - $it") }
-
-        // get allow principals, remove the prefix - <User>:<name>
-        val aprin = acls.map { it.principal().toString().substringAfter(":") }
-
-        aprin.forEach { log.info("principals - $it") }
-
-        return ldapProxy.isUserMemberOfAny(session?.principal().toString().substringAfter(":"),aprin)
+        return navAuthorizer.authorize(
+                session?.principal() ?: KafkaPrincipal(KafkaPrincipal.USER_TYPE,"ANONYMOUS"),
+                acls
+        )
     }
 
     companion object {
         private val log = LoggerFactory.getLogger(LDAPAuthorizer::class.java)
+        private const val ldapAuthorization = "LDAP authorization:"
     }
 }

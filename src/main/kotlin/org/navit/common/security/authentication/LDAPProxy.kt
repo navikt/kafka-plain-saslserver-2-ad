@@ -22,23 +22,21 @@ class LDAPProxy private constructor(
     init {
         try {
             ldapConnection.connect(host, port)
-            log.info("Successfully connected to LDAP($host,$port)")
+            log.info("$ldapAuthentication successfully connected to ($host,$port)")
         }
         catch (e: LDAPException) {
-            log.error("Authentication will fail! Exception when connecting to LDAP($host,$port)")
+            log.error("$ldapAuthentication authentication will fail! Exception when connecting to ($host,$port)")
             ldapConnection.setDisconnectInfo(DisconnectType.IO_ERROR,"Exception when connecting to LDAP($host,$port)", e)
         }
 
         try {
             //must perform binding for function isUserMemberOfAny
             ldapConnection.bind(bindDN,bindPwd)
-            log.info("Successfully bind to LDAP($host,$port)")
+            log.info("$ldapAuthentication successfully bind to ($host,$port) with $bindDN")
         }
         catch (e: LDAPException) {
-            log.error("LDAP compare will fail! Exception when bind to LDAP($host,$port) - ${e.diagnosticMessage}")
+            log.error("$ldapAuthentication authorization will fail! Exception when bind to ($host,$port) - ${e.diagnosticMessage}")
         }
-
-
     }
 
     fun canUserAuthenticate(user: String, pwd: String): Boolean {
@@ -46,14 +44,12 @@ class LDAPProxy private constructor(
         return  try {
             val userDN = "$usrUid=$user,$usrBaseDN"
 
-            log.info("DN for $user is $userDN")
-
-            log.info("Trying LDAP bind of $userDN and given password")
+            log.info("$ldapAuthentication trying bind for $userDN and given password")
             ldapConnection.bind(userDN, pwd).resultCode == ResultCode.SUCCESS
 
         }
         catch(e: LDAPException) {
-            log.error("LDAP bind exception, ${e.exceptionMessage}")
+            log.error("$ldapAuthentication bind exception, ${e.exceptionMessage}")
             false
         }
     }
@@ -67,14 +63,12 @@ class LDAPProxy private constructor(
 
                 val groupDN = "$grpUid=$it,$grpBaseDN"
 
-                log.info("Trying LDAP compare matched for $groupDN - $grpAttrName - $userDN")
+                log.info("$ldapAuthentication trying compare-matched for $groupDN - $grpAttrName - $userDN")
                 result = result || try {
-                    // must bind first
-                    //ldapConnection.bind(bindDN,bindPwd)
                     ldapConnection.compare(CompareRequest(groupDN, grpAttrName, userDN)).compareMatched()
                 }
                 catch(e: LDAPException) {
-                    log.error("LDAP compare exception - invalid group!, ${e.exceptionMessage}")
+                    log.error("$ldapAuthentication compare-matched exception - invalid group!, ${e.exceptionMessage}")
                     false
                 }
             }
@@ -85,6 +79,7 @@ class LDAPProxy private constructor(
     companion object {
 
         private val log = LoggerFactory.getLogger(LDAPProxy::class.java)
+        private const val ldapAuthentication = "LDAP authentication:"
 
         fun init(configFile: String) : LDAPProxy {
 
