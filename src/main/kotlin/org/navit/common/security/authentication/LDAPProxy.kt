@@ -15,9 +15,9 @@ class LDAPProxy private constructor(
         private val usrUid: String,
         private val grpBaseDN: String,
         private val grpUid: String,
-        private val grpAttrName: String,
+        private val grpAttrName: String/*,
         bindDN: String,
-        bindPwd: String) {
+        bindPwd: String*/) {
 
     //TODO  - TrustAllTrustManager is too trusty...
     private val ldapConnection = LDAPConnection(SSLUtil(TrustAllTrustManager()).createSSLSocketFactory())
@@ -30,18 +30,18 @@ class LDAPProxy private constructor(
             log.info("Successfully connected to ($host,$port)")
         }
         catch (e: LDAPException) {
-            log.error("Authentication will fail! Exception when connecting to ($host,$port) - ${e.diagnosticMessage}")
+            log.error("Authentication and authorization will fail! Exception when connecting to ($host,$port) - ${e.diagnosticMessage}")
             ldapConnection.setDisconnectInfo(DisconnectType.IO_ERROR,"Exception when connecting to LDAP($host,$port)", e)
         }
 
-        try {
+/*        try {
             //must perform binding for function isUserMemberOfAny
             ldapConnection.bind(bindDN,bindPwd)
             log.info("Successfully bind to ($host,$port) with $bindDN")
         }
         catch (e: LDAPException) {
             log.error("Authorization will fail! Exception when bind to ($host,$port) - ${e.diagnosticMessage}")
-        }
+        }*/
     }
 
     fun canUserAuthenticate(user: String, pwd: String): Boolean {
@@ -63,9 +63,14 @@ class LDAPProxy private constructor(
                     (ldapConnection.bind(userDN, pwd).resultCode == ResultCode.SUCCESS).let {
                         if (it) {
                             ldapCache.getBounded(userDN, pwd)
-                            log.info("Bind cache updated")
+                            log.info("Bind cache updated for $user")
+                            //getKafkaGroups()
+                            // save this for required binding in authorization process - see isUserMemberOfAny
+                            if (user == "srvkafkabroker" && !ldapCache.grabbed) {
+                                ldapCache.bounded = LDAPCache.Bounded(userDN,pwd)
+                                ldapCache.grabbed = true
+                            }
                         }
-                        getKafkaGroups()
                         it
                     }
                 }
@@ -79,38 +84,58 @@ class LDAPProxy private constructor(
 
     fun isUserMemberOfAny(user: String, groups: List<String>): Boolean {
 
-        var result = false
+        var isMember: Boolean
         val userDN = "$usrUid=$user,$usrBaseDN"
 
-        groups.forEach {
+        // check if group-user has at least one cache hit
+        isMember =  groups.map { ldapCache.alreadyGrouped("$grpUid=$it,$grpBaseDN",userDN) }.indexOfFirst { it == true }.let {
+            val found = (it >= 0)
+            if (found) log.info("[${groups[it]},$user] is cached")
+            found
+        }
 
-            val groupDN = "$grpUid=$it,$grpBaseDN"
+        if (isMember) return true
 
-            when(ldapCache.alreadyGrouped(groupDN,userDN)) {
-                true -> {
-                    result = true
-                    log.info("[$it,$user] is cached")
+        // otherwise, check that connection is bounded, eventually bind before perform compare-match
+        when(ldapConnection.lastBindRequest?.getRebindRequest(host, port)){
+            is BindRequest -> {} // nothing to do
+            else -> {
+                try {
+                    log.info("Bind before compare-matched")
+                    ldapConnection.bind(ldapCache.bounded.name,ldapCache.bounded.other)
                 }
-                else -> {
-                    log.info("Trying compare-matched for $groupDN - $grpAttrName - $userDN")
-                    result = result || try {
-                        ldapConnection.compare(CompareRequest(groupDN, grpAttrName, userDN)).compareMatched().let {
-                            getKafkaGroups()
-                            it
-                        }
-                    }
-                    catch(e: LDAPException) {
-                        log.error("Compare-matched exception - invalid group!, ${e.exceptionMessage}")
-                        false
-                    }
+                catch (e: LDAPException) {
+                    log.error("Bind before compare-matched exception, ${e.exceptionMessage}")
                 }
             }
         }
 
-        return result
+        groups.forEach {
+
+            val groupDN = "$grpUid=$it,$grpBaseDN"
+            val groupName = it
+
+            log.info("Trying compare-matched for $groupDN - $grpAttrName - $userDN")
+            isMember = isMember || try {
+                ldapConnection.compare(CompareRequest(groupDN, grpAttrName, userDN)).compareMatched().let {
+                    if (it) {
+                        ldapCache.getGrouped(groupDN, userDN)
+                        log.info("Group cache updated for [$groupName,$user")
+                        //getKafkaGroups()
+                    }
+                    it
+                }
+            }
+            catch(e: LDAPException) {
+                log.error("Compare-matched exception - invalid group!, ${e.exceptionMessage}")
+                false
+            }
+        }
+
+        return isMember
     }
 
-    private fun getKafkaGroups() {
+/*    private fun getKafkaGroups() {
 
         val filter = Filter.createSubstringFilter(grpUid,"kt",null, null)
 
@@ -132,8 +157,8 @@ class LDAPProxy private constructor(
             log.error("Search exception - ${e.exceptionMessage}")
         }
 
-        log.info("Group cache updated")
-    }
+        log.info("Group cache updated with all kafka groups")
+    }*/
 
     companion object {
 
@@ -157,13 +182,13 @@ class LDAPProxy private constructor(
                         adConfig["usrUid"].toString(),
                         adConfig["grpBaseDN"].toString(),
                         adConfig["grpUid"].toString(),
-                        adConfig["grpAttrName"].toString(),
+                        adConfig["grpAttrName"].toString()/*,
                         adConfig["bindDN"].toString(),
-                        adConfig["bindPwd"].toString()
+                        adConfig["bindPwd"].toString()*/
                 )
             }
             else { //defaulting to connection error in case of no config YAML
-                LDAPProxy("",0,"","","","","","","")
+                LDAPProxy("",0,"","","","",""/*,"",""*/)
             }
         }
     }

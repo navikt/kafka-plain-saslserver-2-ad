@@ -9,6 +9,7 @@ import org.apache.kafka.common.security.auth.KafkaPrincipal
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.*
 import org.navit.common.security.authentication.InMemoryLDAPServer
+import org.navit.common.security.authentication.LDAPProxy
 
 
 object NAVAuthorizerSpec : Spek({
@@ -59,10 +60,16 @@ object NAVAuthorizerSpec : Spek({
         return KafkaPrincipal(KafkaPrincipal.USER_TYPE,userName)
     }
 
+    val correctYAML = "src/test/resources/adconfig.yaml"
+
     describe("NAVAuthorizer class test specifications") {
 
         beforeGroup {
             InMemoryLDAPServer.start()
+
+            //Assuming authentication done first
+            val ldap = LDAPProxy.init(correctYAML)
+            ldap.canUserAuthenticate("srvkafkabroker","broker")
         }
 
         given("a acls with describe allowance - 2 ldap groups") {
@@ -86,7 +93,7 @@ object NAVAuthorizerSpec : Spek({
                 }
             }
             on("a non-member user in any group") {
-                it("should retrn true") {
+                it("should retrn false") {
                     val authorizer = NAVAuthorizer()
                     val authorized = authorizer.authorize(createKP("ddoe"),aclDescribe)
 

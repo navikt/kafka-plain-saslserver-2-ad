@@ -8,6 +8,9 @@ import java.util.concurrent.TimeUnit
 
 object LDAPCache {
 
+    @Volatile var grabbed = false
+    @Volatile var bounded = Bounded("","")
+
     data class Bounded(val name: String, val other: String)
 
     class BoundedCacheLoader : CacheLoader<Bounded, Bounded>() {

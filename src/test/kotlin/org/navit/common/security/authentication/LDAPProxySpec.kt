@@ -164,48 +164,64 @@ object LDAPProxySpec : Spek ({
             on("user and membership group") {
                 it("should return true") {
                     val ldap = LDAPProxy.init(correctYAML)
+                    //Assuming authentication done first
+                    ldap.canUserAuthenticate("srvkafkabroker","broker")
                     ldap.isUserMemberOfAny("bdoe", listOf("ktACons")).`should be true`()
                 }
             }
             on("user and non-membership group") {
                 it("should return false") {
                     val ldap = LDAPProxy.init(correctYAML)
+                    //Assuming authentication done first
+                    ldap.canUserAuthenticate("srvkafkabroker","broker")
                     ldap.isUserMemberOfAny("adoe", listOf("ktACons")).`should be false`()
                 }
             }
             on("user and membership group") {
                 it("should return true") {
                     val ldap = LDAPProxy.init(correctYAML)
+                    //Assuming authentication done first
+                    ldap.canUserAuthenticate("srvkafkabroker","broker")
                     ldap.isUserMemberOfAny("adoe", listOf("ktAProd")).`should be true`()
                 }
             }
             on("invalid user and existing group") {
                 it("should return false") {
                     val ldap = LDAPProxy.init(correctYAML)
+                    //Assuming authentication done first
+                    ldap.canUserAuthenticate("srvkafkabroker","broker")
                     ldap.isUserMemberOfAny("invalid", listOf("ktACons")).`should be false`()
                 }
             }
             on("existing user and invalid group") {
                 it("should return false") {
                     val ldap = LDAPProxy.init(correctYAML)
+                    //Assuming authentication done first
+                    ldap.canUserAuthenticate("srvkafkabroker","broker")
                     ldap.isUserMemberOfAny("bdoe", listOf("invalid")).`should be false`()
                 }
             }
             on("user and {invalid group,membership group}") {
                 it("should return true") {
                     val ldap = LDAPProxy.init(correctYAML)
+                    //Assuming authentication done first
+                    ldap.canUserAuthenticate("srvkafkabroker","broker")
                     ldap.isUserMemberOfAny("bdoe", listOf("invalid","ktACons")).`should be true`()
                 }
             }
             on("user and {non-membership group,membership group}") {
                 it("should return true") {
                     val ldap = LDAPProxy.init(correctYAML)
+                    //Assuming authentication done first
+                    ldap.canUserAuthenticate("srvkafkabroker","broker")
                     ldap.isUserMemberOfAny("bdoe", listOf("ktAProd","ktACons")).`should be true`()
                 }
             }
             on("user and {non-membership group,invalid group}") {
                 it("should return false") {
                     val ldap = LDAPProxy.init(correctYAML)
+                    //Assuming authentication done first
+                    ldap.canUserAuthenticate("srvkafkabroker","broker")
                     ldap.isUserMemberOfAny("bdoe", listOf("ktAProd","invalid")).`should be false`()
                 }
             }
