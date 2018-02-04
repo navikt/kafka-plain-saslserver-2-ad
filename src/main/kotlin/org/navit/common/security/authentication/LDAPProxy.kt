@@ -52,13 +52,16 @@ class LDAPProxy private constructor(
 
             when (ldapCache.alreadyBinded(userDN, pwd)) {
                 true -> {
-                    log.info("$ldapAuthentication $userDN is cached")
+                    log.info("$ldapAuthentication $user is cached")
                     true
                 }
                 else -> {
                     log.info("$ldapAuthentication trying bind for $userDN and given password")
                     (ldapConnection.bind(userDN, pwd).resultCode == ResultCode.SUCCESS).let {
-                        if (it) ldapCache.getBinded(userDN, pwd)
+                        if (it) {
+                            ldapCache.getBinded(userDN, pwd)
+                            log.info("$ldapAuthentication bind cache updated")
+                        }
                         getKafkaGroups()
                         it
                     }
@@ -83,12 +86,15 @@ class LDAPProxy private constructor(
             when(ldapCache.alreadyGrouped(groupDN,userDN)) {
                 true -> {
                     result = true
-                    log.info("$ldapAuthentication [$groupDN,$userDN] is cached")
+                    log.info("$ldapAuthentication [$it,$user] is cached")
                 }
                 else -> {
                     log.info("$ldapAuthentication trying compare-matched for $groupDN - $grpAttrName - $userDN")
                     result = result || try {
-                        ldapConnection.compare(CompareRequest(groupDN, grpAttrName, userDN)).compareMatched()
+                        ldapConnection.compare(CompareRequest(groupDN, grpAttrName, userDN)).compareMatched().let {
+                            getKafkaGroups()
+                            it
+                        }
                     }
                     catch(e: LDAPException) {
                         log.error("$ldapAuthentication compare-matched exception - invalid group!, ${e.exceptionMessage}")
@@ -122,6 +128,8 @@ class LDAPProxy private constructor(
         catch (e: LDAPSearchException) {
             log.error("$ldapAuthentication search exception - ${e.exceptionMessage}")
         }
+
+        log.info("$ldapAuthentication group cache updated")
     }
 
     companion object {

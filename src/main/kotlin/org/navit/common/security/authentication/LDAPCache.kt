@@ -34,12 +34,12 @@ object LDAPCache {
 
     init {
         bindedCache = CacheBuilder.newBuilder()
-                .maximumSize(10000)
+                .maximumSize(1000)
                 .expireAfterWrite(2,TimeUnit.MINUTES)
                 .build(BindedCacheLoader())
 
         groupedCache = CacheBuilder.newBuilder()
-                .maximumSize(1000)
+                .maximumSize(10000)
                 .expireAfterWrite(4,TimeUnit.MINUTES)
                 .build(GroupedCacheLoader())
 
