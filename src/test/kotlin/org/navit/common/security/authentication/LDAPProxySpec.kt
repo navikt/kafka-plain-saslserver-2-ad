@@ -6,6 +6,7 @@ import com.unboundid.ldap.listener.InMemoryListenerConfig
 import com.unboundid.ldap.sdk.OperationType
 import org.amshove.kluent.`should be false`
 import org.amshove.kluent.`should be true`
+import org.amshove.kluent.`should be`
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.*
 
@@ -42,13 +43,15 @@ object LDAPProxySpec : Spek ({
                 it("should return false") {
 
                     val ldap = LDAPProxy.init("src/test/resources/adcInvalidHost.yaml")
-                    ldap.canUserAuthenticate("adoe", "alice").`should be false`()
+                    val authenticated = ldap.canUserAuthenticate("adoe", "alice")
+
+                    authenticated.`should be`(false)
                 }
             }
             on("yaml - invalid port") {
                 it("should return false") {
                     val ldap = LDAPProxy.init("src/test/resources/adcInvalidPort.yaml")
-                    ldap.canUserAuthenticate("adoe", "alice").`should be false`()
+                    ldap.canUserAuthenticate("adoe", "alice").`should be`(false)
                 }
             }
             on("yaml - invalid usrBaseDN") {

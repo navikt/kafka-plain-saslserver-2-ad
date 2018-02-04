@@ -46,6 +46,18 @@ object NAVAuthorizerSpec : Spek({
         )
     }
 
+    // create write allowance for ldap group
+    fun cWriteAS(ldapGroup: String) : Set<Acl> {
+        return setOf(
+                Acl(
+                        KafkaPrincipal(KafkaPrincipal.USER_TYPE, ldapGroup),
+                        PermissionType.fromString("Allow"),
+                        "*",
+                        Operation.fromJava(AclOperation.WRITE)
+                )
+        )
+    }
+
     fun createKP (userName: String): KafkaPrincipal {
         return KafkaPrincipal(KafkaPrincipal.USER_TYPE,userName)
     }
@@ -66,34 +78,6 @@ object NAVAuthorizerSpec : Spek({
 
         beforeGroup {
             imDS.startListening("LDAP")
-        }
-
-
-        given("a acls with read allowance ") {
-
-            val aclRead = cReadAS("ktACons")
-
-            on("a member user") {
-
-                it("should return true") {
-
-                    val authorizer = NAVAuthorizer()
-                    val authorized = authorizer.authorize(createKP("bdoe"),aclRead)
-
-                    authorized.`should be`(true)
-                }
-            }
-
-            on("a non-member user") {
-
-                it("should return false") {
-
-                    val authorizer = NAVAuthorizer()
-                    val authorized = authorizer.authorize(createKP("adoe"),aclRead)
-
-                    authorized.`should be`(false)
-                }
-            }
         }
 
         given("a acls with describe allowance - 2 ldap groups") {
@@ -122,6 +106,60 @@ object NAVAuthorizerSpec : Spek({
                     val authorized = authorizer.authorize(createKP("ddoe"),aclDescribe)
 
                     authorized.`should be`(false)
+                }
+            }
+        }
+
+        given("a acls with read allowance ") {
+
+            val aclRead = cReadAS("ktACons")
+
+            on("a member user") {
+
+                it("should return true") {
+
+                    val authorizer = NAVAuthorizer()
+                    val authorized = authorizer.authorize(createKP("bdoe"),aclRead)
+
+                    authorized.`should be`(true)
+                }
+            }
+
+            on("a non-member user") {
+
+                it("should return false") {
+
+                    val authorizer = NAVAuthorizer()
+                    val authorized = authorizer.authorize(createKP("adoe"),aclRead)
+
+                    authorized.`should be`(false)
+                }
+            }
+        }
+
+        given("a acls with write allowance ") {
+
+            val aclWrite = cWriteAS("ktAProd")
+
+            on("a non-member user") {
+
+                it("should return false") {
+
+                    val authorizer = NAVAuthorizer()
+                    val authorized = authorizer.authorize(createKP("bdoe"),aclWrite)
+
+                    authorized.`should be`(false)
+                }
+            }
+
+            on("a member user") {
+
+                it("should return true") {
+
+                    val authorizer = NAVAuthorizer()
+                    val authorized = authorizer.authorize(createKP("adoe"),aclWrite)
+
+                    authorized.`should be`(true)
                 }
             }
         }

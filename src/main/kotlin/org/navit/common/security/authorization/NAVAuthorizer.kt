@@ -11,9 +11,9 @@ class NAVAuthorizer {
 
     init {
 
-        val configFile = ClassLoader.getSystemResource("adconfig.yaml")?.path ?: ""
+        val configFile = ClassLoader.getSystemResource(LDAPProxy.configFile)?.path ?: ""
 
-        if (configFile.isEmpty()) log.error("$navAuthorization authorization will fail, no adconfig.yaml found!")
+        if (configFile.isEmpty()) log.error("$navAuthorization authorization will fail, no ${LDAPProxy.configFile} found!")
 
         ldapProxy = LDAPProxy.init(configFile)
         log.info("$navAuthorization has initialized ldap proxy")
@@ -21,12 +21,19 @@ class NAVAuthorizer {
 
     fun authorize(principal: KafkaPrincipal, acls: Set<Acl>): Boolean {
 
-        acls.forEach { log.warn("$navAuthorization ALLOW ACL: $it") }
+        acls.forEach { log.info("$navAuthorization ALLOW ACL: $it") }
 
-        //get allow principals, should be LDAP groups only
+        //getBinded allow principals, should be LDAP groups only
         val ldapGroups: List<String> = acls.map { it.principal().name  }
 
-        return ldapProxy.isUserMemberOfAny(principal.name, ldapGroups)
+        val authorized = ldapProxy.isUserMemberOfAny(principal.name, ldapGroups)
+
+        when(authorized) {
+            true -> log.info("$navAuthorization $principal is authorized!")
+            false -> log.info("$navAuthorization $principal is not authorized!")
+        }
+
+        return authorized
     }
 
     companion object {

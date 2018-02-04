@@ -34,6 +34,7 @@ dependencies {
     compile "com.unboundid:unboundid-ldapsdk:4.0.3"
     compile 'org.yaml:snakeyaml:1.19'
     compile 'org.apache.kafka:kafka_2.12:1.0.0'
+    compile 'com.google.guava:guava:24.0-jre'
 
     testImplementation "org.amshove.kluent:kluent:1.33"
     testCompile "org.jetbrains.spek:spek-api:1.1.5"

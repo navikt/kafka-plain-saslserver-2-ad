@@ -18,8 +18,10 @@ class LDAPProxy private constructor(
         bindPwd: String) {
 
     private val ldapConnection = LDAPConnection()
+    private val ldapCache = LDAPCache
 
     init {
+
         try {
             ldapConnection.connect(host, port)
             log.info("$ldapAuthentication successfully connected to ($host,$port)")
@@ -41,12 +43,27 @@ class LDAPProxy private constructor(
 
     fun canUserAuthenticate(user: String, pwd: String): Boolean {
 
-        return  try {
+        // fair to disable authentication if no connection to ldap, even if the cache is operational
+        if (!ldapConnection.isConnected) return false
+
+        return try {
+
             val userDN = "$usrUid=$user,$usrBaseDN"
 
-            log.info("$ldapAuthentication trying bind for $userDN and given password")
-            ldapConnection.bind(userDN, pwd).resultCode == ResultCode.SUCCESS
-
+            when (ldapCache.alreadyBinded(userDN, pwd)) {
+                true -> {
+                    log.info("$ldapAuthentication $userDN is cached")
+                    true
+                }
+                else -> {
+                    log.info("$ldapAuthentication trying bind for $userDN and given password")
+                    (ldapConnection.bind(userDN, pwd).resultCode == ResultCode.SUCCESS).let {
+                        if (it) ldapCache.getBinded(userDN, pwd)
+                        getKafkaGroups()
+                        it
+                    }
+                }
+            }
         }
         catch(e: LDAPException) {
             log.error("$ldapAuthentication bind exception, ${e.exceptionMessage}")
@@ -56,28 +73,60 @@ class LDAPProxy private constructor(
 
     fun isUserMemberOfAny(user: String, groups: List<String>): Boolean {
 
-            var result = false
-            val userDN = "$usrUid=$user,$usrBaseDN"
+        var result = false
+        val userDN = "$usrUid=$user,$usrBaseDN"
 
-            groups.forEach {
+        groups.forEach {
 
-                val groupDN = "$grpUid=$it,$grpBaseDN"
+            val groupDN = "$grpUid=$it,$grpBaseDN"
 
-                log.info("$ldapAuthentication trying compare-matched for $groupDN - $grpAttrName - $userDN")
-                result = result || try {
-                    ldapConnection.compare(CompareRequest(groupDN, grpAttrName, userDN)).compareMatched()
+            when(ldapCache.alreadyGrouped(groupDN,userDN)) {
+                true -> {
+                    result = true
+                    log.info("$ldapAuthentication [$groupDN,$userDN] is cached")
                 }
-                catch(e: LDAPException) {
-                    log.error("$ldapAuthentication compare-matched exception - invalid group!, ${e.exceptionMessage}")
-                    false
+                else -> {
+                    log.info("$ldapAuthentication trying compare-matched for $groupDN - $grpAttrName - $userDN")
+                    result = result || try {
+                        ldapConnection.compare(CompareRequest(groupDN, grpAttrName, userDN)).compareMatched()
+                    }
+                    catch(e: LDAPException) {
+                        log.error("$ldapAuthentication compare-matched exception - invalid group!, ${e.exceptionMessage}")
+                        false
+                    }
                 }
             }
+        }
 
-            return result
+        return result
+    }
+
+    private fun getKafkaGroups() {
+
+        val filter = Filter.createSubstringFilter(grpUid,"kt",null, null)
+
+        try {
+            val sResult = ldapConnection.search(SearchRequest(grpBaseDN, SearchScope.SUB, filter, grpAttrName))
+
+            sResult.searchEntries.forEach {
+
+                val groupDN = it.dn
+
+                it.attributes.forEach {
+                    it.values.forEach {
+                        ldapCache.getGrouped(groupDN, it)
+                    }
+                }
+            }
+        }
+        catch (e: LDAPSearchException) {
+            log.error("$ldapAuthentication search exception - ${e.exceptionMessage}")
+        }
     }
 
     companion object {
 
+        const val configFile = "adconfig.yaml"
         private val log = LoggerFactory.getLogger(LDAPProxy::class.java)
         private const val ldapAuthentication = "LDAP authentication:"
 

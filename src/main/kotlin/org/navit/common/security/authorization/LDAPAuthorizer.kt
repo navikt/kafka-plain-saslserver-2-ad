@@ -26,12 +26,12 @@ class LDAPAuthorizer : SimpleAclAuthorizer() {
         //TODO ResourceType.GROUP - under change in minor version - CAREFUL!
         // Warning! Assuming no group considerations, thus implicitly always empty group access control lists
         if (resource?.resourceType()?.toJava() == ResourceType.GROUP) {
-            log.warn("$ldapAuthorization $principal trying $lOperation from $host on $lResource is authorized")
+            log.info("$ldapAuthorization $principal trying $lOperation from $host on $lResource is authorized")
             return true
         }
 
         //TODO AclPermissionType.ALLOW - under change in minor version - CAREFUL!
-        // get allow access control lists for resource and given operation
+        // getBinded allow access control lists for resource and given operation
         val sacls = getAcls(resource).filter { it.operation() == operation && it.permissionType().toJava() == AclPermissionType.ALLOW }
 
         // switch to kotlin set, making testing easier
@@ -40,7 +40,7 @@ class LDAPAuthorizer : SimpleAclAuthorizer() {
 
         // nothing to do if empty acl set
         if (acls.isEmpty()) {
-            log.warn("$ldapAuthorization empty ALLOW ACL for [$lResource,$lOperation] - not authorized")
+            log.info("$ldapAuthorization empty ALLOW ACL for [$lResource,$lOperation] - not authorized")
             return false
         }
 

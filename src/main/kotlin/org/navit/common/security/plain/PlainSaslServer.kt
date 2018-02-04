@@ -133,12 +133,12 @@ class PlainSaslServer(val jaasContext: JaasContext, private val ldap: LDAPProxy)
                 throw SaslException("CallbackHandler must be of type SaslServerCallbackHandler, but it is: " + cbh.javaClass)
 
             // TTN ADDED  prerequisite - directory containing the configuration file as part of the classpath
-            val configFile = ClassLoader.getSystemResource("adconfig.yaml")?.path ?: ""
+            val configFile = ClassLoader.getSystemResource(LDAPProxy.configFile)?.path ?: ""
 
             // TTN ADDED
             if (configFile.isEmpty()) {
-                log.error("Authentication will fail, no adconfig.yaml found!")
-                throw SaslException("Authentication will fail, no adconfig.yaml found!")
+                log.error("Authentication will fail, no ${LDAPProxy.configFile} found!")
+                throw SaslException("Authentication will fail, no ${LDAPProxy.configFile} found!")
             }
 
             // TTN ADDED - ldap proxy
