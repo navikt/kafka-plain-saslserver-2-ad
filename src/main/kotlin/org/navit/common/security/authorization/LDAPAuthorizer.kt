@@ -21,17 +21,17 @@ class LDAPAuthorizer : SimpleAclAuthorizer() {
         val host = session?.clientAddress()?.hostAddress
         val lResource = resource?.toString()
 
-        log.warn("Switch to ldap authorization: $principal trying $lOperation from $host on $lResource")
+        log.warn("Authorization Start -  $principal trying $lOperation from $host on $lResource")
 
         //TODO ResourceType.GROUP - under change in minor version - CAREFUL!
         // Warning! Assuming no group considerations, thus implicitly always empty group access control lists
         if (resource?.resourceType()?.toJava() == ResourceType.GROUP) {
-            log.info("$ldapAuthorization $principal trying $lOperation from $host on $lResource is authorized")
+            log.info("Authorization End - $principal trying $lOperation from $host on $lResource is authorized")
             return true
         }
 
         //TODO AclPermissionType.ALLOW - under change in minor version - CAREFUL!
-        // getBinded allow access control lists for resource and given operation
+        // getBounded allow access control lists for resource and given operation
         val sacls = getAcls(resource).filter { it.operation() == operation && it.permissionType().toJava() == AclPermissionType.ALLOW }
 
         // switch to kotlin set, making testing easier
@@ -40,18 +40,23 @@ class LDAPAuthorizer : SimpleAclAuthorizer() {
 
         // nothing to do if empty acl set
         if (acls.isEmpty()) {
-            log.info("$ldapAuthorization empty ALLOW ACL for [$lResource,$lOperation] - not authorized")
+            log.info("Authorization End - empty ALLOW ACL for [$lResource,$lOperation], is not authorized")
             return false
         }
 
         return navAuthorizer.authorize(
                 session?.principal() ?: KafkaPrincipal(KafkaPrincipal.USER_TYPE,"ANONYMOUS"),
                 acls
-        )
+        ).let {
+            when(it) {
+                true -> log.info("Authorization End - $principal is authorized!")
+                false -> log.info("Authorization End - $principal is not authorized!")
+            }
+            it
+        }
     }
 
     companion object {
         private val log = LoggerFactory.getLogger(LDAPAuthorizer::class.java)
-        private const val ldapAuthorization = "LDAP authorization:"
     }
 }

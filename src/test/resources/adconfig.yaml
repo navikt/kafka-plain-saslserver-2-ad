@@ -1,7 +1,7 @@
 #host of the LDAP server
 host: localhost
 #port of the LDAP server
-port: 11389
+port: 11636
 # userDN is <usrUid>=<usr>,<usrBaseDN>
 # Placement of users in LDAP tree
 usrBaseDN: ou=ServiceAccounts,dc=adeo,dc=example,dc=com

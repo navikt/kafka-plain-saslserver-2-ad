@@ -1,11 +1,13 @@
 package org.navit.common.security.authentication
 
 import com.unboundid.ldap.sdk.*
+import com.unboundid.util.ssl.SSLUtil
+import com.unboundid.util.ssl.TrustAllTrustManager
 import org.slf4j.LoggerFactory
 import org.yaml.snakeyaml.Yaml
 import java.io.*
 
-// Added
+
 class LDAPProxy private constructor(
         val host: String,
         val port: Int,
@@ -17,27 +19,28 @@ class LDAPProxy private constructor(
         bindDN: String,
         bindPwd: String) {
 
-    private val ldapConnection = LDAPConnection()
+    //TODO  - TrustAllTrustManager is too trusty...
+    private val ldapConnection = LDAPConnection(SSLUtil(TrustAllTrustManager()).createSSLSocketFactory())
     private val ldapCache = LDAPCache
 
     init {
 
         try {
             ldapConnection.connect(host, port)
-            log.info("$ldapAuthentication successfully connected to ($host,$port)")
+            log.info("Successfully connected to ($host,$port)")
         }
         catch (e: LDAPException) {
-            log.error("$ldapAuthentication authentication will fail! Exception when connecting to ($host,$port)")
+            log.error("Authentication will fail! Exception when connecting to ($host,$port) - ${e.diagnosticMessage}")
             ldapConnection.setDisconnectInfo(DisconnectType.IO_ERROR,"Exception when connecting to LDAP($host,$port)", e)
         }
 
         try {
             //must perform binding for function isUserMemberOfAny
             ldapConnection.bind(bindDN,bindPwd)
-            log.info("$ldapAuthentication successfully bind to ($host,$port) with $bindDN")
+            log.info("Successfully bind to ($host,$port) with $bindDN")
         }
         catch (e: LDAPException) {
-            log.error("$ldapAuthentication authorization will fail! Exception when bind to ($host,$port) - ${e.diagnosticMessage}")
+            log.error("Authorization will fail! Exception when bind to ($host,$port) - ${e.diagnosticMessage}")
         }
     }
 
@@ -50,17 +53,17 @@ class LDAPProxy private constructor(
 
             val userDN = "$usrUid=$user,$usrBaseDN"
 
-            when (ldapCache.alreadyBinded(userDN, pwd)) {
+            when (ldapCache.alreadyBounded(userDN, pwd)) {
                 true -> {
-                    log.info("$ldapAuthentication $user is cached")
+                    log.info("$user is cached")
                     true
                 }
                 else -> {
-                    log.info("$ldapAuthentication trying bind for $userDN and given password")
+                    log.info("Trying bind for $userDN and given password")
                     (ldapConnection.bind(userDN, pwd).resultCode == ResultCode.SUCCESS).let {
                         if (it) {
-                            ldapCache.getBinded(userDN, pwd)
-                            log.info("$ldapAuthentication bind cache updated")
+                            ldapCache.getBounded(userDN, pwd)
+                            log.info("Bind cache updated")
                         }
                         getKafkaGroups()
                         it
@@ -69,7 +72,7 @@ class LDAPProxy private constructor(
             }
         }
         catch(e: LDAPException) {
-            log.error("$ldapAuthentication bind exception, ${e.exceptionMessage}")
+            log.error("Bind exception, ${e.exceptionMessage}")
             false
         }
     }
@@ -86,10 +89,10 @@ class LDAPProxy private constructor(
             when(ldapCache.alreadyGrouped(groupDN,userDN)) {
                 true -> {
                     result = true
-                    log.info("$ldapAuthentication [$it,$user] is cached")
+                    log.info("[$it,$user] is cached")
                 }
                 else -> {
-                    log.info("$ldapAuthentication trying compare-matched for $groupDN - $grpAttrName - $userDN")
+                    log.info("Trying compare-matched for $groupDN - $grpAttrName - $userDN")
                     result = result || try {
                         ldapConnection.compare(CompareRequest(groupDN, grpAttrName, userDN)).compareMatched().let {
                             getKafkaGroups()
@@ -97,7 +100,7 @@ class LDAPProxy private constructor(
                         }
                     }
                     catch(e: LDAPException) {
-                        log.error("$ldapAuthentication compare-matched exception - invalid group!, ${e.exceptionMessage}")
+                        log.error("Compare-matched exception - invalid group!, ${e.exceptionMessage}")
                         false
                     }
                 }
@@ -126,17 +129,16 @@ class LDAPProxy private constructor(
             }
         }
         catch (e: LDAPSearchException) {
-            log.error("$ldapAuthentication search exception - ${e.exceptionMessage}")
+            log.error("Search exception - ${e.exceptionMessage}")
         }
 
-        log.info("$ldapAuthentication group cache updated")
+        log.info("Group cache updated")
     }
 
     companion object {
 
-        const val configFile = "adconfig.yaml"
+        const val CONFIGFILE = "adconfig.yaml"
         private val log = LoggerFactory.getLogger(LDAPProxy::class.java)
-        private const val ldapAuthentication = "LDAP authentication:"
 
         fun init(configFile: String) : LDAPProxy {
 

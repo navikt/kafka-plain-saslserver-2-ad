@@ -1,5 +1,5 @@
 host: localhost
-port: 11389
+port: 11636
 usrBaseDN: dc=nav,dc=no
 usrUid: uid
 bindDN: uid=srvbinder,ou=ServiceAccounts,dc=adeo,dc=example,dc=com

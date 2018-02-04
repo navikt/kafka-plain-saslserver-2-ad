@@ -64,10 +64,11 @@ class PlainSaslServer(val jaasContext: JaasContext, private val ldap: LDAPProxy)
         */
 
         //TTN ADDED
+        log.info("Authentication Start - $username")
         if (ldap.canUserAuthenticate(username, password))
-            log.info("Successful authentication of $username")
+            log.info("Authentication End - successful authentication of $username")
         else {
-            log.error("Authentication failed for $username: see LDAP bind exception in server log")
+            log.error("Authentication End - authentication failed for $username")
             throw SaslAuthenticationException("Authentication failed! See LDAP bind exception in server log")
         }
         //NTT
@@ -133,12 +134,12 @@ class PlainSaslServer(val jaasContext: JaasContext, private val ldap: LDAPProxy)
                 throw SaslException("CallbackHandler must be of type SaslServerCallbackHandler, but it is: " + cbh.javaClass)
 
             // TTN ADDED  prerequisite - directory containing the configuration file as part of the classpath
-            val configFile = ClassLoader.getSystemResource(LDAPProxy.configFile)?.path ?: ""
+            val configFile = ClassLoader.getSystemResource(LDAPProxy.CONFIGFILE)?.path ?: ""
 
             // TTN ADDED
             if (configFile.isEmpty()) {
-                log.error("Authentication will fail, no ${LDAPProxy.configFile} found!")
-                throw SaslException("Authentication will fail, no ${LDAPProxy.configFile} found!")
+                log.error("Authentication will fail, no ${LDAPProxy.CONFIGFILE} found!")
+                throw SaslException("Authentication will fail, no ${LDAPProxy.CONFIGFILE} found!")
             }
 
             // TTN ADDED - ldap proxy

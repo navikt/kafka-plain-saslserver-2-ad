@@ -1,9 +1,5 @@
 package org.navit.common.security.authentication
 
-import com.unboundid.ldap.listener.InMemoryDirectoryServer
-import com.unboundid.ldap.listener.InMemoryDirectoryServerConfig
-import com.unboundid.ldap.listener.InMemoryListenerConfig
-import com.unboundid.ldap.sdk.OperationType
 import org.amshove.kluent.`should be false`
 import org.amshove.kluent.`should be true`
 import org.amshove.kluent.`should be`
@@ -12,22 +8,11 @@ import org.jetbrains.spek.api.dsl.*
 
 object LDAPProxySpec : Spek ({
 
-    val imConf = InMemoryDirectoryServerConfig("dc=example,dc=com","dc=adeo,dc=example,dc=com")
-
-    imConf.setListenerConfigs(
-            InMemoryListenerConfig.createLDAPConfig("LDAP",11389)
-    )
-    // must bind before compare, equal to non-anonymous access./
-    imConf.setAuthenticationRequiredOperationTypes(OperationType.COMPARE)
-
-    val imDS = InMemoryDirectoryServer(imConf)
-
-    imDS.importFromLDIF(true,"src/test/resources/ADUsers.ldif")
 
     describe("LDAPProxy class test specifications") {
 
         beforeGroup {
-            imDS.startListening("LDAP")
+            InMemoryLDAPServer.start()
         }
 
         given("correct path to different YAML configs and correct user,pwd") {
@@ -227,7 +212,7 @@ object LDAPProxySpec : Spek ({
         }
 
         afterGroup {
-            imDS.shutDown(true)
+            InMemoryLDAPServer.stop()
         }
     }
 

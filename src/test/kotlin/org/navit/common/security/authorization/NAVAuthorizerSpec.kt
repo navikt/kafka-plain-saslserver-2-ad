@@ -1,9 +1,5 @@
 package org.navit.common.security.authorization
 
-import com.unboundid.ldap.listener.InMemoryDirectoryServer
-import com.unboundid.ldap.listener.InMemoryDirectoryServerConfig
-import com.unboundid.ldap.listener.InMemoryListenerConfig
-import com.unboundid.ldap.sdk.OperationType
 import kafka.security.auth.Acl
 import kafka.security.auth.Operation
 import kafka.security.auth.PermissionType
@@ -12,6 +8,7 @@ import org.apache.kafka.common.acl.AclOperation
 import org.apache.kafka.common.security.auth.KafkaPrincipal
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.*
+import org.navit.common.security.authentication.InMemoryLDAPServer
 
 
 object NAVAuthorizerSpec : Spek({
@@ -62,22 +59,10 @@ object NAVAuthorizerSpec : Spek({
         return KafkaPrincipal(KafkaPrincipal.USER_TYPE,userName)
     }
 
-    val imConf = InMemoryDirectoryServerConfig("dc=example,dc=com","dc=adeo,dc=example,dc=com")
-
-    imConf.setListenerConfigs(
-            InMemoryListenerConfig.createLDAPConfig("LDAP",11389)
-    )
-    // must bind before compare, equal to non-anonymous access./
-    imConf.setAuthenticationRequiredOperationTypes(OperationType.COMPARE)
-
-    val imDS = InMemoryDirectoryServer(imConf)
-
-    imDS.importFromLDIF(true,"src/test/resources/ADUsers.ldif")
-
     describe("NAVAuthorizer class test specifications") {
 
         beforeGroup {
-            imDS.startListening("LDAP")
+            InMemoryLDAPServer.start()
         }
 
         given("a acls with describe allowance - 2 ldap groups") {
@@ -165,7 +150,7 @@ object NAVAuthorizerSpec : Spek({
         }
 
         afterGroup {
-            imDS.shutDown(true)
+            InMemoryLDAPServer.stop()
         }
     }
 })
