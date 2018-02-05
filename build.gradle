@@ -78,15 +78,15 @@ publishing {
     repositories {
         maven {
             credentials {
-                username "d"
-                password "d"
+                username nexusUser
+                password nexusPassword
             }
-            url "https://repo.adeo.no/repository/maven-snapshots/"
+            url nexusURL
         }
     }
 }
 
 task copyJarToKafka(type: Copy) {
-    from 'build/libs/KafkaPlainSaslServer2AD-1.0-SNAPSHOT-all.jar'
-    into "/Users/torsteinnesby/confluent-4.0.0-SA/share/java/kafka/"
+    from kafkaJARSrc
+    into kafkaJARDest
 }
