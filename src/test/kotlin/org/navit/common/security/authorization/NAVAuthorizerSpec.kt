@@ -60,6 +60,9 @@ object NAVAuthorizerSpec : Spek({
         return KafkaPrincipal(KafkaPrincipal.USER_TYPE,userName)
     }
 
+    // set the JAAS config in order to do successful init of LDAPProxy
+    JAASContext.setUp()
+
     val correctYAML = "src/test/resources/adconfig.yaml"
 
     describe("NAVAuthorizer class test specifications") {

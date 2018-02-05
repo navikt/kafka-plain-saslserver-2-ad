@@ -8,21 +8,18 @@ import java.util.concurrent.TimeUnit
 
 object LDAPCache {
 
-    @Volatile var grabbed = false
-    @Volatile var bounded = Bounded("","")
+    private data class Bounded(val name: String, val other: String)
 
-    data class Bounded(val name: String, val other: String)
-
-    class BoundedCacheLoader : CacheLoader<Bounded, Bounded>() {
+    private class BoundedCacheLoader : CacheLoader<Bounded, Bounded>() {
 
         override fun load(key: Bounded): Bounded {
             return key
         }
     }
 
-    data class Grouped(val name: String, val other: String)
+    private data class Grouped(val name: String, val other: String)
 
-    class GroupedCacheLoader : CacheLoader<Grouped,Grouped>() {
+    private class GroupedCacheLoader : CacheLoader<Grouped,Grouped>() {
 
         override fun load(key: Grouped): Grouped {
             return key

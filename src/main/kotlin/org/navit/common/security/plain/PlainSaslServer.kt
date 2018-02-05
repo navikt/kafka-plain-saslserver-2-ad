@@ -143,7 +143,7 @@ class PlainSaslServer(val jaasContext: JaasContext, private val ldap: LDAPProxy)
             }
 
             // TTN ADDED - ldap proxy
-            return PlainSaslServer(cbh.jaasContext(),  LDAPProxy.init(configFile))
+            return PlainSaslServer(cbh.jaasContext(), LDAPProxy.init(configFile))
         }
 
         override fun getMechanismNames(props: Map<String, *>?): Array<String> {

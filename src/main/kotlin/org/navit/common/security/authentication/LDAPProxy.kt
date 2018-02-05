@@ -7,24 +7,59 @@ import org.slf4j.LoggerFactory
 import org.yaml.snakeyaml.Yaml
 import java.io.*
 
+/**
+ *
+ *  LDAPProxy is used in two different contexts
+ * - Authentication as part of PlainSaslServer.evaluateResponse - see canUserAuthenticate
+ * - Authorization as part of LDAPAuthorizer via NAVAuthorizer - see isUserMemberOfAny
+ *
+ */
 
 class LDAPProxy private constructor(
-        val host: String,
-        val port: Int,
+        host: String,
+        port: Int,
         private val usrBaseDN: String,
         private val usrUid: String,
         private val grpBaseDN: String,
         private val grpUid: String,
-        private val grpAttrName: String/*,
-        bindDN: String,
-        bindPwd: String*/) {
+        private val grpAttrName: String) {
+
+    object JAASContext {
+
+        val username: String
+        val password: String
+
+        init {
+
+            var options = mutableMapOf<String,Any>()
+
+            try {
+                val jaasFile = javax.security.auth.login.Configuration.getConfiguration()
+                val entries = jaasFile.getAppConfigurationEntry("KafkaServer")
+                options = entries?.get(0)?.options as MutableMap<String, Any>
+            }
+            catch (e: SecurityException) {
+                log.error("JAAS read exception - ${e.message}")
+            }
+
+            username = options["username"].toString()
+            password = options["password"].toString()
+        }
+    }
 
     //TODO  - TrustAllTrustManager is too trusty...
     private val ldapConnection = LDAPConnection(SSLUtil(TrustAllTrustManager()).createSSLSocketFactory())
     private val ldapCache = LDAPCache
 
-    init {
+    // In authorization context, needs to bind the connection before compare-match between group and user
+    // due to no anonymous access allowed for LDAP operations like search, compare, ...
+    private val bindDN = "$usrUid=${JAASContext.username},$usrBaseDN"
+    private val bindPwd = JAASContext.password
 
+    init {
+        log.info("Binding information for authorization fetched from JAAS config file [$bindDN]")
+
+        // initialize LDAP connection
         try {
             ldapConnection.connect(host, port)
             log.info("Successfully connected to ($host,$port)")
@@ -34,14 +69,14 @@ class LDAPProxy private constructor(
             ldapConnection.setDisconnectInfo(DisconnectType.IO_ERROR,"Exception when connecting to LDAP($host,$port)", e)
         }
 
-/*        try {
-            //must perform binding for function isUserMemberOfAny
+        // perform binding before any invocations of isUserMemberOfAny - authorization context
+        try {
             ldapConnection.bind(bindDN,bindPwd)
             log.info("Successfully bind to ($host,$port) with $bindDN")
         }
         catch (e: LDAPException) {
             log.error("Authorization will fail! Exception when bind to ($host,$port) - ${e.diagnosticMessage}")
-        }*/
+        }
     }
 
     fun canUserAuthenticate(user: String, pwd: String): Boolean {
@@ -64,12 +99,6 @@ class LDAPProxy private constructor(
                         if (it) {
                             ldapCache.getBounded(userDN, pwd)
                             log.info("Bind cache updated for $user")
-                            //getKafkaGroups()
-                            // save this for required binding in authorization process - see isUserMemberOfAny
-                            if (user == "srvkafkabroker" && !ldapCache.grabbed) {
-                                ldapCache.bounded = LDAPCache.Bounded(userDN,pwd)
-                                ldapCache.grabbed = true
-                            }
                         }
                         it
                     }
@@ -96,20 +125,6 @@ class LDAPProxy private constructor(
 
         if (isMember) return true
 
-        // otherwise, check that connection is bounded, eventually bind before perform compare-match
-        when(ldapConnection.lastBindRequest?.getRebindRequest(host, port)){
-            is BindRequest -> {} // nothing to do
-            else -> {
-                try {
-                    log.info("Bind before compare-matched")
-                    ldapConnection.bind(ldapCache.bounded.name,ldapCache.bounded.other)
-                }
-                catch (e: LDAPException) {
-                    log.error("Bind before compare-matched exception, ${e.exceptionMessage}")
-                }
-            }
-        }
-
         groups.forEach {
 
             val groupDN = "$grpUid=$it,$grpBaseDN"
@@ -121,7 +136,6 @@ class LDAPProxy private constructor(
                     if (it) {
                         ldapCache.getGrouped(groupDN, userDN)
                         log.info("Group cache updated for [$groupName,$user")
-                        //getKafkaGroups()
                     }
                     it
                 }
@@ -134,31 +148,6 @@ class LDAPProxy private constructor(
 
         return isMember
     }
-
-/*    private fun getKafkaGroups() {
-
-        val filter = Filter.createSubstringFilter(grpUid,"kt",null, null)
-
-        try {
-            val sResult = ldapConnection.search(SearchRequest(grpBaseDN, SearchScope.SUB, filter, grpAttrName))
-
-            sResult.searchEntries.forEach {
-
-                val groupDN = it.dn
-
-                it.attributes.forEach {
-                    it.values.forEach {
-                        ldapCache.getGrouped(groupDN, it)
-                    }
-                }
-            }
-        }
-        catch (e: LDAPSearchException) {
-            log.error("Search exception - ${e.exceptionMessage}")
-        }
-
-        log.info("Group cache updated with all kafka groups")
-    }*/
 
     companion object {
 
@@ -182,13 +171,11 @@ class LDAPProxy private constructor(
                         adConfig["usrUid"].toString(),
                         adConfig["grpBaseDN"].toString(),
                         adConfig["grpUid"].toString(),
-                        adConfig["grpAttrName"].toString()/*,
-                        adConfig["bindDN"].toString(),
-                        adConfig["bindPwd"].toString()*/
+                        adConfig["grpAttrName"].toString()
                 )
             }
             else { //defaulting to connection error in case of no config YAML
-                LDAPProxy("",0,"","","","",""/*,"",""*/)
+                LDAPProxy("",0,"","","","","")
             }
         }
     }

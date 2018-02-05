@@ -5,9 +5,12 @@ import org.amshove.kluent.`should be true`
 import org.amshove.kluent.`should be`
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.*
+import org.navit.common.security.authorization.JAASContext
 
 object LDAPProxySpec : Spek ({
 
+    // set the JAAS config in order to do successful init of LDAPProxy
+    JAASContext.setUp()
 
     describe("LDAPProxy class test specifications") {
 
