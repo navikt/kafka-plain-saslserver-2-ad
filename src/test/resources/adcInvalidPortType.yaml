@@ -1,6 +1,7 @@
 host: localhost
-port: 11636
+port: 666
 connTimeout: 500
 usrBaseDN: ou=ServiceAccounts,dc=adeo,dc=example,dc=com
+usrUid: uid
 bindDN: uid=srvbinder,ou=ServiceAccounts,dc=adeo,dc=example,dc=com
 bindPwd: binder

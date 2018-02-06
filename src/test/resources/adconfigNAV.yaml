@@ -2,6 +2,8 @@
 host: ldapgw.preprod.local
 #port of the LDAP server
 port: 389
+# connectionTimout in milliseconds for LDAP
+connTimeout: 10000
 # Placement of users in LDAP tree
 usrBaseDN: ou=ServiceAccounts,dc=preprod,dc=local
 # User attribute for DN completion
@@ -12,6 +14,4 @@ grpBaseDN: ou=AccountGroups,ou=Groups,ou=NAV,ou=BusinessUnits,dc=preprod,dc=loca
 grpUid: cn
 # Group membership attribute name
 grpAttrName: ??
-# Need bind DN and password for verifying group membership of user
-bindDN: uid=srvbinder,ou=ServiceAccounts,dc=adeo,dc=example,dc=com
-bindPwd: binder
+

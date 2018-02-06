@@ -8,11 +8,11 @@ import org.apache.kafka.common.acl.AclOperation
 import org.apache.kafka.common.security.auth.KafkaPrincipal
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.*
-import org.navit.common.security.authentication.InMemoryLDAPServer
-import org.navit.common.security.authentication.LDAPProxy
+import org.navit.common.security.common.InMemoryLDAPServer
+import org.navit.common.security.common.JAASContext
 
 
-object NAVAuthorizerSpec : Spek({
+object GroupAuthorizerSpec : Spek({
 
     // create read allowance for ldap group
     fun cReadAS(ldapGroup: String) : Set<Acl> {
@@ -56,23 +56,18 @@ object NAVAuthorizerSpec : Spek({
         )
     }
 
+    // helper function for creating KafkaPrincipal
     fun createKP (userName: String): KafkaPrincipal {
         return KafkaPrincipal(KafkaPrincipal.USER_TYPE,userName)
     }
 
-    // set the JAAS config in order to do successful init of LDAPProxy
+    // set the JAAS config in order to do successful init of LDAPAuthorization
     JAASContext.setUp()
 
-    val correctYAML = "src/test/resources/adconfig.yaml"
-
-    describe("NAVAuthorizer class test specifications") {
+    describe("GroupAuthorizer class test specifications") {
 
         beforeGroup {
             InMemoryLDAPServer.start()
-
-            //Assuming authentication done first
-            val ldap = LDAPProxy.init(correctYAML)
-            ldap.canUserAuthenticate("srvkafkabroker","broker")
         }
 
         given("a acls with describe allowance - 2 ldap groups") {
@@ -81,7 +76,7 @@ object NAVAuthorizerSpec : Spek({
 
             on("a member user in group 1") {
                 it("should retrn true") {
-                    val authorizer = NAVAuthorizer()
+                    val authorizer = GroupAuthorizer()
                     val authorized = authorizer.authorize(createKP("cdoe"),aclDescribe)
 
                     authorized.`should be`(true)
@@ -89,7 +84,7 @@ object NAVAuthorizerSpec : Spek({
             }
             on("a member user in group 2") {
                 it("should retrn true") {
-                    val authorizer = NAVAuthorizer()
+                    val authorizer = GroupAuthorizer()
                     val authorized = authorizer.authorize(createKP("adoe"),aclDescribe)
 
                     authorized.`should be`(true)
@@ -97,7 +92,7 @@ object NAVAuthorizerSpec : Spek({
             }
             on("a non-member user in any group") {
                 it("should retrn false") {
-                    val authorizer = NAVAuthorizer()
+                    val authorizer = GroupAuthorizer()
                     val authorized = authorizer.authorize(createKP("ddoe"),aclDescribe)
 
                     authorized.`should be`(false)
@@ -113,7 +108,7 @@ object NAVAuthorizerSpec : Spek({
 
                 it("should return true") {
 
-                    val authorizer = NAVAuthorizer()
+                    val authorizer = GroupAuthorizer()
                     val authorized = authorizer.authorize(createKP("bdoe"),aclRead)
 
                     authorized.`should be`(true)
@@ -124,7 +119,7 @@ object NAVAuthorizerSpec : Spek({
 
                 it("should return false") {
 
-                    val authorizer = NAVAuthorizer()
+                    val authorizer = GroupAuthorizer()
                     val authorized = authorizer.authorize(createKP("adoe"),aclRead)
 
                     authorized.`should be`(false)
@@ -140,7 +135,7 @@ object NAVAuthorizerSpec : Spek({
 
                 it("should return false") {
 
-                    val authorizer = NAVAuthorizer()
+                    val authorizer = GroupAuthorizer()
                     val authorized = authorizer.authorize(createKP("bdoe"),aclWrite)
 
                     authorized.`should be`(false)
@@ -151,7 +146,7 @@ object NAVAuthorizerSpec : Spek({
 
                 it("should return true") {
 
-                    val authorizer = NAVAuthorizer()
+                    val authorizer = GroupAuthorizer()
                     val authorized = authorizer.authorize(createKP("adoe"),aclWrite)
 
                     authorized.`should be`(true)

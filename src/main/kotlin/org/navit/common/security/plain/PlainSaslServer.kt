@@ -1,6 +1,5 @@
 package org.navit.common.security.plain
 
-import org.navit.common.security.authentication.LDAPProxy
 import javax.security.sasl.Sasl
 import javax.security.sasl.SaslException
 import javax.security.auth.callback.CallbackHandler
@@ -13,9 +12,11 @@ import java.io.UnsupportedEncodingException
 import org.apache.kafka.common.errors.SaslAuthenticationException
 import org.apache.kafka.common.security.JaasContext
 import org.apache.kafka.common.security.authenticator.SaslServerCallbackHandler
+import org.navit.common.security.ldap.LDAPAuthentication
+import org.navit.common.security.ldap.LDAPBase
 import org.slf4j.LoggerFactory
 
-class PlainSaslServer(val jaasContext: JaasContext, private val ldap: LDAPProxy) : SaslServer {
+class PlainSaslServer(val jaasContext: JaasContext, private val ldap: LDAPBase) : SaslServer {
 
     private var complete: Boolean = false
     private var authorizationId: String = ""
@@ -133,17 +134,17 @@ class PlainSaslServer(val jaasContext: JaasContext, private val ldap: LDAPProxy)
             if (cbh !is SaslServerCallbackHandler)
                 throw SaslException("CallbackHandler must be of type SaslServerCallbackHandler, but it is: " + cbh.javaClass)
 
-            // TTN ADDED  prerequisite - directory containing the configuration file as part of the classpath
-            val configFile = ClassLoader.getSystemResource(LDAPProxy.CONFIGFILE)?.path ?: ""
+            // TTN ADDED -  prerequisite - directory containing the configuration file as part of the classpath
+            val configFile = ClassLoader.getSystemResource(LDAPBase.CONFIGFILE)?.path ?: ""
 
             // TTN ADDED
             if (configFile.isEmpty()) {
-                log.error("Authentication will fail, no ${LDAPProxy.CONFIGFILE} found!")
-                throw SaslException("Authentication will fail, no ${LDAPProxy.CONFIGFILE} found!")
+                log.error("Authentication will fail, no ${LDAPBase.CONFIGFILE} found!")
+                throw SaslException("Authentication will fail, no ${LDAPBase.CONFIGFILE} found!")
             }
 
-            // TTN ADDED - ldap proxy
-            return PlainSaslServer(cbh.jaasContext(), LDAPProxy.init(configFile))
+            // TTN ADDED - ldap authentication
+            return PlainSaslServer(cbh.jaasContext(), LDAPAuthentication.init(configFile))
         }
 
         override fun getMechanismNames(props: Map<String, *>?): Array<String> {

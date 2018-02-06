@@ -1,4 +1,4 @@
-package org.navit.common.security.authentication
+package org.navit.common.security.common
 
 import com.unboundid.ldap.listener.InMemoryDirectoryServer
 import com.unboundid.ldap.listener.InMemoryDirectoryServerConfig
@@ -8,6 +8,14 @@ import com.unboundid.util.ssl.KeyStoreKeyManager
 import com.unboundid.util.ssl.SSLUtil
 import com.unboundid.util.ssl.TrustAllTrustManager
 import com.unboundid.util.ssl.TrustStoreTrustManager
+
+/**
+ * An object creating a in-memory LDAP server
+ * - using LDAPS
+ * - not allowing anonymous access to compare, thus, must bind first
+ * - a baseDN that is enriched with resource/UserAndGroups.ldif
+ * - start and stop functions to be used before/after test cases
+ */
 
 object InMemoryLDAPServer {
 
@@ -26,13 +34,13 @@ object InMemoryLDAPServer {
 
         imConf.setListenerConfigs(
                 InMemoryListenerConfig.createLDAPConfig("LDAP",11389),
-                InMemoryListenerConfig.createLDAPSConfig("LDAPS",null,11636,tlsSF,tlsCF)
+                InMemoryListenerConfig.createLDAPSConfig("LDAPS",null,11636, tlsSF, tlsCF)
         )
         // must bind before compare, equal to non-anonymous access./
         imConf.setAuthenticationRequiredOperationTypes(OperationType.COMPARE)
 
         imDS = InMemoryDirectoryServer(imConf)
-        imDS.importFromLDIF(true,"src/test/resources/ADUsers.ldif")
+        imDS.importFromLDIF(true,"src/test/resources/UsersAndGroups.ldif")
     }
 
     fun start() {

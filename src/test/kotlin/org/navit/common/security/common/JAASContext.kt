@@ -1,19 +1,23 @@
-package org.navit.common.security.authorization
+package org.navit.common.security.common
 
 import javax.security.auth.login.AppConfigurationEntry
 import javax.security.auth.login.Configuration
 
 /**
+ *  An object for setting minimum JAAS context as on Kafka server in PLAINSASL scenario
+ *  - username and password for kafka broker
  *
- *  A class for setting JAAS context, required for testing authorization logic
+ *  This is used for getting bindDN  in LDAP authorization context
+ *  A prerequisite is of course username/pwd as part of in-memory LDAP
  *
+ *  The setUp function must be invoked before test cases
  */
 
 object JAASContext {
 
     fun setUp() {
 
-        class ReallyDoesntMatter
+        class ReallyDoesntMatter // a dummy class implementing a SASL mechanism - not used
 
         val config = object : Configuration() {
             override fun getAppConfigurationEntry(name: String): Array<AppConfigurationEntry> {

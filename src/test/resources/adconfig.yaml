@@ -2,6 +2,8 @@
 host: localhost
 #port of the LDAP server
 port: 11636
+# connectionTimout in milliseconds for LDAP
+connTimeout: 500
 # userDN is <usrUid>=<usr>,<usrBaseDN>
 # Placement of users in LDAP tree
 usrBaseDN: ou=ServiceAccounts,dc=adeo,dc=example,dc=com
@@ -15,6 +17,4 @@ grpUid: cn
 # Group membership is LDAP CompareRequest(groupDN, <grpAttrName>, userDN)
 # Group membership attribute name
 grpAttrName: uniqueMember
-# Need bind DN and password for verifying group membership of user
-bindDN: uid=srvbinder,ou=ServiceAccounts,dc=adeo,dc=example,dc=com
-bindPwd: binder
+

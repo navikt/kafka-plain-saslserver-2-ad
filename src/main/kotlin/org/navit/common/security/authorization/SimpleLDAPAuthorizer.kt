@@ -7,9 +7,18 @@ import org.apache.kafka.common.resource.ResourceType
 import org.apache.kafka.common.security.auth.KafkaPrincipal
 import org.slf4j.LoggerFactory
 
-class LDAPAuthorizer : SimpleAclAuthorizer() {
+/**
+ * A class adding LDAP group membership verification to Kafka SimpleAuthorizer
+ * The overall prerequisite framework is the following
+ * - Expecting LDAP groups in topic ACLS
+ * - A principal is authorized through membership in group
+ * - No group considerations, thus, empty ACL for group resource yield authorization
+ * - No deny considerations, implicitly through non-membership
+ */
 
-    private val navAuthorizer = NAVAuthorizer()
+class SimpleLDAPAuthorizer : SimpleAclAuthorizer() {
+
+    private val navAuthorizer = GroupAuthorizer()
 
     override fun authorize(session: RequestChannel.Session?, operation: Operation?, resource: Resource?): Boolean {
 
@@ -24,7 +33,7 @@ class LDAPAuthorizer : SimpleAclAuthorizer() {
         log.warn("Authorization Start -  $principal trying $lOperation from $host on $lResource")
 
         //TODO ResourceType.GROUP - under change in minor version - CAREFUL!
-        // Warning! Assuming no group considerations, thus implicitly always empty group access control lists
+        // Warning! Assuming no group considerations, thus implicitly, always empty group access control lists
         if (resource?.resourceType()?.toJava() == ResourceType.GROUP) {
             log.info("Authorization End - $principal trying $lOperation from $host on $lResource is authorized")
             return true
@@ -44,6 +53,7 @@ class LDAPAuthorizer : SimpleAclAuthorizer() {
             return false
         }
 
+
         return navAuthorizer.authorize(
                 session?.principal() ?: KafkaPrincipal(KafkaPrincipal.USER_TYPE,"ANONYMOUS"),
                 acls
@@ -57,6 +67,6 @@ class LDAPAuthorizer : SimpleAclAuthorizer() {
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(LDAPAuthorizer::class.java)
+        private val log = LoggerFactory.getLogger(SimpleLDAPAuthorizer::class.java)
     }
 }

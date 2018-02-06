@@ -1,5 +1,6 @@
 host: localhost
 port: 11636
+connTimeout: 500
 usrUid: uid
 bindDN: uid=srvbinder,ou=ServiceAccounts,dc=adeo,dc=example,dc=com
 bindPwd: binder

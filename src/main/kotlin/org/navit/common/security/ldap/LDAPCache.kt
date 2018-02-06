@@ -1,10 +1,19 @@
-package org.navit.common.security.authentication
+package org.navit.common.security.ldap
 
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.LoadingCache
 import com.google.common.cache.CacheLoader
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
+
+/**
+ * A class using google guava cache for 2 purposes
+ * - caching of successful ldap bindings
+ * - caching of confirmed group membership
+ *
+ * Each of them has limited lifetime for entries, in order to reflect surrounding reality,
+ * change in authentication and group membership
+ */
 
 object LDAPCache {
 
@@ -19,7 +28,7 @@ object LDAPCache {
 
     private data class Grouped(val name: String, val other: String)
 
-    private class GroupedCacheLoader : CacheLoader<Grouped,Grouped>() {
+    private class GroupedCacheLoader : CacheLoader<Grouped, Grouped>() {
 
         override fun load(key: Grouped): Grouped {
             return key
@@ -27,7 +36,7 @@ object LDAPCache {
     }
 
     private val boundedCache: LoadingCache<Bounded, Bounded>
-    private val groupedCache: LoadingCache<Grouped,Grouped>
+    private val groupedCache: LoadingCache<Grouped, Grouped>
 
     private val log = LoggerFactory.getLogger(LDAPCache::class.java)
 
@@ -46,7 +55,7 @@ object LDAPCache {
     }
 
     fun alreadyBounded(userDN: String, pwd: String): Boolean =
-         when(boundedCache.getIfPresent(Bounded(userDN,pwd))) {
+         when(boundedCache.getIfPresent(Bounded(userDN, pwd))) {
             is Bounded -> true
             else -> false
         }
@@ -54,7 +63,7 @@ object LDAPCache {
     fun getBounded(userDN: String, pwd: String) {
 
         try {
-            boundedCache.get(Bounded(userDN,pwd))
+            boundedCache.get(Bounded(userDN, pwd))
         }
         catch (e: java.util.concurrent.ExecutionException) {
             log.error("Exception in getBounded - ${e.cause}")
@@ -65,7 +74,7 @@ object LDAPCache {
     }
 
     fun alreadyGrouped(groupDN: String, userDN: String) : Boolean =
-            when(groupedCache.getIfPresent(Grouped(groupDN,userDN))) {
+            when(groupedCache.getIfPresent(Grouped(groupDN, userDN))) {
                 is Grouped -> true
                 else -> false
             }
@@ -73,7 +82,7 @@ object LDAPCache {
     fun getGrouped(groupDN: String, userDN: String) {
 
         try {
-            groupedCache.get(Grouped(groupDN,userDN))
+            groupedCache.get(Grouped(groupDN, userDN))
         }
         catch (e: java.util.concurrent.ExecutionException) {
             log.error("Exception in getGrouped - ${e.cause}")
