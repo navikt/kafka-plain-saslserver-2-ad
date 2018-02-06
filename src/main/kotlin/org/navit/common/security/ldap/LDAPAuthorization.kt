@@ -28,14 +28,14 @@ class LDAPAuthorization private constructor(
 
         init {
 
-            val options = mutableMapOf<String,String>()
+            var options = mapOf<String,String>()
 
             try {
                 val jaasFile = javax.security.auth.login.Configuration.getConfiguration()
                 val entries = jaasFile.getAppConfigurationEntry("KafkaServer")
                 val tmp = entries?.get(0)?.options
 
-                tmp?.forEach { options.plus(Pair(it.key,it.value.toString()))  }
+                tmp?.forEach { options += (Pair(it.key,it.value.toString()))  }
             }
             catch (e: SecurityException) {
                 log.error("JAAS read exception - ${e.message}")
