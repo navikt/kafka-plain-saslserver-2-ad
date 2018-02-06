@@ -5,6 +5,10 @@ import javax.security.auth.callback.CallbackHandler
 import javax.security.auth.login.LoginException
 import javax.security.auth.spi.LoginModule
 
+/**
+ * A class from Kafka related to PlainSaslServer - no custom code here
+ */
+
 class PlainLoginModule : LoginModule {
 
     override fun initialize(subject: Subject, callbackHandler: CallbackHandler, sharedState: Map<String, *>, options: Map<String, *>) {

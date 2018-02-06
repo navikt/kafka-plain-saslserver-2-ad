@@ -5,6 +5,11 @@ import com.unboundid.ldap.sdk.LDAPException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+/**
+ * A class verifying group membership with LDAP compare-matched
+ * See test/resources/adconfig.yaml for class parameters
+ */
+
 class LDAPAuthorization private constructor(
         host: String,
         port: Int,
@@ -23,12 +28,14 @@ class LDAPAuthorization private constructor(
 
         init {
 
-            var options = mutableMapOf<String,Any>()
+            val options = mutableMapOf<String,String>()
 
             try {
                 val jaasFile = javax.security.auth.login.Configuration.getConfiguration()
                 val entries = jaasFile.getAppConfigurationEntry("KafkaServer")
-                options = entries?.get(0)?.options as MutableMap<String, Any>
+                val tmp = entries?.get(0)?.options
+
+                tmp?.forEach { options.plus(Pair(it.key,it.value.toString()))  }
             }
             catch (e: SecurityException) {
                 log.error("JAAS read exception - ${e.message}")

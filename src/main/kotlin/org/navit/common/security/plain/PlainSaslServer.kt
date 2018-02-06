@@ -16,6 +16,11 @@ import org.navit.common.security.ldap.LDAPAuthentication
 import org.navit.common.security.ldap.LDAPBase
 import org.slf4j.LoggerFactory
 
+/**
+ * A class from Kafka customized to ldap authentication
+ * See comments for customization details
+ */
+
 class PlainSaslServer(val jaasContext: JaasContext, private val ldap: LDAPBase) : SaslServer {
 
     private var complete: Boolean = false

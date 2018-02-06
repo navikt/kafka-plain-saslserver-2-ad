@@ -10,6 +10,10 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
 
+/**
+ * A base class for LDAPAuthentication and LDAPAuthorization
+ */
+
 abstract class LDAPBase protected constructor(host: String, port: Int, connectTimeout: Int) {
 
     //TODO  - TrustAllTrustManager is too trusty, but good enough when inside corporate inner zone

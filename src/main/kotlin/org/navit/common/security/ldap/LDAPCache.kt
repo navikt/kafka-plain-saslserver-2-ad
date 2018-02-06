@@ -13,6 +13,8 @@ import java.util.concurrent.TimeUnit
  *
  * Each of them has limited lifetime for entries, in order to reflect surrounding reality,
  * change in authentication and group membership
+ *
+ * NO test cases for this simple class
  */
 
 object LDAPCache {
