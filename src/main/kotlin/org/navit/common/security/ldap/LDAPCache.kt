@@ -43,14 +43,17 @@ object LDAPCache {
     private val log = LoggerFactory.getLogger(LDAPCache::class.java)
 
     init {
+
+        val config = ADConfig.getByClasspath()
+
         boundedCache = CacheBuilder.newBuilder()
                 .maximumSize(1000)
-                .expireAfterWrite(2,TimeUnit.MINUTES)
+                .expireAfterWrite(config["usrCacheExpire"].toString().toLong(),TimeUnit.MINUTES)
                 .build(BoundedCacheLoader())
 
         groupedCache = CacheBuilder.newBuilder()
                 .maximumSize(10000)
-                .expireAfterWrite(4,TimeUnit.MINUTES)
+                .expireAfterWrite(config["grpCacheExpire"].toString().toLong(),TimeUnit.MINUTES)
                 .build(GroupedCacheLoader())
 
         log.info("Caches are initialized")

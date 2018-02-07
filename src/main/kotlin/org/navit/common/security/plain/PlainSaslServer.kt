@@ -139,17 +139,8 @@ class PlainSaslServer(val jaasContext: JaasContext, private val ldap: LDAPBase) 
             if (cbh !is SaslServerCallbackHandler)
                 throw SaslException("CallbackHandler must be of type SaslServerCallbackHandler, but it is: " + cbh.javaClass)
 
-            // TTN ADDED -  prerequisite - directory containing the configuration file as part of the classpath
-            val configFile = ClassLoader.getSystemResource(LDAPBase.CONFIGFILE)?.path ?: ""
-
-            // TTN ADDED
-            if (configFile.isEmpty()) {
-                log.error("Authentication will fail, no ${LDAPBase.CONFIGFILE} found!")
-                throw SaslException("Authentication will fail, no ${LDAPBase.CONFIGFILE} found!")
-            }
-
             // TTN ADDED - ldap authentication
-            return PlainSaslServer(cbh.jaasContext(), LDAPAuthentication.init(configFile))
+            return PlainSaslServer(cbh.jaasContext(), LDAPAuthentication.init())
         }
 
         override fun getMechanismNames(props: Map<String, *>?): Array<String> {

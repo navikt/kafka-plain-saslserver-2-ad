@@ -20,53 +20,53 @@ object LDAPAuthorizationSpec : Spek({
 
         given("correct path to correct YAML config - verification of membership") {
 
-            val correctYAML = "src/test/resources/adconfig.yaml"
+            // using classpath
 
             on("user and membership group") {
                 it("should return true") {
-                    val ldap = LDAPAuthorization.init(correctYAML)
+                    val ldap = LDAPAuthorization.init()
                     ldap.isUserMemberOfAny("bdoe", listOf("ktACons")).`should be true`()
                 }
             }
             on("user and non-membership group") {
                 it("should return false") {
-                    val ldap = LDAPAuthorization.init(correctYAML)
+                    val ldap = LDAPAuthorization.init()
                     ldap.isUserMemberOfAny("adoe", listOf("ktACons")).`should be false`()
                 }
             }
             on("user and membership group") {
                 it("should return true") {
-                    val ldap = LDAPAuthorization.init(correctYAML)
+                    val ldap = LDAPAuthorization.init()
                     ldap.isUserMemberOfAny("adoe", listOf("ktAProd")).`should be true`()
                 }
             }
             on("invalid user and existing group") {
                 it("should return false") {
-                    val ldap = LDAPAuthorization.init(correctYAML)
+                    val ldap = LDAPAuthorization.init()
                     ldap.isUserMemberOfAny("invalid", listOf("ktACons")).`should be false`()
                 }
             }
             on("existing user and invalid group") {
                 it("should return false") {
-                    val ldap = LDAPAuthorization.init(correctYAML)
+                    val ldap = LDAPAuthorization.init()
                     ldap.isUserMemberOfAny("bdoe", listOf("invalid")).`should be false`()
                 }
             }
             on("user and {invalid group,membership group}") {
                 it("should return true") {
-                    val ldap = LDAPAuthorization.init(correctYAML)
+                    val ldap = LDAPAuthorization.init()
                     ldap.isUserMemberOfAny("bdoe", listOf("invalid","ktACons")).`should be true`()
                 }
             }
             on("user and {non-membership group,membership group}") {
                 it("should return true") {
-                    val ldap = LDAPAuthorization.init(correctYAML)
+                    val ldap = LDAPAuthorization.init()
                     ldap.isUserMemberOfAny("bdoe", listOf("ktAProd","ktACons")).`should be true`()
                 }
             }
             on("user and {non-membership group,invalid group}") {
                 it("should return false") {
-                    val ldap = LDAPAuthorization.init(correctYAML)
+                    val ldap = LDAPAuthorization.init()
                     ldap.isUserMemberOfAny("bdoe", listOf("ktAProd","invalid")).`should be false`()
                 }
             }

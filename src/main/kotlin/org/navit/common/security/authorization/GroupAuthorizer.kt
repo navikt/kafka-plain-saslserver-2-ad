@@ -13,16 +13,7 @@ import org.slf4j.LoggerFactory
 
 class GroupAuthorizer {
 
-    private val ldap: LDAPAuthorization
-
-    init {
-
-        val configFile = ClassLoader.getSystemResource(LDAPBase.CONFIGFILE)?.path ?: ""
-
-        if (configFile.isEmpty()) log.error("authorization will fail, no ${LDAPBase.CONFIGFILE} found!")
-
-        ldap = LDAPAuthorization.init(configFile)
-    }
+    private val ldap = LDAPAuthorization.init()
 
     fun authorize(principal: KafkaPrincipal, acls: Set<Acl>): Boolean {
 

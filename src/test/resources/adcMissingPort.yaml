@@ -1,0 +1,5 @@
+host: localhost
+connTimeout: 500
+usrBaseDN: ou=ServiceAccounts,dc=adeo,dc=example,dc=com
+bindDN: uid=srvbinder,ou=ServiceAccounts,dc=adeo,dc=example,dc=com
+bindPwd: binder

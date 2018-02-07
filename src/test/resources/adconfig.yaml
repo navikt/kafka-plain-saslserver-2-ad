@@ -17,4 +17,7 @@ grpUid: cn
 # Group membership is LDAP CompareRequest(groupDN, <grpAttrName>, userDN)
 # Group membership attribute name
 grpAttrName: uniqueMember
-
+# Lifetime of user entry in cache after cache-write - IN MINUTES
+usrCacheExpire: 12
+# Lifetime of group entry in cache after cache-write - IN MINUTES
+grpCacheExpire: 12
