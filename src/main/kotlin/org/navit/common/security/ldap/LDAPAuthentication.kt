@@ -53,20 +53,16 @@ class LDAPAuthentication private constructor(
 
         private val log: Logger = LoggerFactory.getLogger(LDAPAuthentication::class.java)
 
-        fun init(configFile: String) : LDAPAuthentication {
-
-            return getConfig(configFile).let {
-
-                if (!it.isEmpty())
-                    LDAPAuthentication(
-                            it["host"].toString(),
-                            try {it["port"]?.toInt() ?: 0} catch (e: NumberFormatException){0},
-                            try {it["connTimeout"]?.toInt() ?: 10000} catch (e: NumberFormatException){10000},
-                            it["usrBaseDN"].toString(),
-                            it["usrUid"].toString()
-                    )
-                else
-                    LDAPAuthentication("", 0, 0, "","")
+        fun init(configFile: String): LDAPAuthentication = getConfig(configFile).let {
+            when (it.isEmpty()) {
+                true -> LDAPAuthentication("", 0, 0, "", "")
+                else -> LDAPAuthentication(
+                        it["host"].toString(),
+                        try { it["port"]?.toInt() ?: 0 } catch (e: NumberFormatException) { 0 },
+                        try { it["connTimeout"]?.toInt() ?: 10000 } catch (e: NumberFormatException) { 10000 },
+                        it["usrBaseDN"].toString(),
+                        it["usrUid"].toString()
+                )
             }
         }
     }

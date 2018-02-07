@@ -103,24 +103,19 @@ class LDAPAuthorization private constructor(
 
         private val log: Logger = LoggerFactory.getLogger(LDAPAuthorization::class.java)
 
-        fun init(configFile: String) : LDAPAuthorization {
-
-            return getConfig(configFile).let {
-
-                if (!it.isEmpty())
-                    LDAPAuthorization(
-                            it["host"].toString(),
-                            try {it["port"]?.toInt() ?: 0} catch (e: NumberFormatException){0},
-                            try {it["connTimeout"]?.toInt() ?: 10000} catch (e: NumberFormatException){10000},
-                            it["usrBaseDN"].toString(),
-                            it["usrUid"].toString(),
-                            it["grpBaseDN"].toString(),
-                            it["grpUid"].toString(),
-                            it["grpAttrName"].toString()
-                    )
-                else
-                    LDAPAuthorization("", 0, 0,
-                            "", "", "", "","")
+        fun init(configFile: String): LDAPAuthorization = getConfig(configFile).let {
+            when (it.isEmpty()) {
+                true -> LDAPAuthorization("", 0, 0, "", "", "", "", "")
+                else -> LDAPAuthorization(
+                        it["host"].toString(),
+                        try { it["port"]?.toInt() ?: 0 } catch (e: NumberFormatException) { 0 },
+                        try { it["connTimeout"]?.toInt() ?: 10000 } catch (e: NumberFormatException) { 10000 },
+                        it["usrBaseDN"].toString(),
+                        it["usrUid"].toString(),
+                        it["grpBaseDN"].toString(),
+                        it["grpUid"].toString(),
+                        it["grpAttrName"].toString()
+                )
             }
         }
     }
