@@ -21,24 +21,22 @@ class LDAPAuthorization private constructor(
         private val grpAttrName: String) : LDAPBase(host, port, connectTimeout) {
 
     // extracting JAAS context from kafka server - prerequisite is  PLAINSASL context
-    private object JAASContext {
+
+    private val jaasContext = object {
 
         val username: String
         val password: String
 
         init {
 
-            var options = mapOf<String,String>()
-
-            try {
+            val options: Map<String,String> = try {
                 val jaasFile = javax.security.auth.login.Configuration.getConfiguration()
                 val entries = jaasFile.getAppConfigurationEntry("KafkaServer")
-                val tmp = entries?.get(0)?.options
-
-                tmp?.forEach { options += (Pair(it.key,it.value.toString()))  }
+                entries?.get(0)?.options?.let { it.map { Pair<String,String>(it.key,it.value.toString()) }.toMap() } ?: emptyMap()
             }
             catch (e: SecurityException) {
                 log.error("JAAS read exception - ${e.message}")
+                emptyMap()
             }
 
             username = options["username"].toString()
@@ -48,8 +46,8 @@ class LDAPAuthorization private constructor(
 
     // In authorization context, needs to bind the connection before compare-match between group and user
     // due to no anonymous access allowed for LDAP operations like search, compare, ...
-    private val bindDN = "$usrUid=${JAASContext.username},$usrBaseDN"
-    private val bindPwd = JAASContext.password
+    private val bindDN = "$usrUid=${jaasContext.username},$usrBaseDN"
+    private val bindPwd = jaasContext.password
 
     init {
         log.info("Binding information for authorization fetched from JAAS config file [$bindDN]")
@@ -105,24 +103,19 @@ class LDAPAuthorization private constructor(
 
         private val log: Logger = LoggerFactory.getLogger(LDAPAuthorization::class.java)
 
-        fun init(configFile: String) : LDAPAuthorization {
-
-            return getConfig(configFile).let {
-
-                if (!it.isEmpty())
-                    LDAPAuthorization(
-                            it["host"].toString(),
-                            try {it["port"]?.toInt() ?: 0} catch (e: NumberFormatException){0},
-                            try {it["connTimeout"]?.toInt() ?: 10000} catch (e: NumberFormatException){10000},
-                            it["usrBaseDN"].toString(),
-                            it["usrUid"].toString(),
-                            it["grpBaseDN"].toString(),
-                            it["grpUid"].toString(),
-                            it["grpAttrName"].toString()
-                    )
-                else
-                    LDAPAuthorization("", 0, 0,
-                            "", "", "", "","")
+        fun init(configFile: String): LDAPAuthorization = getConfig(configFile).let {
+            when (it.isEmpty()) {
+                true -> LDAPAuthorization("", 0, 0, "", "", "", "", "")
+                else -> LDAPAuthorization(
+                        it["host"].toString(),
+                        try { it["port"]?.toInt() ?: 0 } catch (e: NumberFormatException) { 0 },
+                        try { it["connTimeout"]?.toInt() ?: 10000 } catch (e: NumberFormatException) { 10000 },
+                        it["usrBaseDN"].toString(),
+                        it["usrUid"].toString(),
+                        it["grpBaseDN"].toString(),
+                        it["grpUid"].toString(),
+                        it["grpAttrName"].toString()
+                )
             }
         }
     }

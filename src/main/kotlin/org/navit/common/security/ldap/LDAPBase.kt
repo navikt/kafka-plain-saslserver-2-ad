@@ -46,22 +46,16 @@ abstract class LDAPBase protected constructor(host: String, port: Int, connectTi
         const val CONFIGFILE = "adconfig.yaml"
         private val log: Logger = LoggerFactory.getLogger(LDAPBase::class.java)
 
-        fun getConfig(configFile: String): Map<String, String> {
-
-            return if (!configFile.isEmpty()) {
+        fun getConfig(configFile: String): Map<String, String> = when(configFile.isEmpty()) {
+            true -> emptyMap()
+            else -> {
                 try {
                     Yaml().load<Map<String, *>>(FileInputStream(File(configFile))).let {
-
-                        var newMap = emptyMap<String, String>()
-                        it.forEach { newMap += Pair(it.key,it.value?.toString() ?: "") }
-                        newMap
+                        it.map { Pair(it.key,it.value?.toString() ?: "") }.toMap()
                     }
                 } catch (e: FileNotFoundException) {
                     emptyMap<String, String>()
                 }
-            }
-            else { //defaulting to connection error in case of no config YAML
-                emptyMap()
             }
         }
     }
