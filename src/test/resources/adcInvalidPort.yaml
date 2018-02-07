@@ -1,5 +1,5 @@
 host: localhost
-port: six
+port: 666
 connTimeout: 500
 usrBaseDN: ou=ServiceAccounts,dc=adeo,dc=example,dc=com
 usrUid: uid
