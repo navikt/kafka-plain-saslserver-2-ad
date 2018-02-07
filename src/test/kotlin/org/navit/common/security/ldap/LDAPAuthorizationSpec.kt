@@ -72,6 +72,8 @@ object LDAPAuthorizationSpec : Spek({
             }
         }
 
+        // all cases with grpBaseDN and the other parameters will return false... not tested
+
         afterGroup {
             InMemoryLDAPServer.stop()
         }

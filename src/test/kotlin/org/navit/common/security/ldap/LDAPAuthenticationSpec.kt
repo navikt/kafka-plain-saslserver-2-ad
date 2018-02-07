@@ -16,10 +16,18 @@ object LDAPAuthenticationSpec : Spek({
 
         given("correct path to different YAML configs and correct LDAP user,pwd") {
 
+            on("yaml - invalid host") {
+                it("should return true") {
+
+                    val ldap = LDAPAuthentication.init("src/test/resources/adcInvalidHost.yaml")
+                    ldap.canUserAuthenticate("adoe", "alice").`should be false`()
+                }
+            }
+
             on("yaml - correct") {
                 it("should return true") {
 
-                    val ldap = LDAPAuthentication.init()
+                    val ldap = LDAPAuthentication.init("src/test/resources/adconfig.yaml")
                     ldap.canUserAuthenticate("adoe", "alice").`should be true`()
                 }
             }
@@ -38,6 +46,12 @@ object LDAPAuthenticationSpec : Spek({
             on("yaml - missing usrBaseDN") {
                 it("should return false") {
                     val ldap = LDAPAuthentication.init("src/test/resources/adcMissingusrBaseDN.yaml")
+                    ldap.canUserAuthenticate("adoe", "alice").`should be false`()
+                }
+            }
+            on("yaml - usrBaseDN as root of tree") {
+                it("should return false") {
+                    val ldap = LDAPAuthentication.init("src/test/resources/adcRootusrBaseDN.yaml")
                     ldap.canUserAuthenticate("adoe", "alice").`should be false`()
                 }
             }
@@ -71,9 +85,7 @@ object LDAPAuthenticationSpec : Spek({
             }
         }
 
-        given("correct path to correct YAML config - verification of user and pwd") {
-
-            // use of classpath to yaml
+        given("classpath to YAML config - verification of user and pwd") {
 
             on("invalid user and correct pwd") {
                 it("should return false") {
@@ -94,29 +106,6 @@ object LDAPAuthenticationSpec : Spek({
                 }
             }
         }
-
-        given("empty string as config file path (test AD) - verification of user and pwd") {
-
-            on("invalid user and correct pwd") {
-                it("should return false") {
-                    val ldap = LDAPAuthentication.init(" ")
-                    ldap.canUserAuthenticate("invalid", "alice").`should be false`()
-                }
-            }
-            on("correct user and invalid pwd") {
-                it("should return false") {
-                    val ldap = LDAPAuthentication.init(" ")
-                    ldap.canUserAuthenticate("adoe", "invalid").`should be false`()
-                }
-            }
-            on("correct user and pwd") {
-                it("should return false") {
-                    val ldap = LDAPAuthentication.init(" ")
-                    ldap.canUserAuthenticate("adoe", "alice").`should be false`()
-                }
-            }
-        }
-
 
         afterGroup {
             InMemoryLDAPServer.stop()
