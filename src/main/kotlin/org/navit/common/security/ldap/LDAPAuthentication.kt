@@ -10,12 +10,9 @@ import org.slf4j.LoggerFactory
  * See test/resources/adconfig.yaml for class parameters
  */
 
-class LDAPAuthentication private constructor(
-        host: String,
-        port: Int,
-        connectTimeout: Int,
-        private val usrBaseDN: String,
-        private val usrUid: String) : LDAPBase(host, port, connectTimeout)  {
+class LDAPAuthentication private constructor(map: Map<String, Any?>) : LDAPBase(map) {
+        private val usrBaseDN: String by map
+        private val usrUid: String by map
 
     override fun canUserAuthenticate(user: String, pwd: String): Boolean {
 
@@ -53,17 +50,9 @@ class LDAPAuthentication private constructor(
 
         private val log: Logger = LoggerFactory.getLogger(LDAPAuthentication::class.java)
 
-        fun init(configFile: String): LDAPAuthentication = getConfig(configFile).let {
-            when (it.isEmpty()) {
-                true -> LDAPAuthentication("", 0, 0, "", "")
-                else -> LDAPAuthentication(
-                        it["host"].toString(),
-                        try { it["port"]?.toInt() ?: 0 } catch (e: NumberFormatException) { 0 },
-                        try { it["connTimeout"]?.toInt() ?: 10000 } catch (e: NumberFormatException) { 10000 },
-                        it["usrBaseDN"].toString(),
-                        it["usrUid"].toString()
-                )
-            }
+        fun init(configFile: String = ""): LDAPAuthentication = when(configFile.isEmpty()) {
+            true -> LDAPAuthentication(ADConfig.getByClasspath())
+            false -> LDAPAuthentication(ADConfig.getBySource(configFile))
         }
     }
 }

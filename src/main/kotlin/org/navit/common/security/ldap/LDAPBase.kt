@@ -5,16 +5,15 @@ import com.unboundid.util.ssl.SSLUtil
 import com.unboundid.util.ssl.TrustAllTrustManager
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.yaml.snakeyaml.Yaml
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileNotFoundException
 
 /**
  * A base class for LDAPAuthentication and LDAPAuthorization
  */
 
-abstract class LDAPBase protected constructor(host: String, port: Int, connectTimeout: Int) {
+abstract class LDAPBase protected constructor(map: Map<String, Any?>) {
+        protected val host: String by map
+        protected val port: Int by map
+        protected val connTimeout: Int by map
 
     //TODO  - TrustAllTrustManager is too trusty, but good enough when inside corporate inner zone
     protected val ldapConnection: LDAPConnection
@@ -24,7 +23,7 @@ abstract class LDAPBase protected constructor(host: String, port: Int, connectTi
     init {
         // initialize LDAP connection
 
-        connectOptions.connectTimeoutMillis = connectTimeout
+        connectOptions.connectTimeoutMillis = connTimeout
         ldapConnection =  LDAPConnection(SSLUtil(TrustAllTrustManager()).createSSLSocketFactory(),connectOptions)
 
         try {
@@ -43,20 +42,6 @@ abstract class LDAPBase protected constructor(host: String, port: Int, connectTi
 
     companion object {
 
-        const val CONFIGFILE = "adconfig.yaml"
         private val log: Logger = LoggerFactory.getLogger(LDAPBase::class.java)
-
-        fun getConfig(configFile: String): Map<String, String> = when(configFile.isEmpty()) {
-            true -> emptyMap()
-            else -> {
-                try {
-                    Yaml().load<Map<String, *>>(FileInputStream(File(configFile))).let {
-                        it.map { Pair(it.key,it.value?.toString() ?: "") }.toMap()
-                    }
-                } catch (e: FileNotFoundException) {
-                    emptyMap<String, String>()
-                }
-            }
-        }
     }
 }

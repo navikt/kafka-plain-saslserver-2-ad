@@ -10,15 +10,12 @@ import org.slf4j.LoggerFactory
  * See test/resources/adconfig.yaml for class parameters
  */
 
-class LDAPAuthorization private constructor(
-        host: String,
-        port: Int,
-        connectTimeout: Int,
-        private val usrBaseDN: String,
-        private val usrUid: String,
-        private val grpBaseDN: String,
-        private val grpUid: String,
-        private val grpAttrName: String) : LDAPBase(host, port, connectTimeout) {
+class LDAPAuthorization private constructor(map: Map<String, Any?>) : LDAPBase(map) {
+        private val usrBaseDN: String by map
+        private val usrUid: String by map
+        private val grpBaseDN: String by map
+        private val grpUid: String by map
+        private val grpAttrName: String by map
 
     // extracting JAAS context from kafka server - prerequisite is  PLAINSASL context
 
@@ -103,21 +100,9 @@ class LDAPAuthorization private constructor(
 
         private val log: Logger = LoggerFactory.getLogger(LDAPAuthorization::class.java)
 
-        fun init(configFile: String): LDAPAuthorization = getConfig(configFile).let {
-            when (it.isEmpty()) {
-                true -> LDAPAuthorization("", 0, 0, "", "", "", "", "")
-                else -> LDAPAuthorization(
-                        it["host"].toString(),
-                        try { it["port"]?.toInt() ?: 0 } catch (e: NumberFormatException) { 0 },
-                        try { it["connTimeout"]?.toInt() ?: 10000 } catch (e: NumberFormatException) { 10000 },
-                        it["usrBaseDN"].toString(),
-                        it["usrUid"].toString(),
-                        it["grpBaseDN"].toString(),
-                        it["grpUid"].toString(),
-                        it["grpAttrName"].toString()
-                )
-            }
+        fun init(configFile: String = ""): LDAPAuthorization = when(configFile.isEmpty()) {
+            true -> LDAPAuthorization(ADConfig.getByClasspath())
+            false -> LDAPAuthorization(ADConfig.getBySource(configFile))
         }
     }
-
 }
