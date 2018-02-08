@@ -32,11 +32,17 @@ object ADConfig {
     )
 
     private val log = LoggerFactory.getLogger(ADConfig::class.java)
+    private val cache: Config
+
+    init {
+        cache = loadConfig(ClassLoader.getSystemResource("adconfig.yaml")?.path ?: "")
+
+        log.info("ADConfig for classpath  is  initialized")
+    }
 
     fun getBySource(configFile: String): Config = loadConfig(configFile)
 
-    fun getByClasspath(): Config =
-            loadConfig(ClassLoader.getSystemResource("adconfig.yaml")?.path ?: "")
+    fun getByClasspath(): Config = cache
 
     private fun loadConfig(configFile: String): Config {
 

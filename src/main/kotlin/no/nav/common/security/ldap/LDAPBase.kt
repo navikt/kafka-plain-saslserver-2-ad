@@ -15,7 +15,6 @@ abstract class LDAPBase protected constructor(config: ADConfig.Config) {
     //TODO  - TrustAllTrustManager is too trusty, but good enough when inside corporate inner zone
     protected val ldapConnection: LDAPConnection
     private val connectOptions = LDAPConnectionOptions()
-    protected val ldapCache = LDAPCache
 
     init {
         // initialize LDAP connection

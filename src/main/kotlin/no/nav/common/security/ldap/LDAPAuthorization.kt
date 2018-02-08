@@ -51,6 +51,8 @@ class LDAPAuthorization private constructor(val config: ADConfig.Config) : LDAPB
         try {
             ldapConnection.bind(bindDN,bindPwd)
             log.info("Successfully bind to (${config.host},${config.port}) with $bindDN")
+            LDAPCache.getBounded(bindDN, bindPwd)
+            log.info("Bind cache updated for ${jaasContext.username}")
         }
         catch (e: LDAPException) {
             log.error("Authorization will fail! " +

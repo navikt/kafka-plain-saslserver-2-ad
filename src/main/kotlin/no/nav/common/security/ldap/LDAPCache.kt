@@ -56,7 +56,7 @@ object LDAPCache {
                 .expireAfterWrite(config.grpCacheExpire.toLong(),TimeUnit.MINUTES)
                 .build(GroupedCacheLoader())
 
-        log.info("Caches are initialized")
+        log.info("Bind and group caches are initialized")
     }
 
     fun alreadyBounded(userDN: String, pwd: String): Boolean =
@@ -99,7 +99,7 @@ object LDAPCache {
 
     // for test purpose
 
-    fun invalidateAllBounded() = boundedCache.invalidateAll()
+    fun invalidateAllBounded() = boundedCache.invalidateAll().also { log.info("Group cache reset") }
 
-    fun invalidateAllGroups() = groupedCache.invalidateAll()
+    fun invalidateAllGroups() = groupedCache.invalidateAll().also { log.info("Bind cachet reset") }
 }
