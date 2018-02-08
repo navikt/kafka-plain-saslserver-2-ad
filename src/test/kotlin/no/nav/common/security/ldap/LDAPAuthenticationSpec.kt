@@ -12,6 +12,7 @@ object LDAPAuthenticationSpec : Spek({
 
         beforeGroup {
             InMemoryLDAPServer.start()
+            LDAPCache.invalidateAllBounded()
         }
 
         given("correct path to different YAML configs and correct LDAP user,pwd") {

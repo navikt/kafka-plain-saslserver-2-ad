@@ -6,7 +6,7 @@ port: 11636
 connTimeout: 500
 # userDN is <usrUid>=<usr>,<usrBaseDN>
 # Placement of users in LDAP tree
-usrBaseDN: dc=adeo,dc=example,dc=com
+usrBaseDN: dc=example,dc=com
 # User attribute for DN completion
 usrUid: uid
 # groupDN is <grpUid>=<group>,<grpBaseDN>

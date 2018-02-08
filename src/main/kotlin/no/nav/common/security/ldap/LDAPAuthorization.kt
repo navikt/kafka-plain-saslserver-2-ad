@@ -1,7 +1,6 @@
 package no.nav.common.security.ldap
 
-import com.unboundid.ldap.sdk.CompareRequest
-import com.unboundid.ldap.sdk.LDAPException
+import com.unboundid.ldap.sdk.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -66,7 +65,7 @@ class LDAPAuthorization private constructor(val config: ADConfig.Config) : LDAPB
 
         // check if group-user has at least one cache hit
         isMember =  groups
-                .map { LDAPCache.alreadyGrouped(toGroupDN(it), userDN) }
+                .map { LDAPCache.alreadyGrouped(it, userDN) }
                 .indexOfFirst { it == true }
                 .let {
                     val found = (it >= 0)
@@ -79,7 +78,7 @@ class LDAPAuthorization private constructor(val config: ADConfig.Config) : LDAPB
         // no cache hit, LDAP lookup for group membership
         groups.forEach {
 
-            val groupDN = toGroupDN(it)
+            val groupDN = getGroupDN(it)
             val groupName = it
 
             log.info("Trying compare-matched for $groupDN - ${config.grpAttrName} - $userDN")
@@ -89,7 +88,7 @@ class LDAPAuthorization private constructor(val config: ADConfig.Config) : LDAPB
                         .compareMatched()
                         .let {
                             if (it) {
-                                LDAPCache.getGrouped(groupDN, userDN)
+                                LDAPCache.getGrouped(groupName, userDN)
                                 log.info("Group cache updated for [$groupName,$user")
                             }
                             it
@@ -102,6 +101,26 @@ class LDAPAuthorization private constructor(val config: ADConfig.Config) : LDAPB
         }
 
         return isMember
+    }
+
+    private fun getGroupDN(group: String): String {
+
+        val filter = Filter.createEqualityFilter(config.grpUid, group)
+
+        return try{
+            ldapConnection
+                    .search(SearchRequest(config.grpBaseDN, SearchScope.SUB, filter, SearchRequest.NO_ATTRIBUTES))
+                    .let {
+                        if (it.entryCount == 1)
+                            it.searchEntries[0].dn
+                        else
+                            ""
+                    }
+        }
+        catch (e: LDAPSearchException){
+            log.error("Cannot find $group under ${config.grpBaseDN}")
+            ""
+        }
     }
 
     companion object {

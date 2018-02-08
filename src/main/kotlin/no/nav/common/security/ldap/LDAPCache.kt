@@ -96,4 +96,10 @@ object LDAPCache {
             log.error("Exception in getGrouped - ${e.cause}")
         }
     }
+
+    // for test purpose
+
+    fun invalidateAllBounded() = boundedCache.invalidateAll()
+
+    fun invalidateAllGroups() = groupedCache.invalidateAll()
 }

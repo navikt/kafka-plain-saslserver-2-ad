@@ -1,7 +1,23 @@
+#host of the LDAP server
 host: https://torstein.nesby.com
+#port of the LDAP server
 port: 11636
+# connectionTimout in milliseconds for LDAP
 connTimeout: 500
+# userDN is <usrUid>=<usr>,<usrBaseDN>
+# Placement of users in LDAP tree
 usrBaseDN: ou=ServiceAccounts,dc=adeo,dc=example,dc=com
+# User attribute for DN completion
 usrUid: uid
-bindDN: uid=srvbinder,ou=ServiceAccounts,dc=adeo,dc=example,dc=com
-bindPwd: binder
+# groupDN is <grpUid>=<group>,<grpBaseDN>
+# Placement of groups in LDAP tree
+grpBaseDN: ou=KafkaGroups,dc=adeo,dc=example,dc=com
+# Group attribute for DN completion
+grpUid: cn
+# Group membership is LDAP CompareRequest(groupDN, <grpAttrName>, userDN)
+# Group membership attribute name
+grpAttrName: uniqueMember
+# Lifetime of user entry in cache after cache-write - IN MINUTES
+usrCacheExpire: 12
+# Lifetime of group entry in cache after cache-write - IN MINUTES
+grpCacheExpire: 12
