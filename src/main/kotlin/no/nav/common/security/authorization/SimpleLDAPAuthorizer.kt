@@ -1,4 +1,4 @@
-package org.navit.common.security.authorization
+package no.nav.common.security.authorization
 
 import kafka.network.RequestChannel
 import kafka.security.auth.*
@@ -41,7 +41,8 @@ class SimpleLDAPAuthorizer : SimpleAclAuthorizer() {
 
         //TODO AclPermissionType.ALLOW - under change in minor version - CAREFUL!
         // getBounded allow access control lists for resource and given operation
-        val sacls = getAcls(resource).filter { it.operation() == operation && it.permissionType().toJava() == AclPermissionType.ALLOW }
+        val sacls = getAcls(resource)
+                .filter { it.operation() == operation && it.permissionType().toJava() == AclPermissionType.ALLOW }
 
         // switch to kotlin set, making testing easier
         var acls: Set<Acl> = emptySet()

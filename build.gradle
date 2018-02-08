@@ -31,8 +31,13 @@ repositories {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     compile "com.unboundid:unboundid-ldapsdk:4.0.3"
-    compile 'org.yaml:snakeyaml:1.19'
+
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.4'
+    compile 'com.fasterxml.jackson.module:jackson-module-kotlin:2.9.4'
+    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.4'
+
     compile 'org.apache.kafka:kafka_2.12:1.0.0'
     compile 'com.google.guava:guava:24.0-jre'
 
@@ -56,6 +61,7 @@ compileTestKotlin {
 shadowJar {
     dependencies {
         exclude(dependency('org.apache.kafka::'))
+        exclude(dependency('com.fasterxml.jackson.core:jackson-databind:'))
         exclude(dependency('org.lz4::'))
         exclude(dependency('org.xerial.snappy::'))
         exclude(dependency('org.slf4j::'))
@@ -63,7 +69,6 @@ shadowJar {
         exclude(dependency('com.101tec::'))
         exclude(dependency('org.apache.zookeeper::'))
         exclude(dependency('log4j::'))
-        exclude(dependency('com.fasterxml.jackson.core::'))
         exclude(dependency('net.sf.jopt-simple::'))
         exclude(dependency('org.scala-lang::'))
     }

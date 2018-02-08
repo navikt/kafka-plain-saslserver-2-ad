@@ -1,4 +1,4 @@
-package org.navit.common.security.plain
+package no.nav.common.security.plain
 
 import javax.security.auth.Subject
 import javax.security.auth.callback.CallbackHandler
@@ -11,7 +11,11 @@ import javax.security.auth.spi.LoginModule
 
 class PlainLoginModule : LoginModule {
 
-    override fun initialize(subject: Subject, callbackHandler: CallbackHandler, sharedState: Map<String, *>, options: Map<String, *>) {
+    override fun initialize(
+            subject: Subject,
+            callbackHandler: CallbackHandler,
+            sharedState: Map<String, *>,
+            options: Map<String, *>) {
 
         // TTN change to more kotlin-like code
         subject.publicCredentials.add(options[USERNAME_CONFIG] as String)

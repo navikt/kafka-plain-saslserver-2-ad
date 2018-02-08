@@ -1,4 +1,4 @@
-package org.navit.common.security.authorization
+package no.nav.common.security.authorization
 
 import kafka.security.auth.Acl
 import kafka.security.auth.Operation
@@ -8,8 +8,8 @@ import org.apache.kafka.common.acl.AclOperation
 import org.apache.kafka.common.security.auth.KafkaPrincipal
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.*
-import org.navit.common.security.common.InMemoryLDAPServer
-import org.navit.common.security.common.JAASContext
+import no.nav.common.security.common.InMemoryLDAPServer
+import no.nav.common.security.common.JAASContext
 
 
 object GroupAuthorizerSpec : Spek({

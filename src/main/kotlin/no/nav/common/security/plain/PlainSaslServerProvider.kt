@@ -1,4 +1,4 @@
-package org.navit.common.security.plain
+package no.nav.common.security.plain
 
 import java.security.Security
 import java.security.Provider
@@ -15,7 +15,10 @@ class PlainSaslServerProvider private constructor() : Provider(
         "SASL/PLAIN Server Provider using LDAP binding verification") {
 
     init {
-        put("SaslServerFactory." + PlainSaslServer.PLAIN_MECHANISM, PlainSaslServer.PlainSaslServerFactory::class.java.name)
+        put(
+            "SaslServerFactory." + PlainSaslServer.PLAIN_MECHANISM,
+            PlainSaslServer.PlainSaslServerFactory::class.java.name
+        )
     }
 
     companion object {

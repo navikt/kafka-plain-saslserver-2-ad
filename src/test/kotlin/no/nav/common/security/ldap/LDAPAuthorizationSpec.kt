@@ -1,11 +1,11 @@
-package org.navit.common.security.ldap
+package no.nav.common.security.ldap
 
 import org.amshove.kluent.`should be false`
 import org.amshove.kluent.`should be true`
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.*
-import org.navit.common.security.common.InMemoryLDAPServer
-import org.navit.common.security.common.JAASContext
+import no.nav.common.security.common.InMemoryLDAPServer
+import no.nav.common.security.common.JAASContext
 
 object LDAPAuthorizationSpec : Spek({
 

@@ -1,4 +1,4 @@
-package org.navit.common.security.plain
+package no.nav.common.security.plain
 
 import javax.security.sasl.Sasl
 import javax.security.sasl.SaslException
@@ -12,8 +12,8 @@ import java.io.UnsupportedEncodingException
 import org.apache.kafka.common.errors.SaslAuthenticationException
 import org.apache.kafka.common.security.JaasContext
 import org.apache.kafka.common.security.authenticator.SaslServerCallbackHandler
-import org.navit.common.security.ldap.LDAPAuthentication
-import org.navit.common.security.ldap.LDAPBase
+import no.nav.common.security.ldap.LDAPAuthentication
+import no.nav.common.security.ldap.LDAPBase
 import org.slf4j.LoggerFactory
 
 /**
@@ -43,7 +43,8 @@ class PlainSaslServer(val jaasContext: JaasContext, private val ldap: LDAPBase) 
 
         val tokens: Array<String>
         try {
-            tokens = String(response, Charsets.UTF_8).split("\u0000".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+            tokens = String(response, Charsets.UTF_8)
+                    .split("\u0000".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
         } catch (e: UnsupportedEncodingException) {
             throw SaslAuthenticationException("UTF-8 encoding not supported", e)
         }
@@ -80,7 +81,8 @@ class PlainSaslServer(val jaasContext: JaasContext, private val ldap: LDAPBase) 
         //NTT
 
         if (!authorizationIdFromClient.isEmpty() && authorizationIdFromClient != username)
-            throw SaslException("Authentication failed: Client requested an authorization id that is different from username")
+            throw SaslException("Authentication failed: " +
+                    "Client requested an authorization id that is different from username")
 
         this.authorizationId = username
 
@@ -131,13 +133,20 @@ class PlainSaslServer(val jaasContext: JaasContext, private val ldap: LDAPBase) 
     class PlainSaslServerFactory : SaslServerFactory {
 
         @Throws(SaslException::class)
-        override fun createSaslServer(mechanism: String, protocol: String, serverName: String, props: Map<String, *>, cbh: CallbackHandler): SaslServer {
+        override fun createSaslServer(
+                mechanism: String,
+                protocol: String,
+                serverName: String,
+                props: Map<String, *>,
+                cbh: CallbackHandler): SaslServer {
 
             if (PLAIN_MECHANISM != mechanism)
-                throw SaslException(String.format("Mechanism \'%s\' is not supported. Only PLAIN is supported.", mechanism))
+                throw SaslException(String.format("Mechanism \'%s\' is not supported. " +
+                        "Only PLAIN is supported.", mechanism))
 
             if (cbh !is SaslServerCallbackHandler)
-                throw SaslException("CallbackHandler must be of type SaslServerCallbackHandler, but it is: " + cbh.javaClass)
+                throw SaslException("CallbackHandler must be of type SaslServerCallbackHandler, " +
+                        "but it is: " + cbh.javaClass)
 
             // TTN ADDED - ldap authentication
             return PlainSaslServer(cbh.jaasContext(), LDAPAuthentication.init())

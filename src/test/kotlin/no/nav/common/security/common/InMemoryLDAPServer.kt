@@ -1,4 +1,4 @@
-package org.navit.common.security.common
+package no.nav.common.security.common
 
 import com.unboundid.ldap.listener.InMemoryDirectoryServer
 import com.unboundid.ldap.listener.InMemoryDirectoryServerConfig

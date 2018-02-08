@@ -1,4 +1,4 @@
-package org.navit.common.security.ldap
+package no.nav.common.security.ldap
 
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.LoadingCache
@@ -48,12 +48,12 @@ object LDAPCache {
 
         boundedCache = CacheBuilder.newBuilder()
                 .maximumSize(1000)
-                .expireAfterWrite(config["usrCacheExpire"].toString().toLong(),TimeUnit.MINUTES)
+                .expireAfterWrite(config.usrCacheExpire.toLong(),TimeUnit.MINUTES)
                 .build(BoundedCacheLoader())
 
         groupedCache = CacheBuilder.newBuilder()
                 .maximumSize(10000)
-                .expireAfterWrite(config["grpCacheExpire"].toString().toLong(),TimeUnit.MINUTES)
+                .expireAfterWrite(config.grpCacheExpire.toLong(),TimeUnit.MINUTES)
                 .build(GroupedCacheLoader())
 
         log.info("Caches are initialized")

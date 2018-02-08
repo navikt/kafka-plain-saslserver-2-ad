@@ -1,9 +1,9 @@
-package org.navit.common.security.authorization
+package no.nav.common.security.authorization
 
 import kafka.security.auth.Acl
 import org.apache.kafka.common.security.auth.KafkaPrincipal
-import org.navit.common.security.ldap.LDAPAuthorization
-import org.navit.common.security.ldap.LDAPBase
+import no.nav.common.security.ldap.LDAPAuthorization
+import no.nav.common.security.ldap.LDAPBase
 import org.slf4j.LoggerFactory
 
 /**

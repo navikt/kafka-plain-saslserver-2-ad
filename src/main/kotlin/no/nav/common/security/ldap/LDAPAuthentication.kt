@@ -1,4 +1,4 @@
-package org.navit.common.security.ldap
+package no.nav.common.security.ldap
 
 import com.unboundid.ldap.sdk.LDAPException
 import com.unboundid.ldap.sdk.ResultCode
@@ -7,12 +7,9 @@ import org.slf4j.LoggerFactory
 
 /**
  * A class verifying username and password through simple LDAP bind
- * See test/resources/adconfig.yaml for class parameters
  */
 
-class LDAPAuthentication private constructor(map: Map<String, Any?>) : LDAPBase(map) {
-        private val usrBaseDN: String by map
-        private val usrUid: String by map
+class LDAPAuthentication private constructor(val config: ADConfig.Config) : LDAPBase(config) {
 
     override fun canUserAuthenticate(user: String, pwd: String): Boolean {
 
@@ -21,9 +18,9 @@ class LDAPAuthentication private constructor(map: Map<String, Any?>) : LDAPBase(
 
         return try {
 
-            val userDN = "$usrUid=$user,$usrBaseDN"
+            val userDN = "${config.usrUid}=$user,${config.usrBaseDN}"
 
-            when (ldapCache.alreadyBounded(userDN, pwd)) {
+            when (LDAPCache.alreadyBounded(userDN, pwd)) {
                 true -> {
                     log.info("$user is cached")
                     true
@@ -32,7 +29,7 @@ class LDAPAuthentication private constructor(map: Map<String, Any?>) : LDAPBase(
                     log.info("Trying bind for $userDN and given password")
                     (ldapConnection.bind(userDN, pwd).resultCode == ResultCode.SUCCESS).let {
                         if (it) {
-                            ldapCache.getBounded(userDN, pwd)
+                            LDAPCache.getBounded(userDN, pwd)
                             log.info("Bind cache updated for $user")
                         }
                         it
@@ -52,7 +49,7 @@ class LDAPAuthentication private constructor(map: Map<String, Any?>) : LDAPBase(
 
         fun init(configFile: String = ""): LDAPAuthentication = when(configFile.isEmpty()) {
             true -> LDAPAuthentication(ADConfig.getByClasspath())
-            false -> LDAPAuthentication(ADConfig.getBySource(configFile))
+            else -> LDAPAuthentication(ADConfig.getBySource(configFile))
         }
     }
 }

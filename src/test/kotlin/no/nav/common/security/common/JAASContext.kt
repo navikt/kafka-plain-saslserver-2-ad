@@ -1,4 +1,4 @@
-package org.navit.common.security.common
+package no.nav.common.security.common
 
 import javax.security.auth.login.AppConfigurationEntry
 import javax.security.auth.login.Configuration
