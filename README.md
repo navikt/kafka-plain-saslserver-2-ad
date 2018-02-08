@@ -30,7 +30,7 @@ authentication.
 
 ```
 KafkaServer{
-org.navit.common.security.plain.PlainLoginModule required
+no.nav.common.security.plain.PlainLoginModule required
 username="x"
 password="y";
 };
@@ -39,7 +39,7 @@ password="y";
 Example of Kafka server.properties for using the customized class for authorization.
 
 ```
-authorizer.class.name=org.navit.common.security.authorization.SimpleLDAPAuthorizer
+authorizer.class.name=no.nav.common.security.authorization.SimpleLDAPAuthorizer
 ```
 
 
