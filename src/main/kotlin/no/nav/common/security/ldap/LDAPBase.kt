@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
  * A base class for LDAPAuthentication and LDAPAuthorization
  */
 
-abstract class LDAPBase protected constructor(config: ADConfig.Config) {
+abstract class LDAPBase protected constructor(config: LDAPConfig.Config) {
 
     //TODO  - TrustAllTrustManager is too trusty, but good enough when inside corporate inner zone
     protected val ldapConnection: LDAPConnection

@@ -28,7 +28,7 @@ object LDAPAuthenticationSpec : Spek({
             on("yaml - correct") {
                 it("should return true") {
 
-                    val ldap = LDAPAuthentication.init("src/test/resources/adconfig.yaml")
+                    val ldap = LDAPAuthentication.init("src/test/resources/ldapconfig.yaml")
                     ldap.canUserAuthenticate("adoe", "alice").`should be true`()
                 }
             }

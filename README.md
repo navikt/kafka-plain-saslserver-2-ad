@@ -11,7 +11,7 @@ Zookeeper Access Control Lists to group membership.
 Binding and group membership information is cached with google guava cache (limited lifetime after write),
 giving minor performance penalty and reduced LDAPS traffic.
 
-## Technologies
+## Tools
 - Kotlin
 - Gradle build tool
 
@@ -19,9 +19,9 @@ giving minor performance penalty and reduced LDAPS traffic.
 
 1. Unboundid LDAP SDK for LDAPS interaction
 2. Google Guava Cache
-3. YAML Configuration for LDAP baseDN for users and groups, see src/test/resources/adconfig.yaml for details
+3. YAML Configuration for LDAP baseDN for users, groups and more. See src/test/resources/ldapconfig.yaml for details
 
-**Observe** that adconfig.yaml must be somewhere in CLASSPATH
+**Observe** that the directory hosting yaml configuration file must be in CLASSPATH
 
 ## Kafka configuration examples
 
@@ -57,5 +57,5 @@ Tested on confluent.io version 4.0.0.
 ./gradlew publish
 ```
 
-KafkaPlainSaslServer2AD-version-all.jar contains the relevant components only.
+KafkaPlainSaslServer2AD-a_version-all.jar contains the relevant components only.
 

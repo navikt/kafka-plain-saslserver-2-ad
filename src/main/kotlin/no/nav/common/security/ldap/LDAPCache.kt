@@ -44,7 +44,7 @@ object LDAPCache {
 
     init {
 
-        val config = ADConfig.getByClasspath()
+        val config = LDAPConfig.getByClasspath()
 
         boundedCache = CacheBuilder.newBuilder()
                 .maximumSize(1000)

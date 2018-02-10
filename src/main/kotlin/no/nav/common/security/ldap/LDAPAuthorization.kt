@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory
  * A class verifying group membership with LDAP compare-matched
  */
 
-class LDAPAuthorization private constructor(val config: ADConfig.Config) : LDAPBase(config) {
+class LDAPAuthorization private constructor(val config: LDAPConfig.Config) : LDAPBase(config) {
 
     // extracting JAAS context from kafka server - prerequisite is  PLAINSASL context
 
@@ -130,8 +130,8 @@ class LDAPAuthorization private constructor(val config: ADConfig.Config) : LDAPB
         private val log: Logger = LoggerFactory.getLogger(LDAPAuthorization::class.java)
 
         fun init(configFile: String = ""): LDAPAuthorization = when(configFile.isEmpty()) {
-            true -> LDAPAuthorization(ADConfig.getByClasspath())
-            else -> LDAPAuthorization(ADConfig.getBySource(configFile))
+            true -> LDAPAuthorization(LDAPConfig.getByClasspath())
+            else -> LDAPAuthorization(LDAPConfig.getBySource(configFile))
         }
     }
 }

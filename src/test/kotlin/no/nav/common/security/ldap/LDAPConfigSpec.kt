@@ -7,17 +7,15 @@ import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 
-object AdConfigSpec : Spek({
+object LDAPConfigSpec : Spek({
 
     describe("LDAPAuthentication class test specifications") {
-
-        beforeGroup {}
 
         given("getBySource - correct path to different YAML configs") {
 
             on("yaml - default file") {
 
-                val config = ADConfig.getBySource("src/test/resources/adconfig.yaml")
+                val config = LDAPConfig.getBySource("src/test/resources/ldapconfig.yaml")
 
                 it("should return host as localhost") {
                     config.host.`should be equal to`("localhost")
@@ -43,18 +41,18 @@ object AdConfigSpec : Spek({
                 it("should return grpAttrName as uniqueMember"){
                     config.grpAttrName.`should be equal to`("uniqueMember")
                 }
-                it("should return usrCacheExpire as 12"){
-                    config.usrCacheExpire.`should be equal to`(12)
+                it("should return usrCacheExpire as 2"){
+                    config.usrCacheExpire.`should be equal to`(2)
                 }
-                it("should return grpCacheExpire as 12"){
-                    config.grpCacheExpire.`should be equal to`(12)
+                it("should return grpCacheExpire as 4"){
+                    config.grpCacheExpire.`should be equal to`(4)
                 }
             }
             on("yaml - invalid port type") {
 
                 // will return default value
 
-                val config = ADConfig.getBySource("src/test/resources/adcInvalidPortType.yaml")
+                val config = LDAPConfig.getBySource("src/test/resources/adcInvalidPortType.yaml")
 
                 it("should return port as 0") {
                     config.port.`should be equal to`(0)
@@ -66,7 +64,7 @@ object AdConfigSpec : Spek({
 
                 // will return default value
 
-                val config = ADConfig.getBySource("src/test/resources/adcMissingPort.yaml")
+                val config = LDAPConfig.getBySource("src/test/resources/adcMissingPort.yaml")
 
                 it("should return port as 0") {
                     config.port.`should be equal to`(0)
@@ -76,7 +74,7 @@ object AdConfigSpec : Spek({
 
                 // will return default value
 
-                val config = ADConfig.getBySource("src/test/resources/adcEmptyusrUid.yaml")
+                val config = LDAPConfig.getBySource("src/test/resources/adcEmptyusrUid.yaml")
 
                 it("should return usrUid as empty"){
                     config.usrUid.`should be equal to`("")
@@ -86,7 +84,7 @@ object AdConfigSpec : Spek({
 
                 // will return default value
 
-                val config = ADConfig.getBySource("src/test/resources/adcMissingusrUid.yaml")
+                val config = LDAPConfig.getBySource("src/test/resources/adcMissingusrUid.yaml")
 
                 it("should return usrUid as empty"){
                     config.usrUid.`should be equal to`("")
@@ -100,7 +98,7 @@ object AdConfigSpec : Spek({
 
             on("no file found, use default values") {
 
-                val config = ADConfig.getBySource("invalid.yaml")
+                val config = LDAPConfig.getBySource("invalid.yaml")
 
                 it("should return host as empty") {
                     config.host.`should be equal to`("")
@@ -126,22 +124,20 @@ object AdConfigSpec : Spek({
                 it("should return grpAttrName as empty"){
                     config.grpAttrName.`should be equal to`("")
                 }
-                it("should return usrCacheExpire as 12"){
-                    config.usrCacheExpire.`should be equal to`(12)
+                it("should return usrCacheExpire as 2"){
+                    config.usrCacheExpire.`should be equal to`(2)
                 }
-                it("should return grpCacheExpire as 12"){
-                    config.grpCacheExpire.`should be equal to`(12)
+                it("should return grpCacheExpire as 4"){
+                    config.grpCacheExpire.`should be equal to`(4)
                 }
-
             }
-
         }
 
         given("getByClasspath - load of default yaml config") {
 
-            //will find adconfig.yaml resource under build/resources/adconfig.yaml...
+            //will find ldapconfig.yaml resource under build/resources/ldapconfig.yaml...
 
-            val config = ADConfig.getByClasspath()
+            val config = LDAPConfig.getByClasspath()
 
             on("yaml - default file") {
 
@@ -169,16 +165,14 @@ object AdConfigSpec : Spek({
                 it("should return grpAttrName as uniqueMember"){
                     config.grpAttrName.`should be equal to`("uniqueMember")
                 }
-                it("should return usrCacheExpire as 12"){
-                    config.usrCacheExpire.`should be equal to`(12)
+                it("should return usrCacheExpire as 2"){
+                    config.usrCacheExpire.`should be equal to`(2)
                 }
-                it("should return grpCacheExpire as 12"){
-                    config.grpCacheExpire.`should be equal to`(12)
+                it("should return grpCacheExpire as 4"){
+                    config.grpCacheExpire.`should be equal to`(4)
                 }
             }
 
         }
-
-        afterGroup {}
     }
 })

@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
  * A class verifying username and password through simple LDAP bind
  */
 
-class LDAPAuthentication private constructor(val config: ADConfig.Config) : LDAPBase(config) {
+class LDAPAuthentication private constructor(val config: LDAPConfig.Config) : LDAPBase(config) {
 
     override fun canUserAuthenticate(user: String, pwd: String): Boolean {
 
@@ -48,8 +48,8 @@ class LDAPAuthentication private constructor(val config: ADConfig.Config) : LDAP
         private val log: Logger = LoggerFactory.getLogger(LDAPAuthentication::class.java)
 
         fun init(configFile: String = ""): LDAPAuthentication = when(configFile.isEmpty()) {
-            true -> LDAPAuthentication(ADConfig.getByClasspath())
-            else -> LDAPAuthentication(ADConfig.getBySource(configFile))
+            true -> LDAPAuthentication(LDAPConfig.getByClasspath())
+            else -> LDAPAuthentication(LDAPConfig.getBySource(configFile))
         }
     }
 }
