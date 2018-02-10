@@ -40,8 +40,10 @@ object LDAPConfig {
         log.info("LDAPConfig for classpath is cached")
     }
 
-    fun getBySource(configFile: String): Config =
-            loadConfig(URL("file:/" + System.getProperty("user.dir") + "/" + configFile))
+    fun getBySource(configFile: String): Config {
+        val prefix = if (System.getProperty("os.name").startsWith("Windows")) "file:/" else "file:"
+        return loadConfig(URL(prefix + System.getProperty("user.dir") + "/" + configFile))
+    }
 
     fun getByClasspath(): Config = cache
 
