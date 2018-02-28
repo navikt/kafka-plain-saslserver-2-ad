@@ -19,8 +19,8 @@ plugins{
 
 apply plugin: 'maven-publish'
 
-group 'org.navit.common.security'
-version '1.0-SNAPSHOT'
+group 'no.nav.common.security'
+version '0.83'
 
 sourceCompatibility = 1.8
 

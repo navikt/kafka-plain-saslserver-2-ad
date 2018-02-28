@@ -77,6 +77,22 @@ class LDAPAuthorization private constructor(val config: LDAPConfig.Config) : LDA
 
         if (isMember) return true
 
+        // verify connection before LDAP operations
+        val connOk = if (!ldapConnection.isConnected) {
+            log.warn("Has lost connection to LDAP due to ${ldapConnection?.disconnectMessage} - try reconnect")
+            try {
+                ldapConnection.reconnect()
+                true
+            }
+            catch (e: LDAPException) {
+                log.error("Authorization will fail - exception while trying reconnect - ${e.message}")
+                false
+            }
+        }
+        else true
+
+        if (!connOk) return false
+
         // no cache hit, LDAP lookup for group membership
         groups.forEach {
 
