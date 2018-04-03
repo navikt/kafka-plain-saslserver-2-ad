@@ -15,14 +15,14 @@ class GroupAuthorizer {
 
     private val ldap = LDAPAuthorization.init()
 
-    fun authorize(principal: KafkaPrincipal, acls: Set<Acl>): Boolean {
+    fun authorize(principal: KafkaPrincipal, acls: Set<Acl>, uuid: String): Boolean {
 
-        acls.forEach { log.info("ALLOW ACL: $it") }
+        acls.forEach { log.info("ALLOW ACL: $it ($uuid)") }
 
         // get allow principals, should be LDAP groups only
         val ldapGroups: List<String> = acls.map { it.principal().name  }
 
-        return ldap.isUserMemberOfAny(principal.name, ldapGroups)
+        return ldap.isUserMemberOfAny(principal.name, ldapGroups, uuid)
     }
 
     companion object {

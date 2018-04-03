@@ -77,7 +77,8 @@ object GroupAuthorizerSpec : Spek({
             on("a member user in group 1") {
                 it("should retrn true") {
                     val authorizer = GroupAuthorizer()
-                    val authorized = authorizer.authorize(createKP("cdoe"),aclDescribe)
+                    val authorized = authorizer.authorize(
+                            createKP("cdoe"),aclDescribe, java.util.UUID.randomUUID().toString())
 
                     authorized.`should be`(true)
                 }
@@ -85,7 +86,8 @@ object GroupAuthorizerSpec : Spek({
             on("a member user in group 2") {
                 it("should retrn true") {
                     val authorizer = GroupAuthorizer()
-                    val authorized = authorizer.authorize(createKP("adoe"),aclDescribe)
+                    val authorized = authorizer.authorize(
+                            createKP("adoe"),aclDescribe, java.util.UUID.randomUUID().toString())
 
                     authorized.`should be`(true)
                 }
@@ -93,7 +95,8 @@ object GroupAuthorizerSpec : Spek({
             on("a non-member user in any group") {
                 it("should retrn false") {
                     val authorizer = GroupAuthorizer()
-                    val authorized = authorizer.authorize(createKP("ddoe"),aclDescribe)
+                    val authorized = authorizer.authorize(
+                            createKP("ddoe"),aclDescribe, java.util.UUID.randomUUID().toString())
 
                     authorized.`should be`(false)
                 }
@@ -109,7 +112,8 @@ object GroupAuthorizerSpec : Spek({
                 it("should return true") {
 
                     val authorizer = GroupAuthorizer()
-                    val authorized = authorizer.authorize(createKP("bdoe"),aclRead)
+                    val authorized = authorizer.authorize(
+                            createKP("bdoe"),aclRead, java.util.UUID.randomUUID().toString())
 
                     authorized.`should be`(true)
                 }
@@ -120,7 +124,8 @@ object GroupAuthorizerSpec : Spek({
                 it("should return false") {
 
                     val authorizer = GroupAuthorizer()
-                    val authorized = authorizer.authorize(createKP("adoe"),aclRead)
+                    val authorized = authorizer.authorize(
+                            createKP("adoe"),aclRead, java.util.UUID.randomUUID().toString())
 
                     authorized.`should be`(false)
                 }
@@ -136,7 +141,8 @@ object GroupAuthorizerSpec : Spek({
                 it("should return false") {
 
                     val authorizer = GroupAuthorizer()
-                    val authorized = authorizer.authorize(createKP("bdoe"),aclWrite)
+                    val authorized = authorizer.authorize(
+                            createKP("bdoe"),aclWrite, java.util.UUID.randomUUID().toString())
 
                     authorized.`should be`(false)
                 }
@@ -147,7 +153,8 @@ object GroupAuthorizerSpec : Spek({
                 it("should return true") {
 
                     val authorizer = GroupAuthorizer()
-                    val authorized = authorizer.authorize(createKP("adoe"),aclWrite)
+                    val authorized = authorizer.authorize(
+                            createKP("adoe"),aclWrite, java.util.UUID.randomUUID().toString())
 
                     authorized.`should be`(true)
                 }

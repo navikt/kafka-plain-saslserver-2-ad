@@ -24,49 +24,73 @@ object LDAPAuthorizationSpec : Spek({
             on("user and membership group") {
                 it("should return true") {
                     val ldap = LDAPAuthorization.init()
-                    ldap.isUserMemberOfAny("bdoe", listOf("ktACons")).`should be true`()
+                    ldap.isUserMemberOfAny(
+                            "bdoe",
+                            listOf("ktACons"),
+                            java.util.UUID.randomUUID().toString()).`should be true`()
                 }
             }
             on("user and non-membership group") {
                 it("should return false") {
                     val ldap = LDAPAuthorization.init()
-                    ldap.isUserMemberOfAny("adoe", listOf("ktACons")).`should be false`()
+                    ldap.isUserMemberOfAny(
+                            "adoe",
+                            listOf("ktACons"),
+                            java.util.UUID.randomUUID().toString()).`should be false`()
                 }
             }
             on("user and membership group") {
                 it("should return true") {
                     val ldap = LDAPAuthorization.init()
-                    ldap.isUserMemberOfAny("adoe", listOf("ktAProd")).`should be true`()
+                    ldap.isUserMemberOfAny(
+                            "adoe",
+                            listOf("ktAProd"),
+                            java.util.UUID.randomUUID().toString()).`should be true`()
                 }
             }
             on("invalid user and existing group") {
                 it("should return false") {
                     val ldap = LDAPAuthorization.init()
-                    ldap.isUserMemberOfAny("invalid", listOf("ktACons")).`should be false`()
+                    ldap.isUserMemberOfAny(
+                            "invalid",
+                            listOf("ktACons"),
+                            java.util.UUID.randomUUID().toString()).`should be false`()
                 }
             }
             on("existing user and invalid group") {
                 it("should return false") {
                     val ldap = LDAPAuthorization.init()
-                    ldap.isUserMemberOfAny("bdoe", listOf("invalid")).`should be false`()
+                    ldap.isUserMemberOfAny(
+                            "bdoe",
+                            listOf("invalid"),
+                            java.util.UUID.randomUUID().toString()).`should be false`()
                 }
             }
             on("user and {invalid group,membership group}") {
                 it("should return true") {
                     val ldap = LDAPAuthorization.init()
-                    ldap.isUserMemberOfAny("bdoe", listOf("invalid","ktACons")).`should be true`()
+                    ldap.isUserMemberOfAny(
+                            "bdoe",
+                            listOf("invalid","ktACons"),
+                            java.util.UUID.randomUUID().toString()).`should be true`()
                 }
             }
             on("user and {non-membership group,membership group}") {
                 it("should return true") {
                     val ldap = LDAPAuthorization.init()
-                    ldap.isUserMemberOfAny("bdoe", listOf("ktAProd","ktACons")).`should be true`()
+                    ldap.isUserMemberOfAny(
+                            "bdoe",
+                            listOf("ktAProd","ktACons"),
+                            java.util.UUID.randomUUID().toString()).`should be true`()
                 }
             }
             on("user and {non-membership group,invalid group}") {
                 it("should return false") {
                     val ldap = LDAPAuthorization.init()
-                    ldap.isUserMemberOfAny("bdoe", listOf("ktAProd","invalid")).`should be false`()
+                    ldap.isUserMemberOfAny(
+                            "bdoe",
+                            listOf("ktAProd","invalid"),
+                            java.util.UUID.randomUUID().toString()).`should be false`()
                 }
             }
         }
@@ -78,49 +102,73 @@ object LDAPAuthorizationSpec : Spek({
             on("user and membership group") {
                 it("should return true") {
                     val ldap = LDAPAuthorization.init(root)
-                    ldap.isUserMemberOfAny("bdoe", listOf("ktACons")).`should be true`()
+                    ldap.isUserMemberOfAny(
+                            "bdoe",
+                            listOf("ktACons"),
+                            java.util.UUID.randomUUID().toString()).`should be true`()
                 }
             }
             on("user and non-membership group") {
                 it("should return false") {
                     val ldap = LDAPAuthorization.init(root)
-                    ldap.isUserMemberOfAny("adoe", listOf("ktACons")).`should be false`()
+                    ldap.isUserMemberOfAny(
+                            "adoe",
+                            listOf("ktACons"),
+                            java.util.UUID.randomUUID().toString()).`should be false`()
                 }
             }
             on("user and membership group") {
                 it("should return true") {
                     val ldap = LDAPAuthorization.init(root)
-                    ldap.isUserMemberOfAny("adoe", listOf("ktAProd")).`should be true`()
+                    ldap.isUserMemberOfAny(
+                            "adoe",
+                            listOf("ktAProd"),
+                            java.util.UUID.randomUUID().toString()).`should be true`()
                 }
             }
             on("invalid user and existing group") {
                 it("should return false") {
                     val ldap = LDAPAuthorization.init(root)
-                    ldap.isUserMemberOfAny("invalid", listOf("ktACons")).`should be false`()
+                    ldap.isUserMemberOfAny(
+                            "invalid",
+                            listOf("ktACons"),
+                            java.util.UUID.randomUUID().toString()).`should be false`()
                 }
             }
             on("existing user and invalid group") {
                 it("should return false") {
                     val ldap = LDAPAuthorization.init(root)
-                    ldap.isUserMemberOfAny("bdoe", listOf("invalid")).`should be false`()
+                    ldap.isUserMemberOfAny(
+                            "bdoe",
+                            listOf("invalid"),
+                            java.util.UUID.randomUUID().toString()).`should be false`()
                 }
             }
             on("user and {invalid group,membership group}") {
                 it("should return true") {
                     val ldap = LDAPAuthorization.init(root)
-                    ldap.isUserMemberOfAny("bdoe", listOf("invalid","ktACons")).`should be true`()
+                    ldap.isUserMemberOfAny(
+                            "bdoe",
+                            listOf("invalid","ktACons"),
+                            java.util.UUID.randomUUID().toString()).`should be true`()
                 }
             }
             on("user and {non-membership group,membership group}") {
                 it("should return true") {
                     val ldap = LDAPAuthorization.init(root)
-                    ldap.isUserMemberOfAny("bdoe", listOf("ktAProd","ktACons")).`should be true`()
+                    ldap.isUserMemberOfAny(
+                            "bdoe",
+                            listOf("ktAProd","ktACons"),
+                            java.util.UUID.randomUUID().toString()).`should be true`()
                 }
             }
             on("user and {non-membership group,invalid group}") {
                 it("should return false") {
                     val ldap = LDAPAuthorization.init(root)
-                    ldap.isUserMemberOfAny("bdoe", listOf("ktAProd","invalid")).`should be false`()
+                    ldap.isUserMemberOfAny(
+                            "bdoe",
+                            listOf("ktAProd","invalid"),
+                            java.util.UUID.randomUUID().toString()).`should be false`()
                 }
             }
         }

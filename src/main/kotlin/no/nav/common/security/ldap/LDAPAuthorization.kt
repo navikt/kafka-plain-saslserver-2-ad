@@ -38,7 +38,7 @@ class LDAPAuthorization private constructor(val config: LDAPConfig.Config) : LDA
     }
 
     private fun toUserDN(user: String) = "${config.usrUid}=$user,${config.usrBaseDN}"
-    private fun toGroupDN(group: String) =  "${config.grpUid}=$group,${config.grpBaseDN}"
+    //private fun toGroupDN(group: String) =  "${config.grpUid}=$group,${config.grpBaseDN}"
 
     // In authorization context, needs to bind the connection before compare-match between group and user
     // due to no anonymous access allowed for LDAP operations like search, compare, ...
@@ -60,7 +60,7 @@ class LDAPAuthorization private constructor(val config: LDAPConfig.Config) : LDA
         }
     }
 
-    override fun isUserMemberOfAny(user: String, groups: List<String>): Boolean {
+    override fun isUserMemberOfAny(user: String, groups: List<String>, uuid: String): Boolean {
 
         var isMember: Boolean
         val userDN = toUserDN(user)
@@ -71,7 +71,7 @@ class LDAPAuthorization private constructor(val config: LDAPConfig.Config) : LDA
                 .indexOfFirst { it == true }
                 .let {
                     val found = (it >= 0)
-                    if (found) log.info("[${groups[it]},$user] is cached")
+                    if (found) log.info("[${groups[it]},$user] is cached ($uuid)")
                     found
                 }
 
@@ -79,13 +79,13 @@ class LDAPAuthorization private constructor(val config: LDAPConfig.Config) : LDA
 
         // verify connection before LDAP operations
         val connOk = if (!ldapConnection.isConnected) {
-            log.warn("Has lost connection to LDAP due to ${ldapConnection?.disconnectMessage} - try reconnect")
+            log.warn("Has lost connection to LDAP due to ${ldapConnection.disconnectMessage} - try reconnect ($uuid)")
             try {
                 ldapConnection.reconnect()
                 true
             }
             catch (e: LDAPException) {
-                log.error("Authorization will fail - exception while trying reconnect - ${e.message}")
+                log.error("Authorization will fail - exception while trying reconnect - ${e.message} ($uuid)")
                 false
             }
         }
@@ -99,7 +99,7 @@ class LDAPAuthorization private constructor(val config: LDAPConfig.Config) : LDA
             val groupDN = getGroupDN(it)
             val groupName = it
 
-            log.info("Trying compare-matched for $groupDN - ${config.grpAttrName} - $userDN")
+            log.info("Trying compare-matched for $groupDN - ${config.grpAttrName} - $userDN ($uuid)")
             isMember = isMember || try {
                 ldapConnection
                         .compare(CompareRequest(groupDN, config.grpAttrName, userDN))
@@ -107,13 +107,13 @@ class LDAPAuthorization private constructor(val config: LDAPConfig.Config) : LDA
                         .let {
                             if (it) {
                                 LDAPCache.getGrouped(groupName, userDN)
-                                log.info("Group cache updated for [$groupName,$user")
+                                log.info("Group cache updated for [$groupName,$user] ($uuid)")
                             }
                             it
                         }
             }
             catch(e: LDAPException) {
-                log.error("Compare-matched exception - invalid group!, ${e.exceptionMessage}")
+                log.error("Compare-matched exception - invalid group!, ${e.exceptionMessage} ($uuid)")
                 false
             }
         }

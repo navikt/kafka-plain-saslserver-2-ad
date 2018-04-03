@@ -37,7 +37,7 @@ abstract class LDAPBase protected constructor(config: LDAPConfig.Config) {
 
     open fun canUserAuthenticate(user: String, pwd: String): Boolean = false
 
-    open fun isUserMemberOfAny(user: String, groups: List<String>): Boolean = false
+    open fun isUserMemberOfAny(user: String, groups: List<String>, uuid: String): Boolean = false
 
     companion object {
 
