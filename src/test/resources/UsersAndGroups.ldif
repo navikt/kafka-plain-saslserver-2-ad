@@ -8,6 +8,11 @@ objectClass: top
 objectClass: organizationalUnit
 ou: ServiceAccounts
 
+dn: ou=ApplAccounts,ou=ServiceAccounts,dc=adeo,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: ApplAccounts
+
 dn: uid=srvbinder,ou=ServiceAccounts,dc=adeo,dc=example,dc=com
 objectClass: top
 objectClass: inetOrgPerson
@@ -67,6 +72,16 @@ cn: Don Doe
 sn: Doe
 uid: ddoe
 userPassword: don
+
+dn: uid=srvaltinnkanal,ou=ApplAccounts,ou=ServiceAccounts,dc=adeo,dc=example,dc=com
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: organizationalPerson
+cn: Srv Altinnkanal
+sn: Altinnkanal
+uid: srvaltinnkanal
+userPassword: kanal
 
 dn: ou=KafkaGroups,dc=adeo,dc=example,dc=com
 objectClass: top

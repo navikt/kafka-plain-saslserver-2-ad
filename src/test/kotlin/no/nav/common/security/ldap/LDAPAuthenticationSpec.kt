@@ -31,6 +31,11 @@ object LDAPAuthenticationSpec : Spek({
                     val ldap = LDAPAuthentication.init("src/test/resources/ldapconfig.yaml")
                     ldap.canUserAuthenticate("adoe", "alice").`should be true`()
                 }
+                it("should return true for user in sub group ApplAccounts") {
+
+                    val ldap = LDAPAuthentication.init("src/test/resources/ldapconfig.yaml")
+                    ldap.canUserAuthenticate("srvaltinnkanal", "kanal").`should be true`()
+                }
             }
             on("yaml - invalid usrBaseDN") {
                 it("should return false") {
