@@ -100,3 +100,4 @@ objectClass: top
 objectClass: groupOfUniqueNames
 cn: ktAProd
 uniqueMember: uid=adoe,ou=ServiceAccounts,dc=adeo,dc=example,dc=com
+uniqueMember: uid=srvaltinnkanal,ou=ApplAccounts,ou=ServiceAccounts,dc=adeo,dc=example,dc=com

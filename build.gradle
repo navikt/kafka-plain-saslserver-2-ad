@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.2.21'
+    ext.kotlin_version = '1.2.30'
 
     repositories {
         mavenCentral()
@@ -20,7 +20,7 @@ plugins{
 apply plugin: 'maven-publish'
 
 group 'no.nav.common.security'
-version '0.87'
+version '0.88'
 
 sourceCompatibility = 1.8
 

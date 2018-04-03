@@ -38,6 +38,10 @@ class LDAPAuthorization private constructor(val config: LDAPConfig.Config) : LDA
     }
 
     private fun toUserDN(user: String) = "${config.usrUid}=$user,${config.usrBaseDN}"
+
+    // must also consider BASTA created service users
+    private fun toUserDNBasta(user: String) = "${config.usrUid}=$user,ou=ApplAccounts,${config.usrBaseDN}"
+
     //private fun toGroupDN(group: String) =  "${config.grpUid}=$group,${config.grpBaseDN}"
 
     // In authorization context, needs to bind the connection before compare-match between group and user
@@ -64,10 +68,19 @@ class LDAPAuthorization private constructor(val config: LDAPConfig.Config) : LDA
 
         var isMember: Boolean
         val userDN = toUserDN(user)
+        val userDNBasta = toUserDNBasta(user)
 
         // check if group-user has at least one cache hit
+        // user can be in ServiceAccounts xor ApplAccounts (BASTA created user)
         isMember =  groups
                 .map { LDAPCache.alreadyGrouped(it, userDN) }
+                .indexOfFirst { it == true }
+                .let {
+                    val found = (it >= 0)
+                    if (found) log.info("[${groups[it]},$user] is cached ($uuid)")
+                    found
+                } || groups
+                .map { LDAPCache.alreadyGrouped(it, userDNBasta) }
                 .indexOfFirst { it == true }
                 .let {
                     val found = (it >= 0)
@@ -94,6 +107,7 @@ class LDAPAuthorization private constructor(val config: LDAPConfig.Config) : LDA
         if (!connOk) return false
 
         // no cache hit, LDAP lookup for group membership
+        // user can be in ServiceAccounts xor ApplAccounts (BASTA created user)
         groups.forEach {
 
             val groupDN = getGroupDN(it)
@@ -101,7 +115,7 @@ class LDAPAuthorization private constructor(val config: LDAPConfig.Config) : LDA
 
             log.info("Trying compare-matched for $groupDN - ${config.grpAttrName} - $userDN ($uuid)")
             isMember = isMember || try {
-                ldapConnection
+                (ldapConnection
                         .compare(CompareRequest(groupDN, config.grpAttrName, userDN))
                         .compareMatched()
                         .let {
@@ -110,7 +124,16 @@ class LDAPAuthorization private constructor(val config: LDAPConfig.Config) : LDA
                                 log.info("Group cache updated for [$groupName,$user] ($uuid)")
                             }
                             it
-                        }
+                        }) || (ldapConnection
+                                .compare(CompareRequest(groupDN, config.grpAttrName, userDNBasta))
+                                .compareMatched()
+                                .let {
+                                    if (it) {
+                                        LDAPCache.getGrouped(groupName, userDNBasta)
+                                        log.info("Group cache updated for [$groupName,$user] ($uuid)")
+                                    }
+                                    it
+                                })
             }
             catch(e: LDAPException) {
                 log.error("Compare-matched exception - invalid group!, ${e.exceptionMessage} ($uuid)")

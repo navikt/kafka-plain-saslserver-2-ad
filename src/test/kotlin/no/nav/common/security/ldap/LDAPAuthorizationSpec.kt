@@ -84,6 +84,15 @@ object LDAPAuthorizationSpec : Spek({
                             java.util.UUID.randomUUID().toString()).`should be true`()
                 }
             }
+            on("user and {membership group,non-membership group}") {
+                it("should return true for srv user in sub group ApplAccounts") {
+                    val ldap = LDAPAuthorization.init()
+                    ldap.isUserMemberOfAny(
+                            "srvaltinnkanal",
+                            listOf("ktAProd","ktACons"),
+                            java.util.UUID.randomUUID().toString()).`should be true`()
+                }
+            }
             on("user and {non-membership group,invalid group}") {
                 it("should return false") {
                     val ldap = LDAPAuthorization.init()
