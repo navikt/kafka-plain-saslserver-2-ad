@@ -113,7 +113,7 @@ class LDAPAuthorization private constructor(val config: LDAPConfig.Config) : LDA
             val groupDN = getGroupDN(it)
             val groupName = it
 
-            log.info("Trying compare-matched for $groupDN - ${config.grpAttrName} - $userDN ($uuid)")
+            log.info("Trying compare-matched for $groupDN - ${config.grpAttrName} - ($userDN || $userDNBasta) ($uuid)")
             isMember = isMember || try {
                 (ldapConnection
                         .compare(CompareRequest(groupDN, config.grpAttrName, userDN))
