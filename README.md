@@ -8,7 +8,7 @@ Thus, avoiding user and passwords in JAAS context file on kafka brokers
 By defining Read/Write allowance with Active Directory groups, authorization is moved from 
 Zookeeper Access Control Lists to group membership.
 
-Binding and group membership information is cached with google guava cache (limited lifetime after write),
+Binding and group membership information is cached (limited lifetime after write),
 giving minor performance penalty and reduced LDAPS traffic.
 
 ## Tools
@@ -18,7 +18,7 @@ giving minor performance penalty and reduced LDAPS traffic.
 ## Components
 
 1. Unboundid LDAP SDK for LDAPS interaction
-2. Google Guava Cache
+2. Caffeine Cache
 3. YAML Configuration for LDAP baseDN for users, groups and more. See src/test/resources/ldapconfig.yaml for details
 
 **Observe** that the directory hosting yaml configuration file must be in CLASSPATH
