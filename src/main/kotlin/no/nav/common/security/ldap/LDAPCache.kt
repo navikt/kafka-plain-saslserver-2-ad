@@ -1,8 +1,8 @@
 package no.nav.common.security.ldap
 
-import com.google.common.cache.CacheBuilder
-import com.google.common.cache.LoadingCache
-import com.google.common.cache.CacheLoader
+import com.github.benmanes.caffeine.cache.CacheLoader
+import com.github.benmanes.caffeine.cache.Caffeine
+import com.github.benmanes.caffeine.cache.LoadingCache
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
@@ -21,7 +21,7 @@ object LDAPCache {
 
     private data class Bounded(val name: String, val other: String)
 
-    private class BoundedCacheLoader : CacheLoader<Bounded, Bounded>() {
+    private class BoundedCacheLoader : CacheLoader<Bounded, Bounded> {
 
         override fun load(key: Bounded): Bounded {
             return key
@@ -30,7 +30,7 @@ object LDAPCache {
 
     private data class Grouped(val name: String, val other: String)
 
-    private class GroupedCacheLoader : CacheLoader<Grouped, Grouped>() {
+    private class GroupedCacheLoader : CacheLoader<Grouped, Grouped> {
 
         override fun load(key: Grouped): Grouped {
             return key
@@ -46,13 +46,13 @@ object LDAPCache {
 
         val config = LDAPConfig.getByClasspath()
 
-        boundedCache = CacheBuilder.newBuilder()
-                .maximumSize(1000)
+        boundedCache = Caffeine.newBuilder()
+                .maximumSize(1_000)
                 .expireAfterWrite(config.usrCacheExpire.toLong(),TimeUnit.MINUTES)
                 .build(BoundedCacheLoader())
 
-        groupedCache = CacheBuilder.newBuilder()
-                .maximumSize(10000)
+        groupedCache = Caffeine.newBuilder()
+                .maximumSize(10_000)
                 .expireAfterWrite(config.grpCacheExpire.toLong(),TimeUnit.MINUTES)
                 .build(GroupedCacheLoader())
 
@@ -73,9 +73,6 @@ object LDAPCache {
         catch (e: java.util.concurrent.ExecutionException) {
             log.error("Exception in getBounded - ${e.cause}")
         }
-        catch (e: com.google.common.util.concurrent.ExecutionError) {
-            log.error("Exception in getBounded - ${e.cause}")
-        }
     }
 
     fun alreadyGrouped(groupDN: String, userDN: String) : Boolean =
@@ -90,9 +87,6 @@ object LDAPCache {
             groupedCache.get(Grouped(groupDN, userDN))
         }
         catch (e: java.util.concurrent.ExecutionException) {
-            log.error("Exception in getGrouped - ${e.cause}")
-        }
-        catch (e: com.google.common.util.concurrent.ExecutionError) {
             log.error("Exception in getGrouped - ${e.cause}")
         }
     }
