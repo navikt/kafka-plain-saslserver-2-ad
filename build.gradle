@@ -20,7 +20,7 @@ plugins{
 apply plugin: 'maven-publish'
 
 group 'no.nav.common.security'
-version '0.90'
+version '0.92'
 
 sourceCompatibility = 1.8
 
@@ -32,7 +32,7 @@ repositories {
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-    compile "com.unboundid:unboundid-ldapsdk:4.0.3"
+    compile "com.unboundid:unboundid-ldapsdk:4.0.5"
 
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.4'
     compile 'com.fasterxml.jackson.module:jackson-module-kotlin:2.9.4'

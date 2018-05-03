@@ -11,52 +11,29 @@ import org.slf4j.LoggerFactory
 
 class LDAPAuthentication private constructor(val config: LDAPConfig.Config) : LDAPBase(config) {
 
-    override fun canUserAuthenticate(user: String, pwd: String): Boolean {
-
-        // fair to disable authentication if no connection to ldap, even if the cache is operational
-        if (!ldapConnection.isConnected) return false
-
-        val userDN = "${config.usrUid}=$user,${config.usrBaseDN}"
-
-        // service accounts created with self service solution BASTA is placed in ApplAccounts
-        // just under ServiceAccounts, thus
-        val userDNBasta = "${config.usrUid}=$user,ou=ApplAccounts,${config.usrBaseDN}"
-
-        return when (LDAPCache.alreadyBounded(userDN, pwd) || LDAPCache.alreadyBounded(userDNBasta, pwd)) {
-            true -> {
-                log.info("$user is cached")
-                true
-            }
-            else -> {
-                log.info("Trying bind for $userDN/$userDNBasta and given password")
-
-                val bindOk = try {
-                    (ldapConnection.bind(userDN, pwd).resultCode == ResultCode.SUCCESS).let {
-                        if (it) {
-                            LDAPCache.getBounded(userDN, pwd)
-                            log.info("Bind cache updated for $user")
-                        }
-                        it
-                    }
+    private fun bindOk(user: String, pwd: String) : Boolean =
+            try {
+                if (ldapConnection.bind(user, pwd).resultCode == ResultCode.SUCCESS) {
+                    LDAPCache.getBounded(user, pwd)
+                    log.info("Bind cache updated for $user")
+                    true
                 }
-                catch(e: LDAPException) { false }
-
-                val bindBastaOk = try {
-                    (ldapConnection.bind(userDNBasta, pwd).resultCode == ResultCode.SUCCESS).let {
-                        if (it) {
-                            LDAPCache.getBounded(userDNBasta, pwd)
-                            log.info("Bind cache updated for $user")
-                        }
-                        it
-                    }
-
-                }
-                catch(e: LDAPException) { false }
-
-                bindOk || bindBastaOk
+                else false
             }
+            catch(e: LDAPException) { false }
+
+    override fun canUserAuthenticate(user: String, pwd: String): Boolean =
+
+        if (!ldapConnection.isConnected)
+            false
+        else {
+            val userDN = config.toUserDN(user)
+            val userDNBasta = config.toUserDNBasta(user)
+
+            log.debug("Trying bind for $userDN/$userDNBasta and given password")
+
+            listOf(userDN, userDNBasta).fold(false, {res, uDN -> res || bindOk(uDN,pwd)})
         }
-    }
 
     companion object {
 

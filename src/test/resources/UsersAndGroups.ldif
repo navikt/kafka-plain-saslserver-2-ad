@@ -1,3 +1,8 @@
+dn: dc=example,dc=com
+objectClass: top
+objectClass: Domain
+dc: example
+
 dn: dc=adeo,dc=example,dc=com
 objectClass: top
 objectClass: Domain

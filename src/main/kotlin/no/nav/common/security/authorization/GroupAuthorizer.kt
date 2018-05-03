@@ -1,9 +1,8 @@
 package no.nav.common.security.authorization
 
 import kafka.security.auth.Acl
+import no.nav.common.security.ldap.*
 import org.apache.kafka.common.security.auth.KafkaPrincipal
-import no.nav.common.security.ldap.LDAPAuthorization
-import no.nav.common.security.ldap.LDAPBase
 import org.slf4j.LoggerFactory
 
 /**
@@ -11,18 +10,37 @@ import org.slf4j.LoggerFactory
  * Instance of Kafka SimpleAuthorizer require logging to different server logs
  */
 
-class GroupAuthorizer {
+class GroupAuthorizer : AutoCloseable {
 
-    private val ldap = LDAPAuthorization.init()
+    fun authorize(principal: KafkaPrincipal, acls: Set<Acl>, uuid: String): Boolean =
 
-    fun authorize(principal: KafkaPrincipal, acls: Set<Acl>, uuid: String): Boolean {
+            acls.map {
+                log.debug("ALLOW ACL: $it ($uuid)")
+                it.principal().name
+            }.let { groups ->
 
-        acls.forEach { log.info("ALLOW ACL: $it ($uuid)") }
+                val ldapConfig = LDAPConfig.getByClasspath()
 
-        // get allow principals, should be LDAP groups only
-        val ldapGroups: List<String> = acls.map { it.principal().name  }
+                val userDN = ldapConfig.toUserDN(principal.name)
+                val userDNBasta = ldapConfig.toUserDNBasta(principal.name)
 
-        return ldap.isUserMemberOfAny(principal.name, ldapGroups, uuid)
+                val isCached =  groups
+                        .map { LDAPCache.alreadyGrouped(it, userDN) || LDAPCache.alreadyGrouped(it, userDNBasta) }
+                        .indexOfFirst { it == true }
+                        .let {
+                            val found = (it >= 0)
+                            if (found) log.debug("[${groups[it]},${principal.name}] is cached ($uuid)")
+                            found
+                        }
+
+                if (isCached)
+                    true
+                else
+                    LDAPAuthorization.init().use { ldap -> ldap.isUserMemberOfAny(principal.name, groups, uuid) }
+            }
+
+    override fun close() {
+        //no need for cleanup
     }
 
     companion object {

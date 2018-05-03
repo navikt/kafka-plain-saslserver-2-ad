@@ -10,21 +10,22 @@ import org.slf4j.LoggerFactory
  * A base class for LDAPAuthentication and LDAPAuthorization
  */
 
-abstract class LDAPBase protected constructor(config: LDAPConfig.Config) {
+abstract class LDAPBase protected constructor(config: LDAPConfig.Config) : AutoCloseable {
 
-    //TODO  - TrustAllTrustManager is too trusty, but good enough when inside corporate inner zone
-    protected val ldapConnection: LDAPConnection
-    private val connectOptions = LDAPConnectionOptions()
+    private val connectOptions = LDAPConnectionOptions().apply {
+        connectTimeoutMillis = config.connTimeout
+    }
+
+    //NB! - TrustAllTrustManager is too trusty, but good enough when inside corporate inner zone
+    protected val ldapConnection = LDAPConnection(
+            SSLUtil(TrustAllTrustManager()).createSSLSocketFactory(),
+            connectOptions)
 
     init {
         // initialize LDAP connection
-
-        connectOptions.connectTimeoutMillis = config.connTimeout
-        ldapConnection =  LDAPConnection(SSLUtil(TrustAllTrustManager()).createSSLSocketFactory(),connectOptions)
-
         try {
             ldapConnection.connect(config.host, config.port)
-            log.info("Successfully connected to (${config.host},${config.port})")
+            log.debug("Successfully connected to (${config.host},${config.port})")
         }
         catch (e: LDAPException) {
             log.error("Authentication and authorization will fail! " +
@@ -33,6 +34,11 @@ abstract class LDAPBase protected constructor(config: LDAPConfig.Config) {
                     DisconnectType.IO_ERROR,
                     "Exception when connecting to LDAP(${config.host},${config.port})", e)
         }
+    }
+
+    override fun close() {
+        log.debug("Closing ldap connection")
+        ldapConnection.close()
     }
 
     open fun canUserAuthenticate(user: String, pwd: String): Boolean = false

@@ -18,8 +18,6 @@ import org.slf4j.LoggerFactory
 
 class SimpleLDAPAuthorizer : SimpleAclAuthorizer() {
 
-    private val navAuthorizer = GroupAuthorizer()
-
     override fun authorize(session: RequestChannel.Session?, operation: Operation?, resource: Resource?): Boolean {
 
         // nothing to do if already authorized
@@ -32,12 +30,12 @@ class SimpleLDAPAuthorizer : SimpleAclAuthorizer() {
 
         val uuid = java.util.UUID.randomUUID().toString()
 
-        log.warn("Authorization Start -  $principal trying $lOperation from $host on $lResource ($uuid)")
+        log.debug("Authorization Start -  $principal trying $lOperation from $host on $lResource ($uuid)")
 
         //TODO ResourceType.GROUP - under change in minor version - CAREFUL!
         // Warning! Assuming no group considerations, thus implicitly, always empty group access control lists
         if (resource?.resourceType()?.toJava() == ResourceType.GROUP) {
-            log.info("Authorization End - $principal trying $lOperation from $host on $lResource is authorized ($uuid)")
+            log.debug("Authorization End - $principal trying $lOperation from $host on $lResource is authorized ($uuid)")
             return true
         }
 
@@ -52,21 +50,22 @@ class SimpleLDAPAuthorizer : SimpleAclAuthorizer() {
 
         // nothing to do if empty acl set
         if (acls.isEmpty()) {
-            log.info("Authorization End - empty ALLOW ACL for [$lResource,$lOperation], is not authorized ($uuid)")
+            log.debug("Authorization End - empty ALLOW ACL for [$lResource,$lOperation], is not authorized ($uuid)")
             return false
         }
 
-
-        return navAuthorizer.authorize(
-                session?.principal() ?: KafkaPrincipal(KafkaPrincipal.USER_TYPE,"ANONYMOUS"),
-                acls,
-                uuid
-        ).let {
-            when(it) {
-                true -> log.info("Authorization End - $principal is authorized! ($uuid)")
-                false -> log.info("Authorization End - $principal is not authorized! ($uuid)")
+        return GroupAuthorizer().use { navAuthorizer ->
+            navAuthorizer.authorize(
+                    session?.principal() ?: KafkaPrincipal(KafkaPrincipal.USER_TYPE,"ANONYMOUS"),
+                    acls,
+                    uuid
+            ).let {
+                when(it) {
+                    true -> log.debug("Authorization End - $principal is authorized! ($uuid)")
+                    false -> log.debug("Authorization End - $principal is not authorized! ($uuid)")
+                }
+                it
             }
-            it
         }
     }
 

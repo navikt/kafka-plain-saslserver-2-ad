@@ -96,3 +96,7 @@ object LDAPConfig {
         }
     }
 }
+
+// A couple of extension functions for Config
+fun LDAPConfig.Config.toUserDN(user: String) = "$usrUid=$user,$usrBaseDN"
+fun LDAPConfig.Config.toUserDNBasta(user: String) = "$usrUid=$user,ou=ApplAccounts,$usrBaseDN"

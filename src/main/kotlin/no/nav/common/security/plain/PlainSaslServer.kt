@@ -1,5 +1,6 @@
 package no.nav.common.security.plain
 
+import no.nav.common.security.ldap.*
 import javax.security.sasl.Sasl
 import javax.security.sasl.SaslException
 import javax.security.auth.callback.CallbackHandler
@@ -12,8 +13,6 @@ import java.io.UnsupportedEncodingException
 import org.apache.kafka.common.errors.SaslAuthenticationException
 import org.apache.kafka.common.security.JaasContext
 import org.apache.kafka.common.security.authenticator.SaslServerCallbackHandler
-import no.nav.common.security.ldap.LDAPAuthentication
-import no.nav.common.security.ldap.LDAPBase
 import org.slf4j.LoggerFactory
 
 /**
@@ -21,7 +20,7 @@ import org.slf4j.LoggerFactory
  * See comments for customization details
  */
 
-class PlainSaslServer(val jaasContext: JaasContext, private val ldap: LDAPBase) : SaslServer {
+class PlainSaslServer(val jaasContext: JaasContext) : SaslServer {
 
     private var complete: Boolean = false
     private var authorizationId: String = ""
@@ -70,13 +69,27 @@ class PlainSaslServer(val jaasContext: JaasContext, private val ldap: LDAPBase) 
         }
         */
 
+
         //TTN ADDED
-        log.info("Authentication Start - $username")
-        if (ldap.canUserAuthenticate(username, password))
-            log.info("Authentication End - successful authentication of $username")
+        log.debug("Authentication Start - $username")
+
+        val ldapConfig = LDAPConfig.getByClasspath()
+
+        // if not in cache, do ldap bind verification
+        if (!(LDAPCache.alreadyBounded(ldapConfig.toUserDN(username), password) ||
+                LDAPCache.alreadyBounded(ldapConfig.toUserDNBasta(username), password)))
+
+            LDAPAuthentication.init().use {ldap ->
+                if (ldap.canUserAuthenticate(username, password))
+                    log.debug("Authentication End - successful authentication of $username")
+                else {
+                    log.error("Authentication End - authentication failed for $username")
+                    throw SaslAuthenticationException("Authentication failed! See LDAP bind exception in server log")
+                }
+            }
         else {
-            log.error("Authentication End - authentication failed for $username")
-            throw SaslAuthenticationException("Authentication failed! See LDAP bind exception in server log")
+            log.debug("$username is cached")
+            log.debug("Authentication End - successful authentication of $username")
         }
         //NTT
 
@@ -148,8 +161,7 @@ class PlainSaslServer(val jaasContext: JaasContext, private val ldap: LDAPBase) 
                 throw SaslException("CallbackHandler must be of type SaslServerCallbackHandler, " +
                         "but it is: " + cbh.javaClass)
 
-            // TTN ADDED - ldap authentication
-            return PlainSaslServer(cbh.jaasContext(), LDAPAuthentication.init())
+            return PlainSaslServer(cbh.jaasContext())
         }
 
         override fun getMechanismNames(props: Map<String, *>?): Array<String> {
