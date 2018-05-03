@@ -26,7 +26,7 @@ class GroupAuthorizer : AutoCloseable {
 
                 val isCached =  groups
                         .map { LDAPCache.alreadyGrouped(it, userDN) || LDAPCache.alreadyGrouped(it, userDNBasta) }
-                        .indexOfFirst { it == true }
+                        .indexOfFirst { it }
                         .let {
                             val found = (it >= 0)
                             if (found) log.debug("[${groups[it]},${principal.name}] is cached ($uuid)")

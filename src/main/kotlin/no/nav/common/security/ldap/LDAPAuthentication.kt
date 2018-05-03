@@ -20,7 +20,10 @@ class LDAPAuthentication private constructor(val config: LDAPConfig.Config) : LD
                 }
                 else false
             }
-            catch(e: LDAPException) { false }
+            catch(e: LDAPException) {
+                log.error("Exception during LDAP bind for $user, ${e.exceptionMessage}")
+                false
+            }
 
     override fun canUserAuthenticate(user: String, pwd: String): Boolean =
 

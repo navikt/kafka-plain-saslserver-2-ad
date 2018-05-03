@@ -73,23 +73,24 @@ class PlainSaslServer(val jaasContext: JaasContext) : SaslServer {
         //TTN ADDED
         log.debug("Authentication Start - $username")
 
-        val ldapConfig = LDAPConfig.getByClasspath()
+        LDAPConfig.getByClasspath().let { ldapConfig ->
 
-        // if not in cache, do ldap bind verification
-        if (!(LDAPCache.alreadyBounded(ldapConfig.toUserDN(username), password) ||
-                LDAPCache.alreadyBounded(ldapConfig.toUserDNBasta(username), password)))
+            // if not in cache, do ldap bind verification
+            if (!(LDAPCache.alreadyBounded(ldapConfig.toUserDN(username), password) ||
+                            LDAPCache.alreadyBounded(ldapConfig.toUserDNBasta(username), password)))
 
-            LDAPAuthentication.init().use {ldap ->
-                if (ldap.canUserAuthenticate(username, password))
-                    log.debug("Authentication End - successful authentication of $username")
-                else {
-                    log.error("Authentication End - authentication failed for $username")
-                    throw SaslAuthenticationException("Authentication failed! See LDAP bind exception in server log")
-                }
+                LDAPAuthentication.init().use { ldap -> ldap.canUserAuthenticate(username, password) }
+            else {
+                log.debug("$username is cached")
+                true
             }
-        else {
-            log.debug("$username is cached")
-            log.debug("Authentication End - successful authentication of $username")
+        }.also { authenticated ->
+            if (authenticated)
+                log.debug("Authentication End - successful authentication of $username")
+            else {
+                log.error("Authentication End - authentication failed for $username")
+                throw SaslAuthenticationException("Authentication failed! See LDAP bind exception in server log")
+            }
         }
         //NTT
 

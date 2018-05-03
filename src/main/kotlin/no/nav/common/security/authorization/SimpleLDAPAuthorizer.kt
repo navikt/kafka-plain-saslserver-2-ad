@@ -59,12 +59,12 @@ class SimpleLDAPAuthorizer : SimpleAclAuthorizer() {
                     session?.principal() ?: KafkaPrincipal(KafkaPrincipal.USER_TYPE,"ANONYMOUS"),
                     acls,
                     uuid
-            ).let {
-                when(it) {
+            ).let { isAuthorized ->
+                when(isAuthorized) {
                     true -> log.debug("Authorization End - $principal is authorized! ($uuid)")
                     false -> log.debug("Authorization End - $principal is not authorized! ($uuid)")
                 }
-                it
+                isAuthorized
             }
         }
     }
