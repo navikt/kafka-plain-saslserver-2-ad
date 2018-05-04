@@ -52,6 +52,8 @@ Tested on confluent.io version 4.0.0.
 
 See [Confluent Open Source distribution](https://www.confluent.io/product/confluent-open-source/) in order to test locally.
 
+The related [Wiki](https://github.com/navikt/KafkaPlainSaslServer2AD/wiki) has a detailed guide for local testing.
+
 ## Build 
 
 ```
