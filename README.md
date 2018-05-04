@@ -14,6 +14,7 @@ giving minor performance penalty and reduced LDAPS traffic.
 ## Tools
 - Kotlin
 - Gradle build tool
+- Spek test framework
 
 ## Components
 
@@ -21,7 +22,7 @@ giving minor performance penalty and reduced LDAPS traffic.
 2. Caffeine Cache
 3. YAML Configuration for LDAP baseDN for users, groups and more. See src/test/resources/ldapconfig.yaml for details
 
-**Observe** that the directory hosting yaml configuration file must be in CLASSPATH
+**Observe** that the directory hosting yaml configuration file must be in CLASSPATH.
 
 ## Kafka configuration examples
 
@@ -49,13 +50,21 @@ Use of Unboundid in-memory LDAP server for all test cases.
 
 Tested on confluent.io version 4.0.0.
 
+See [Confluent Open Source distribution](https://www.confluent.io/product/confluent-open-source/) in order to test locally.
+
 ## Build 
 
 ```
 ./gradlew clean build
 ./gradlew shadowJar
-./gradlew publish
+
+The result is KafkaPlainSaslServer2AD-<version>-all.jar both authentication and authorization logic.
 ```
+**Observe** that the directory hosting the given JAR file must be in CLASSPATH.
 
-KafkaPlainSaslServer2AD-a_version-all.jar contains the relevant components only.
+### Contact us
+#### Code/project related questions can be sent to 
+* Torstein Nesby, `torstein.nesby@nav.no`
+* Trong Huu Nguyen, `trong.huu.nguyen@nav.no`
 
+For internal resources, send requests/questions to slack#kafka

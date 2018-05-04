@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
 /**
- * A class using google guava cache for 2 purposes
+ * A class using caffeine cache for 2 purposes
  * - caching of successful ldap bindings
  * - caching of confirmed group membership
  *
