@@ -40,7 +40,7 @@ class SimpleLDAPAuthorizer : SimpleAclAuthorizer() {
         }
 
         //TODO AclPermissionType.ALLOW - under change in minor version - CAREFUL!
-        // getBounded allow access control lists for resource and given operation
+        // userAdd allow access control lists for resource and given operation
         val sacls = getAcls(resource)
                 .filter { it.operation() == operation && it.permissionType().toJava() == AclPermissionType.ALLOW }
 

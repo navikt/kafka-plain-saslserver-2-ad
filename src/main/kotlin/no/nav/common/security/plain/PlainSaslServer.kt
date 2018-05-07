@@ -73,25 +73,37 @@ class PlainSaslServer(val jaasContext: JaasContext) : SaslServer {
         //TTN ADDED
         log.debug("Authentication Start - $username")
 
-        LDAPConfig.getByClasspath().let { ldapConfig ->
+        LDAPConfig.getByClasspath()
+                .let { ldapConfig ->
+                    // if not in cache, do ldap bind verification
+                    if (!(LDAPCache.userExists(ldapConfig.toUserDN(username), password) ||
+                                    LDAPCache.userExists(ldapConfig.toUserDNBasta(username), password)))
 
-            // if not in cache, do ldap bind verification
-            if (!(LDAPCache.alreadyBounded(ldapConfig.toUserDN(username), password) ||
-                            LDAPCache.alreadyBounded(ldapConfig.toUserDNBasta(username), password)))
-
-                LDAPAuthentication.init().use { ldap -> ldap.canUserAuthenticate(username, password) }
-            else {
-                log.debug("$username is cached")
-                true
-            }
-        }.also { authenticated ->
-            if (authenticated)
-                log.debug("Authentication End - successful authentication of $username")
-            else {
-                log.error("Authentication End - authentication failed for $username")
-                throw SaslAuthenticationException("Authentication failed! See LDAP bind exception in server log")
-            }
-        }
+                        LDAPAuthentication.init()
+                                .use { ldap ->
+                                    ldap.canUserAuthenticate(username, password)
+                                            .also { authenResult ->
+                                                if (authenResult.authenticated) {
+                                                    LDAPCache.userAdd(authenResult.userDN, password)
+                                                    log.info("Bind cache updated for ${authenResult.userDN}")
+                                                }
+                                                else
+                                                    log.error("Cannot authenticate $username, please verify AD")
+                                            }
+                                }.authenticated
+                    else {
+                        log.debug("$username is cached")
+                        true
+                    }
+                }
+                .also { authenticated ->
+                    if (authenticated)
+                        log.debug("Authentication End - successful authentication of $username")
+                    else {
+                        log.error("Authentication End - authentication failed for $username")
+                        throw SaslAuthenticationException("Authentication failed! Please verify $username in AD")
+                    }
+                }
         //NTT
 
         if (!authorizationIdFromClient.isEmpty() && authorizationIdFromClient != username)

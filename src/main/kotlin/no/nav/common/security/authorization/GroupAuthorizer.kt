@@ -25,18 +25,33 @@ class GroupAuthorizer : AutoCloseable {
                 val userDNBasta = ldapConfig.toUserDNBasta(principal.name)
 
                 val isCached =  groups
-                        .map { LDAPCache.alreadyGrouped(it, userDN) || LDAPCache.alreadyGrouped(it, userDNBasta) }
-                        .indexOfFirst { it }
-                        .let {
-                            val found = (it >= 0)
-                            if (found) log.debug("[${groups[it]},${principal.name}] is cached ($uuid)")
-                            found
+                        .map { groupName ->
+                            if (
+                                    LDAPCache.groupAndUserExists(groupName, userDN) ||
+                                    LDAPCache.groupAndUserExists(groupName, userDNBasta)
+                            )
+                                Pair(true, groupName)
+                            else
+                                Pair(false, groupName)
+                        }
+                        .filter { pair -> pair.first }
+                        .let { uInGList ->
+                            if (uInGList.isNotEmpty())
+                                log.debug("[[${uInGList.map { it.second }}],${principal.name}] is cached ($uuid)")
+                            uInGList.isNotEmpty()
                         }
 
                 if (isCached)
                     true
                 else
                     LDAPAuthorization.init().use { ldap -> ldap.isUserMemberOfAny(principal.name, groups, uuid) }
+                            .let { uInGSet ->
+                                uInGSet.forEach {
+                                    LDAPCache.groupAndUserAdd(it.groupName, it.userDN)
+                                    log.info("Group cache updated for [${it.groupName},${it.userDN}] ($uuid)")
+                                }
+                                uInGSet.isNotEmpty()
+                            }
             }
 
     override fun close() {

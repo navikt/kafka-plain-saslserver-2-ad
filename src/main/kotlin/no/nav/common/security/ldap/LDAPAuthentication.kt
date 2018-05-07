@@ -11,31 +11,31 @@ import org.slf4j.LoggerFactory
 
 class LDAPAuthentication private constructor(val config: LDAPConfig.Config) : LDAPBase(config) {
 
-    private fun bindOk(user: String, pwd: String) : Boolean =
+    private fun bindOk(user: String, pwd: String) : AuthenResult =
             try {
-                if (ldapConnection.bind(user, pwd).resultCode == ResultCode.SUCCESS) {
-                    LDAPCache.getBounded(user, pwd)
-                    log.info("Bind cache updated for $user")
-                    true
-                }
-                else false
+                if (ldapConnection.bind(user, pwd).resultCode == ResultCode.SUCCESS)
+                    AuthenResult(true, user)
+                else
+                    AuthenResult(false, "")
             }
             catch(e: LDAPException) {
-                log.error("Exception during LDAP bind for $user, ${e.exceptionMessage}")
-                false
+                AuthenResult(false, "")
             }
 
-    override fun canUserAuthenticate(user: String, pwd: String): Boolean =
+    override fun canUserAuthenticate(user: String, pwd: String): AuthenResult =
 
         if (!ldapConnection.isConnected)
-            false
+            AuthenResult(false, "")
         else {
             val userDN = config.toUserDN(user)
             val userDNBasta = config.toUserDNBasta(user)
 
             log.debug("Trying bind for $userDN/$userDNBasta and given password")
 
-            listOf(userDN, userDNBasta).fold(false, {res, uDN -> res || bindOk(uDN,pwd)})
+            // as long as at least one user DN can authenticate, no error report in log
+            listOf(userDN, userDNBasta).fold(
+                    AuthenResult(false, ""), { res, uDN -> res.combine(bindOk(uDN,pwd)) }
+            )
         }
 
     companion object {

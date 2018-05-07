@@ -42,7 +42,7 @@ class LDAPAuthorization private constructor(val config: LDAPConfig.Config) : LDA
                         }
             }
             catch (e: LDAPSearchException){
-                log.error("Cannot find group $groupName under ${config.grpBaseDN}")
+                log.error("Cannot resolve group DN for $groupName under ${config.grpBaseDN}")
                 ""
             }
 
@@ -51,34 +51,37 @@ class LDAPAuthorization private constructor(val config: LDAPConfig.Config) : LDA
 
                 val groupDN = getGroupDN(groupName)
 
-                log.debug("Trying compare-matched for $groupDN - ${config.grpAttrName} - $userDN ($uuid)")
+                if (!groupDN.isEmpty()) {
 
-                ldapConnection
-                        .compare(CompareRequest(groupDN, config.grpAttrName, userDN))
-                        .compareMatched()
-                        .let {
-                            if (it) {
-                                LDAPCache.getGrouped(groupName, userDN)
-                                log.info("Group cache updated for [$groupName,$userDN] ($uuid)")
-                            }
-                            it
-                        }
+                    log.debug("Trying compare-matched for $groupDN - ${config.grpAttrName} - $userDN ($uuid)")
+
+                    ldapConnection
+                            .compare(CompareRequest(groupDN, config.grpAttrName, userDN))
+                            .compareMatched()
+                }
+                else false
             }
             catch(e: LDAPException) {
-                log.error("Compare-matched exception - invalid group!, ${e.exceptionMessage} ($uuid)")
+                log.error("Compare-matched exception - invalid group $groupName, ${e.exceptionMessage} ($uuid)")
                 false
             }
 
-    override fun isUserMemberOfAny(user: String, groups: List<String>, uuid: String): Boolean =
+    override fun isUserMemberOfAny(user: String, groups: List<String>, uuid: String): Set<AuthorResult> =
 
             if (!ldapConnection.isConnected)
-                false
+                emptySet()
             else {
                 val userDN = config.toUserDN(user)
                 val userDNBasta = config.toUserDNBasta(user)
 
-                groups.fold(false, {res, groupName ->
-                    res || userInGroup(userDN, groupName, uuid) || userInGroup(userDNBasta, groupName, uuid) })
+                val result = mutableSetOf<AuthorResult>()
+
+                groups.forEach { groupName ->
+                    if (userInGroup(userDN, groupName, uuid)) result.add(AuthorResult(groupName, userDN))
+                    if (userInGroup(userDNBasta, groupName, uuid)) result.add(AuthorResult(groupName, userDNBasta))
+                }
+
+                result.toSet()
             }
 
     companion object {

@@ -19,26 +19,22 @@ import java.util.concurrent.TimeUnit
 
 object LDAPCache {
 
-    private data class Bounded(val name: String, val other: String)
+    private data class Bind(val name: String, val other: String)
 
-    private class BoundedCacheLoader : CacheLoader<Bounded, Bounded> {
+    private class BindCacheLoader : CacheLoader<Bind, Bind> {
 
-        override fun load(key: Bounded): Bounded {
-            return key
-        }
+        override fun load(key: Bind): Bind = key
     }
 
-    private data class Grouped(val name: String, val other: String)
+    private data class Group(val name: String, val other: String)
 
-    private class GroupedCacheLoader : CacheLoader<Grouped, Grouped> {
+    private class GroupCacheLoader : CacheLoader<Group, Group> {
 
-        override fun load(key: Grouped): Grouped {
-            return key
-        }
+        override fun load(key: Group): Group = key
     }
 
-    private val boundedCache: LoadingCache<Bounded, Bounded>
-    private val groupedCache: LoadingCache<Grouped, Grouped>
+    private val bindCache: LoadingCache<Bind, Bind>
+    private val groupCache: LoadingCache<Group, Group>
 
     private val log = LoggerFactory.getLogger(LDAPCache::class.java)
 
@@ -46,54 +42,54 @@ object LDAPCache {
 
         val config = LDAPConfig.getByClasspath()
 
-        boundedCache = Caffeine.newBuilder()
+        bindCache = Caffeine.newBuilder()
                 .maximumSize(1_000)
                 .expireAfterWrite(config.usrCacheExpire.toLong(),TimeUnit.MINUTES)
-                .build(BoundedCacheLoader())
+                .build(BindCacheLoader())
 
-        groupedCache = Caffeine.newBuilder()
+        groupCache = Caffeine.newBuilder()
                 .maximumSize(10_000)
                 .expireAfterWrite(config.grpCacheExpire.toLong(),TimeUnit.MINUTES)
-                .build(GroupedCacheLoader())
+                .build(GroupCacheLoader())
 
         log.info("Bind and group caches are initialized")
     }
 
-    fun alreadyBounded(userDN: String, pwd: String): Boolean =
-         when(boundedCache.getIfPresent(Bounded(userDN, pwd))) {
-            is Bounded -> true
+    fun userExists(userDN: String, pwd: String): Boolean =
+         when(bindCache.getIfPresent(Bind(userDN, pwd))) {
+            is Bind -> true
             else -> false
         }
 
-    fun getBounded(userDN: String, pwd: String) {
+    fun userAdd(userDN: String, pwd: String) {
 
         try {
-            boundedCache.get(Bounded(userDN, pwd))
+            bindCache.get(Bind(userDN, pwd))
         }
         catch (e: java.util.concurrent.ExecutionException) {
-            log.error("Exception in getBounded - ${e.cause}")
+            log.error("Exception in userAdd - ${e.cause}")
         }
     }
 
-    fun alreadyGrouped(groupDN: String, userDN: String) : Boolean =
-            when(groupedCache.getIfPresent(Grouped(groupDN, userDN))) {
-                is Grouped -> true
+    fun groupAndUserExists(groupDN: String, userDN: String) : Boolean =
+            when(groupCache.getIfPresent(Group(groupDN, userDN))) {
+                is Group -> true
                 else -> false
             }
 
-    fun getGrouped(groupDN: String, userDN: String) {
+    fun groupAndUserAdd(groupDN: String, userDN: String) {
 
         try {
-            groupedCache.get(Grouped(groupDN, userDN))
+            groupCache.get(Group(groupDN, userDN))
         }
         catch (e: java.util.concurrent.ExecutionException) {
-            log.error("Exception in getGrouped - ${e.cause}")
+            log.error("Exception in groupAndUserAdd - ${e.cause}")
         }
     }
 
     // for test purpose
 
-    fun invalidateAllBounded() = boundedCache.invalidateAll().also { log.info("Group cache reset") }
+    fun invalidateAllBinds() = bindCache.invalidateAll().also { log.info("Bind cache reset") }
 
-    fun invalidateAllGroups() = groupedCache.invalidateAll().also { log.info("Bind cachet reset") }
+    fun invalidateAllGroups() = groupCache.invalidateAll().also { log.info("Group cachet reset") }
 }

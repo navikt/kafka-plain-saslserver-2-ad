@@ -27,7 +27,7 @@ object LDAPAuthorizationSpec : Spek({
                     ldap.isUserMemberOfAny(
                             "bdoe",
                             listOf("ktACons"),
-                            java.util.UUID.randomUUID().toString()).`should be true`()
+                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be true`()
                 }
             }
             on("user and non-membership group") {
@@ -36,7 +36,7 @@ object LDAPAuthorizationSpec : Spek({
                     ldap.isUserMemberOfAny(
                             "adoe",
                             listOf("ktACons"),
-                            java.util.UUID.randomUUID().toString()).`should be false`()
+                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be false`()
                 }
             }
             on("user and membership group") {
@@ -45,7 +45,7 @@ object LDAPAuthorizationSpec : Spek({
                     ldap.isUserMemberOfAny(
                             "adoe",
                             listOf("ktAProd"),
-                            java.util.UUID.randomUUID().toString()).`should be true`()
+                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be true`()
                 }
             }
             on("invalid user and existing group") {
@@ -54,7 +54,7 @@ object LDAPAuthorizationSpec : Spek({
                     ldap.isUserMemberOfAny(
                             "invalid",
                             listOf("ktACons"),
-                            java.util.UUID.randomUUID().toString()).`should be false`()
+                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be false`()
                 }
             }
             on("existing user and invalid group") {
@@ -63,7 +63,7 @@ object LDAPAuthorizationSpec : Spek({
                     ldap.isUserMemberOfAny(
                             "bdoe",
                             listOf("invalid"),
-                            java.util.UUID.randomUUID().toString()).`should be false`()
+                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be false`()
                 }
             }
             on("user and {invalid group,membership group}") {
@@ -72,7 +72,7 @@ object LDAPAuthorizationSpec : Spek({
                     ldap.isUserMemberOfAny(
                             "bdoe",
                             listOf("invalid","ktACons"),
-                            java.util.UUID.randomUUID().toString()).`should be true`()
+                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be true`()
                 }
             }
             on("user and {non-membership group,membership group}") {
@@ -81,7 +81,7 @@ object LDAPAuthorizationSpec : Spek({
                     ldap.isUserMemberOfAny(
                             "bdoe",
                             listOf("ktAProd","ktACons"),
-                            java.util.UUID.randomUUID().toString()).`should be true`()
+                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be true`()
                 }
             }
             on("user and {membership group,non-membership group}") {
@@ -90,7 +90,7 @@ object LDAPAuthorizationSpec : Spek({
                     ldap.isUserMemberOfAny(
                             "srvaltinnkanal",
                             listOf("ktAProd","ktACons"),
-                            java.util.UUID.randomUUID().toString()).`should be true`()
+                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be true`()
                 }
             }
             on("user and {non-membership group,invalid group}") {
@@ -99,7 +99,7 @@ object LDAPAuthorizationSpec : Spek({
                     ldap.isUserMemberOfAny(
                             "bdoe",
                             listOf("ktAProd","invalid"),
-                            java.util.UUID.randomUUID().toString()).`should be false`()
+                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be false`()
                 }
             }
         }
@@ -114,7 +114,7 @@ object LDAPAuthorizationSpec : Spek({
                     ldap.isUserMemberOfAny(
                             "bdoe",
                             listOf("ktACons"),
-                            java.util.UUID.randomUUID().toString()).`should be true`()
+                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be true`()
                 }
             }
             on("user and non-membership group") {
@@ -123,7 +123,7 @@ object LDAPAuthorizationSpec : Spek({
                     ldap.isUserMemberOfAny(
                             "adoe",
                             listOf("ktACons"),
-                            java.util.UUID.randomUUID().toString()).`should be false`()
+                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be false`()
                 }
             }
             on("user and membership group") {
@@ -132,7 +132,7 @@ object LDAPAuthorizationSpec : Spek({
                     ldap.isUserMemberOfAny(
                             "adoe",
                             listOf("ktAProd"),
-                            java.util.UUID.randomUUID().toString()).`should be true`()
+                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be true`()
                 }
             }
             on("invalid user and existing group") {
@@ -141,7 +141,7 @@ object LDAPAuthorizationSpec : Spek({
                     ldap.isUserMemberOfAny(
                             "invalid",
                             listOf("ktACons"),
-                            java.util.UUID.randomUUID().toString()).`should be false`()
+                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be false`()
                 }
             }
             on("existing user and invalid group") {
@@ -150,7 +150,7 @@ object LDAPAuthorizationSpec : Spek({
                     ldap.isUserMemberOfAny(
                             "bdoe",
                             listOf("invalid"),
-                            java.util.UUID.randomUUID().toString()).`should be false`()
+                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be false`()
                 }
             }
             on("user and {invalid group,membership group}") {
@@ -159,7 +159,7 @@ object LDAPAuthorizationSpec : Spek({
                     ldap.isUserMemberOfAny(
                             "bdoe",
                             listOf("invalid","ktACons"),
-                            java.util.UUID.randomUUID().toString()).`should be true`()
+                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be true`()
                 }
             }
             on("user and {non-membership group,membership group}") {
@@ -168,7 +168,7 @@ object LDAPAuthorizationSpec : Spek({
                     ldap.isUserMemberOfAny(
                             "bdoe",
                             listOf("ktAProd","ktACons"),
-                            java.util.UUID.randomUUID().toString()).`should be true`()
+                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be true`()
                 }
             }
             on("user and {non-membership group,invalid group}") {
@@ -177,7 +177,7 @@ object LDAPAuthorizationSpec : Spek({
                     ldap.isUserMemberOfAny(
                             "bdoe",
                             listOf("ktAProd","invalid"),
-                            java.util.UUID.randomUUID().toString()).`should be false`()
+                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be false`()
                 }
             }
         }
