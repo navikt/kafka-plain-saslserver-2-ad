@@ -45,12 +45,14 @@ class SimpleLDAPAuthorizer : SimpleAclAuthorizer() {
                 .filter { it.operation() == operation && it.permissionType().toJava() == AclPermissionType.ALLOW }
 
         // switch to kotlin set, making testing easier
-        var acls: Set<Acl> = emptySet()
+        val acls = mutableSetOf<Acl>()
         sacls.foreach { acls += it }
+
+        log.debug("$lOperation has following Allow ACLs for $lResource: ${acls.map { it.principal().name }} ($uuid)")
 
         // nothing to do if empty acl set
         if (acls.isEmpty()) {
-            log.debug("Authorization End - empty ALLOW ACL for [$lResource,$lOperation], is not authorized ($uuid)")
+            log.debug("Authorization End - empty ALLOW ACL for [$lResource,$lOperation], not authorized ($uuid)")
             return false
         }
 

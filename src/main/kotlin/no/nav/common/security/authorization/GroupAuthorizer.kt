@@ -14,17 +14,14 @@ class GroupAuthorizer : AutoCloseable {
 
     fun authorize(principal: KafkaPrincipal, acls: Set<Acl>, uuid: String): Boolean =
 
-            acls.map {
-                log.debug("ALLOW ACL: $it ($uuid)")
-                it.principal().name
-            }.let { groups ->
+            acls.map { it.principal().name }.let { groups ->
 
                 val ldapConfig = LDAPConfig.getByClasspath()
 
                 val userDN = ldapConfig.toUserDN(principal.name)
                 val userDNBasta = ldapConfig.toUserDNBasta(principal.name)
 
-                val isCached =  groups
+                val cachedUserInGroups =  groups
                         .map { groupName ->
                             if (
                                     LDAPCache.groupAndUserExists(groupName, userDN) ||
@@ -35,16 +32,14 @@ class GroupAuthorizer : AutoCloseable {
                                 Pair(false, groupName)
                         }
                         .filter { pair -> pair.first }
-                        .let { uInGList ->
-                            if (uInGList.isNotEmpty())
-                                log.debug("[[${uInGList.map { it.second }}],${principal.name}] is cached ($uuid)")
-                            uInGList.isNotEmpty()
-                        }
 
-                if (isCached)
+                if (cachedUserInGroups.isNotEmpty()) {
+                    log.debug("[${cachedUserInGroups.map { it.second }},${principal.name}] is cached ($uuid)")
                     true
+                }
                 else
-                    LDAPAuthorization.init().use { ldap -> ldap.isUserMemberOfAny(principal.name, groups, uuid) }
+                    LDAPAuthorization.init()
+                            .use { ldap -> ldap.isUserMemberOfAny(principal.name, groups, uuid) }
                             .let { uInGSet ->
                                 uInGSet.forEach {
                                     LDAPCache.groupAndUserAdd(it.groupName, it.userDN)
