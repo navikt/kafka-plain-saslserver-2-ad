@@ -1,4 +1,4 @@
-# KafkaPlainSaslServer2AD
+# kafka-plain-saslserver-2-ad [![Build Status](https://travis-ci.org/navikt/kafka-plain-saslserver-2-ad.svg?branch=master)](https://travis-ci.org/navikt/kafka-plain-saslserver-2-ad)
 Enhancing kafka with
 - customized PlainSaslServer using LDAPS simple bind for authentication
 - customized SimpleACLAuthorizer using LDAPS compare-matched for group membership verification
