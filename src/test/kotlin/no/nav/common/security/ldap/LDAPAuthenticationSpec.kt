@@ -3,8 +3,11 @@ package no.nav.common.security.ldap
 import org.amshove.kluent.`should be false`
 import org.amshove.kluent.`should be true`
 import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.*
 import no.nav.common.security.common.InMemoryLDAPServer
+import org.jetbrains.spek.api.dsl.describe
+import org.jetbrains.spek.api.dsl.given
+import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.dsl.on
 
 object LDAPAuthenticationSpec : Spek({
 
@@ -79,7 +82,6 @@ object LDAPAuthenticationSpec : Spek({
                     ldap.canUserAuthenticate("adoe", "alice").authenticated.`should be false`()
                 }
             }
-
         }
 
         given("incorrect path to YAML config and correct user, pwd") {
@@ -117,5 +119,4 @@ object LDAPAuthenticationSpec : Spek({
             InMemoryLDAPServer.stop()
         }
     }
-
 })

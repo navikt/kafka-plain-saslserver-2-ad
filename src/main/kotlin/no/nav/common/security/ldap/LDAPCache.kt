@@ -22,14 +22,12 @@ object LDAPCache {
     private data class Bind(val name: String, val other: String)
 
     private class BindCacheLoader : CacheLoader<Bind, Bind> {
-
         override fun load(key: Bind): Bind = key
     }
 
     private data class Group(val name: String, val other: String)
 
     private class GroupCacheLoader : CacheLoader<Group, Group> {
-
         override fun load(key: Group): Group = key
     }
 
@@ -44,45 +42,41 @@ object LDAPCache {
 
         bindCache = Caffeine.newBuilder()
                 .maximumSize(1_000)
-                .expireAfterWrite(config.usrCacheExpire.toLong(),TimeUnit.MINUTES)
+                .expireAfterWrite(config.usrCacheExpire.toLong(), TimeUnit.MINUTES)
                 .build(BindCacheLoader())
 
         groupCache = Caffeine.newBuilder()
                 .maximumSize(10_000)
-                .expireAfterWrite(config.grpCacheExpire.toLong(),TimeUnit.MINUTES)
+                .expireAfterWrite(config.grpCacheExpire.toLong(), TimeUnit.MINUTES)
                 .build(GroupCacheLoader())
 
         log.info("Bind and group caches are initialized")
     }
 
     fun userExists(userDN: String, pwd: String): Boolean =
-         when(bindCache.getIfPresent(Bind(userDN, pwd))) {
+        when (bindCache.getIfPresent(Bind(userDN, pwd))) {
             is Bind -> true
             else -> false
         }
 
     fun userAdd(userDN: String, pwd: String) {
-
         try {
             bindCache.get(Bind(userDN, pwd))
-        }
-        catch (e: java.util.concurrent.ExecutionException) {
+        } catch (e: java.util.concurrent.ExecutionException) {
             log.error("Exception in userAdd - ${e.cause}")
         }
     }
 
-    fun groupAndUserExists(groupDN: String, userDN: String) : Boolean =
-            when(groupCache.getIfPresent(Group(groupDN, userDN))) {
-                is Group -> true
-                else -> false
-            }
+    fun groupAndUserExists(groupDN: String, userDN: String): Boolean =
+        when (groupCache.getIfPresent(Group(groupDN, userDN))) {
+            is Group -> true
+            else -> false
+        }
 
     fun groupAndUserAdd(groupDN: String, userDN: String) {
-
         try {
             groupCache.get(Group(groupDN, userDN))
-        }
-        catch (e: java.util.concurrent.ExecutionException) {
+        } catch (e: java.util.concurrent.ExecutionException) {
             log.error("Exception in groupAndUserAdd - ${e.cause}")
         }
     }

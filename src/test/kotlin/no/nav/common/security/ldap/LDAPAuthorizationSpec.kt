@@ -3,9 +3,12 @@ package no.nav.common.security.ldap
 import org.amshove.kluent.`should be false`
 import org.amshove.kluent.`should be true`
 import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.*
 import no.nav.common.security.common.InMemoryLDAPServer
 import no.nav.common.security.common.JAASContext
+import org.jetbrains.spek.api.dsl.describe
+import org.jetbrains.spek.api.dsl.given
+import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.dsl.on
 
 object LDAPAuthorizationSpec : Spek({
 
@@ -71,7 +74,7 @@ object LDAPAuthorizationSpec : Spek({
                     val ldap = LDAPAuthorization.init()
                     ldap.isUserMemberOfAny(
                             "bdoe",
-                            listOf("invalid","ktACons"),
+                            listOf("invalid", "ktACons"),
                             java.util.UUID.randomUUID().toString()).isNotEmpty().`should be true`()
                 }
             }
@@ -80,7 +83,7 @@ object LDAPAuthorizationSpec : Spek({
                     val ldap = LDAPAuthorization.init()
                     ldap.isUserMemberOfAny(
                             "bdoe",
-                            listOf("ktAProd","ktACons"),
+                            listOf("ktAProd", "ktACons"),
                             java.util.UUID.randomUUID().toString()).isNotEmpty().`should be true`()
                 }
             }
@@ -89,7 +92,7 @@ object LDAPAuthorizationSpec : Spek({
                     val ldap = LDAPAuthorization.init()
                     ldap.isUserMemberOfAny(
                             "srvaltinnkanal",
-                            listOf("ktAProd","ktACons"),
+                            listOf("ktAProd", "ktACons"),
                             java.util.UUID.randomUUID().toString()).isNotEmpty().`should be true`()
                 }
             }
@@ -98,7 +101,7 @@ object LDAPAuthorizationSpec : Spek({
                     val ldap = LDAPAuthorization.init()
                     ldap.isUserMemberOfAny(
                             "bdoe",
-                            listOf("ktAProd","invalid"),
+                            listOf("ktAProd", "invalid"),
                             java.util.UUID.randomUUID().toString()).isNotEmpty().`should be false`()
                 }
             }
@@ -158,7 +161,7 @@ object LDAPAuthorizationSpec : Spek({
                     val ldap = LDAPAuthorization.init(root)
                     ldap.isUserMemberOfAny(
                             "bdoe",
-                            listOf("invalid","ktACons"),
+                            listOf("invalid", "ktACons"),
                             java.util.UUID.randomUUID().toString()).isNotEmpty().`should be true`()
                 }
             }
@@ -167,7 +170,7 @@ object LDAPAuthorizationSpec : Spek({
                     val ldap = LDAPAuthorization.init(root)
                     ldap.isUserMemberOfAny(
                             "bdoe",
-                            listOf("ktAProd","ktACons"),
+                            listOf("ktAProd", "ktACons"),
                             java.util.UUID.randomUUID().toString()).isNotEmpty().`should be true`()
                 }
             }
@@ -176,7 +179,7 @@ object LDAPAuthorizationSpec : Spek({
                     val ldap = LDAPAuthorization.init(root)
                     ldap.isUserMemberOfAny(
                             "bdoe",
-                            listOf("ktAProd","invalid"),
+                            listOf("ktAProd", "invalid"),
                             java.util.UUID.randomUUID().toString()).isNotEmpty().`should be false`()
                 }
             }
@@ -188,5 +191,4 @@ object LDAPAuthorizationSpec : Spek({
             InMemoryLDAPServer.stop()
         }
     }
-
 })

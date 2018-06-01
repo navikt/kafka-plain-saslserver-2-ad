@@ -1,7 +1,11 @@
 package no.nav.common.security.authorization
 
 import kafka.security.auth.Acl
-import no.nav.common.security.ldap.*
+import no.nav.common.security.ldap.LDAPConfig
+import no.nav.common.security.ldap.LDAPCache
+import no.nav.common.security.ldap.LDAPAuthorization
+import no.nav.common.security.ldap.toUserDNBasta
+import no.nav.common.security.ldap.toUserDN
 import org.apache.kafka.common.security.auth.KafkaPrincipal
 import org.slf4j.LoggerFactory
 
@@ -21,7 +25,7 @@ class GroupAuthorizer : AutoCloseable {
                 val userDN = ldapConfig.toUserDN(principal.name)
                 val userDNBasta = ldapConfig.toUserDNBasta(principal.name)
 
-                val cachedUserInGroups =  groups
+                val cachedUserInGroups = groups
                         .map { groupName ->
                             if (
                                     LDAPCache.groupAndUserExists(groupName, userDN) ||
@@ -36,8 +40,7 @@ class GroupAuthorizer : AutoCloseable {
                 if (cachedUserInGroups.isNotEmpty()) {
                     log.debug("[${cachedUserInGroups.map { it.second }},${principal.name}] is cached ($uuid)")
                     true
-                }
-                else
+                } else
                     LDAPAuthorization.init()
                             .use { ldap -> ldap.isUserMemberOfAny(principal.name, groups, uuid) }
                             .let { uInGSet ->
@@ -50,7 +53,7 @@ class GroupAuthorizer : AutoCloseable {
             }
 
     override fun close() {
-        //no need for cleanup
+        // no need for cleanup
     }
 
     companion object {

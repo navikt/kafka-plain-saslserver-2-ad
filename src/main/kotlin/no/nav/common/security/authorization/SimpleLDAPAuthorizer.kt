@@ -1,7 +1,10 @@
 package no.nav.common.security.authorization
 
 import kafka.network.RequestChannel
-import kafka.security.auth.*
+import kafka.security.auth.Acl
+import kafka.security.auth.Operation
+import kafka.security.auth.Resource
+import kafka.security.auth.SimpleAclAuthorizer
 import org.apache.kafka.common.acl.AclPermissionType
 import org.apache.kafka.common.resource.ResourceType
 import org.apache.kafka.common.security.auth.KafkaPrincipal
@@ -32,14 +35,14 @@ class SimpleLDAPAuthorizer : SimpleAclAuthorizer() {
 
         log.debug("Authorization Start -  $principal trying $lOperation from $host on $lResource ($uuid)")
 
-        //TODO ResourceType.GROUP - under change in minor version - CAREFUL!
+        // TODO ResourceType.GROUP - under change in minor version - CAREFUL!
         // Warning! Assuming no group considerations, thus implicitly, always empty group access control lists
         if (resource?.resourceType()?.toJava() == ResourceType.GROUP) {
             log.debug("Authorization End - $principal trying $lOperation from $host on $lResource is authorized ($uuid)")
             return true
         }
 
-        //TODO AclPermissionType.ALLOW - under change in minor version - CAREFUL!
+        // TODO AclPermissionType.ALLOW - under change in minor version - CAREFUL!
         // userAdd allow access control lists for resource and given operation
         val sacls = getAcls(resource)
                 .filter { it.operation() == operation && it.permissionType().toJava() == AclPermissionType.ALLOW }
@@ -58,11 +61,11 @@ class SimpleLDAPAuthorizer : SimpleAclAuthorizer() {
 
         return GroupAuthorizer().use { navAuthorizer ->
             navAuthorizer.authorize(
-                    session?.principal() ?: KafkaPrincipal(KafkaPrincipal.USER_TYPE,"ANONYMOUS"),
+                    session?.principal() ?: KafkaPrincipal(KafkaPrincipal.USER_TYPE, "ANONYMOUS"),
                     acls,
                     uuid
             ).let { isAuthorized ->
-                when(isAuthorized) {
+                when (isAuthorized) {
                     true -> log.debug("Authorization End - $principal is authorized! ($uuid)")
                     false -> log.debug("Authorization End - $principal is not authorized! ($uuid)")
                 }

@@ -25,7 +25,7 @@ object JAASContext {
                         AppConfigurationEntry(
                                 ReallyDoesntMatter::class.java.name,
                                 AppConfigurationEntry.LoginModuleControlFlag.REQUIRED,
-                                hashMapOf<String,Any>("username" to "srvkafkabroker", "password" to "broker")
+                                hashMapOf<String, Any>("username" to "srvkafkabroker", "password" to "broker")
                         )
                 )
             }

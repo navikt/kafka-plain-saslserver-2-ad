@@ -11,14 +11,13 @@ import org.slf4j.LoggerFactory
 
 class LDAPAuthentication private constructor(val config: LDAPConfig.Config) : LDAPBase(config) {
 
-    private fun bindOk(user: String, pwd: String) : AuthenResult =
+    private fun bindOk(user: String, pwd: String): AuthenResult =
             try {
                 if (ldapConnection.bind(user, pwd).resultCode == ResultCode.SUCCESS)
                     AuthenResult(true, user)
                 else
                     AuthenResult(false, "")
-            }
-            catch(e: LDAPException) {
+            } catch (e: LDAPException) {
                 AuthenResult(false, "")
             }
 
@@ -34,7 +33,7 @@ class LDAPAuthentication private constructor(val config: LDAPConfig.Config) : LD
 
             // as long as at least one user DN can authenticate, no error report in log
             listOf(userDN, userDNBasta).fold(
-                    AuthenResult(false, ""), { res, uDN -> res.combine(bindOk(uDN,pwd)) }
+                    AuthenResult(false, ""), { res, uDN -> res.combine(bindOk(uDN, pwd)) }
             )
         }
 
@@ -42,7 +41,7 @@ class LDAPAuthentication private constructor(val config: LDAPConfig.Config) : LD
 
         private val log: Logger = LoggerFactory.getLogger(LDAPAuthentication::class.java)
 
-        fun init(configFile: String = ""): LDAPAuthentication = when(configFile.isEmpty()) {
+        fun init(configFile: String = ""): LDAPAuthentication = when (configFile.isEmpty()) {
             true -> LDAPAuthentication(LDAPConfig.getByClasspath())
             else -> LDAPAuthentication(LDAPConfig.getBySource(configFile))
         }

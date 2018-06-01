@@ -19,12 +19,12 @@ import com.unboundid.util.ssl.TrustStoreTrustManager
 
 object InMemoryLDAPServer {
 
-    private val imConf = InMemoryDirectoryServerConfig("dc=example,dc=com","dc=adeo,dc=example,dc=com")
+    private val imConf = InMemoryDirectoryServerConfig("dc=example,dc=com", "dc=adeo,dc=example,dc=com")
 
     private const val KStore = "src/test/resources/inmds.jks"
     private val tlsCF = SSLUtil(TrustAllTrustManager()).createSSLSocketFactory()
     private val tlsSF = SSLUtil(
-            KeyStoreKeyManager(KStore,"password".toCharArray(),"JKS","inmds"),
+            KeyStoreKeyManager(KStore, "password".toCharArray(), "JKS", "inmds"),
             TrustStoreTrustManager(KStore))
             .createSSLServerSocketFactory()
 
@@ -33,14 +33,14 @@ object InMemoryLDAPServer {
     init {
 
         imConf.setListenerConfigs(
-                InMemoryListenerConfig.createLDAPConfig("LDAP",11389),
-                InMemoryListenerConfig.createLDAPSConfig("LDAPS",null,11636, tlsSF, tlsCF)
+                InMemoryListenerConfig.createLDAPConfig("LDAP", 11389),
+                InMemoryListenerConfig.createLDAPSConfig("LDAPS", null, 11636, tlsSF, tlsCF)
         )
         // must bind before compare, equal to non-anonymous access./
         imConf.setAuthenticationRequiredOperationTypes(OperationType.COMPARE)
 
         imDS = InMemoryDirectoryServer(imConf)
-        imDS.importFromLDIF(true,"src/test/resources/UsersAndGroups.ldif")
+        imDS.importFromLDIF(true, "src/test/resources/UsersAndGroups.ldif")
     }
 
     fun start() {

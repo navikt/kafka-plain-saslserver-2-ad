@@ -1,6 +1,9 @@
 package no.nav.common.security.ldap
 
-import com.unboundid.ldap.sdk.*
+import com.unboundid.ldap.sdk.LDAPConnectionOptions
+import com.unboundid.ldap.sdk.LDAPConnection
+import com.unboundid.ldap.sdk.LDAPException
+import com.unboundid.ldap.sdk.DisconnectType
 import com.unboundid.util.ssl.SSLUtil
 import com.unboundid.util.ssl.TrustAllTrustManager
 import org.slf4j.Logger
@@ -16,7 +19,7 @@ abstract class LDAPBase protected constructor(config: LDAPConfig.Config) : AutoC
         connectTimeoutMillis = config.connTimeout
     }
 
-    //NB! - TrustAllTrustManager is too trusty, but good enough when inside corporate inner zone
+    // NB! - TrustAllTrustManager is too trusty, but good enough when inside corporate inner zone
     protected val ldapConnection = LDAPConnection(
             SSLUtil(TrustAllTrustManager()).createSSLSocketFactory(),
             connectOptions)
@@ -26,8 +29,7 @@ abstract class LDAPBase protected constructor(config: LDAPConfig.Config) : AutoC
         try {
             ldapConnection.connect(config.host, config.port)
             log.debug("Successfully connected to (${config.host},${config.port})")
-        }
-        catch (e: LDAPException) {
+        } catch (e: LDAPException) {
             log.error("Authentication and authorization will fail! " +
                     "Exception when connecting to (${config.host},${config.port}) - ${e.diagnosticMessage}")
             ldapConnection.setDisconnectInfo(

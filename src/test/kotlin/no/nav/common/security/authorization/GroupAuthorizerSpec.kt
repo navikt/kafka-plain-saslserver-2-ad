@@ -7,15 +7,17 @@ import org.amshove.kluent.`should be`
 import org.apache.kafka.common.acl.AclOperation
 import org.apache.kafka.common.security.auth.KafkaPrincipal
 import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.*
 import no.nav.common.security.common.InMemoryLDAPServer
 import no.nav.common.security.common.JAASContext
-
+import org.jetbrains.spek.api.dsl.describe
+import org.jetbrains.spek.api.dsl.given
+import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.dsl.on
 
 object GroupAuthorizerSpec : Spek({
 
     // create read allowance for ldap group
-    fun cReadAS(ldapGroup: String) : Set<Acl> {
+    fun cReadAS(ldapGroup: String): Set<Acl> {
         return setOf(
                 Acl(
                         KafkaPrincipal(KafkaPrincipal.USER_TYPE, ldapGroup),
@@ -27,7 +29,7 @@ object GroupAuthorizerSpec : Spek({
     }
 
     // create describe allowance for 2 ldap groups
-    fun cDescribeAS(ldapGroup1: String, ldapGroup2: String) : Set<Acl> {
+    fun cDescribeAS(ldapGroup1: String, ldapGroup2: String): Set<Acl> {
         return setOf(
                 Acl(
                         KafkaPrincipal(KafkaPrincipal.USER_TYPE, ldapGroup1),
@@ -45,7 +47,7 @@ object GroupAuthorizerSpec : Spek({
     }
 
     // create write allowance for ldap group
-    fun cWriteAS(ldapGroup: String) : Set<Acl> {
+    fun cWriteAS(ldapGroup: String): Set<Acl> {
         return setOf(
                 Acl(
                         KafkaPrincipal(KafkaPrincipal.USER_TYPE, ldapGroup),
@@ -58,7 +60,7 @@ object GroupAuthorizerSpec : Spek({
 
     // helper function for creating KafkaPrincipal
     fun createKP (userName: String): KafkaPrincipal {
-        return KafkaPrincipal(KafkaPrincipal.USER_TYPE,userName)
+        return KafkaPrincipal(KafkaPrincipal.USER_TYPE, userName)
     }
 
     // set the JAAS config in order to do successful init of LDAPAuthorization
@@ -72,13 +74,13 @@ object GroupAuthorizerSpec : Spek({
 
         given("a acls with describe allowance - 2 ldap groups") {
 
-            val aclDescribe = cDescribeAS("ktACons","ktAProd")
+            val aclDescribe = cDescribeAS("ktACons", "ktAProd")
 
             on("a member user in group 1") {
                 it("should retrn true") {
                     val authorizer = GroupAuthorizer()
                     val authorized = authorizer.authorize(
-                            createKP("cdoe"),aclDescribe, java.util.UUID.randomUUID().toString())
+                            createKP("cdoe"), aclDescribe, java.util.UUID.randomUUID().toString())
 
                     authorized.`should be`(true)
                 }
@@ -87,7 +89,7 @@ object GroupAuthorizerSpec : Spek({
                 it("should retrn true") {
                     val authorizer = GroupAuthorizer()
                     val authorized = authorizer.authorize(
-                            createKP("adoe"),aclDescribe, java.util.UUID.randomUUID().toString())
+                            createKP("adoe"), aclDescribe, java.util.UUID.randomUUID().toString())
 
                     authorized.`should be`(true)
                 }
@@ -96,7 +98,7 @@ object GroupAuthorizerSpec : Spek({
                 it("should retrn false") {
                     val authorizer = GroupAuthorizer()
                     val authorized = authorizer.authorize(
-                            createKP("ddoe"),aclDescribe, java.util.UUID.randomUUID().toString())
+                            createKP("ddoe"), aclDescribe, java.util.UUID.randomUUID().toString())
 
                     authorized.`should be`(false)
                 }
@@ -113,7 +115,7 @@ object GroupAuthorizerSpec : Spek({
 
                     val authorizer = GroupAuthorizer()
                     val authorized = authorizer.authorize(
-                            createKP("bdoe"),aclRead, java.util.UUID.randomUUID().toString())
+                            createKP("bdoe"), aclRead, java.util.UUID.randomUUID().toString())
 
                     authorized.`should be`(true)
                 }
@@ -125,7 +127,7 @@ object GroupAuthorizerSpec : Spek({
 
                     val authorizer = GroupAuthorizer()
                     val authorized = authorizer.authorize(
-                            createKP("adoe"),aclRead, java.util.UUID.randomUUID().toString())
+                            createKP("adoe"), aclRead, java.util.UUID.randomUUID().toString())
 
                     authorized.`should be`(false)
                 }
@@ -142,7 +144,7 @@ object GroupAuthorizerSpec : Spek({
 
                     val authorizer = GroupAuthorizer()
                     val authorized = authorizer.authorize(
-                            createKP("bdoe"),aclWrite, java.util.UUID.randomUUID().toString())
+                            createKP("bdoe"), aclWrite, java.util.UUID.randomUUID().toString())
 
                     authorized.`should be`(false)
                 }
@@ -154,7 +156,7 @@ object GroupAuthorizerSpec : Spek({
 
                     val authorizer = GroupAuthorizer()
                     val authorized = authorizer.authorize(
-                            createKP("adoe"),aclWrite, java.util.UUID.randomUUID().toString())
+                            createKP("adoe"), aclWrite, java.util.UUID.randomUUID().toString())
 
                     authorized.`should be`(true)
                 }

@@ -12,10 +12,11 @@ import javax.security.auth.spi.LoginModule
 class PlainLoginModule : LoginModule {
 
     override fun initialize(
-            subject: Subject,
-            callbackHandler: CallbackHandler,
-            sharedState: Map<String, *>,
-            options: Map<String, *>) {
+        subject: Subject,
+        callbackHandler: CallbackHandler,
+        sharedState: Map<String, *>,
+        options: Map<String, *>
+    ) {
 
         // TTN change to more kotlin-like code
         subject.publicCredentials.add(options[USERNAME_CONFIG] as String)
@@ -44,7 +45,7 @@ class PlainLoginModule : LoginModule {
 
     companion object {
 
-        //TTN added const
+        // TTN added const
         private const val USERNAME_CONFIG = "username"
         private const val PASSWORD_CONFIG = "password"
 

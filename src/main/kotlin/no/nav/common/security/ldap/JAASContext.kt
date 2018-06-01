@@ -14,15 +14,14 @@ object JAASContext {
 
         log.info("Read JAAS Context for authorization support")
 
-        val options: Map<String,String> = try {
+        val options: Map<String, String> = try {
             val jaasFile = javax.security.auth.login.Configuration.getConfiguration()
             val entries = jaasFile.getAppConfigurationEntry("KafkaServer")
             entries
                     ?.get(0)
                     ?.options
-                    ?.let { it.map { Pair<String,String>(it.key, it.value.toString()) }.toMap() } ?: emptyMap()
-        }
-        catch (e: SecurityException) {
+                    ?.let { it.map { Pair<String, String>(it.key, it.value.toString()) }.toMap() } ?: emptyMap()
+        } catch (e: SecurityException) {
             log.error("JAAS Context read exception - ${e.message}")
             emptyMap()
         }

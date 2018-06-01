@@ -1,6 +1,11 @@
 package no.nav.common.security.ldap
 
-import com.unboundid.ldap.sdk.*
+import com.unboundid.ldap.sdk.LDAPException
+import com.unboundid.ldap.sdk.Filter
+import com.unboundid.ldap.sdk.SearchRequest
+import com.unboundid.ldap.sdk.SearchScope
+import com.unboundid.ldap.sdk.LDAPSearchException
+import com.unboundid.ldap.sdk.CompareRequest
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -19,17 +24,16 @@ class LDAPAuthorization private constructor(val config: LDAPConfig.Config) : LDA
         log.debug("Binding information for authorization fetched from JAAS config file [$bindDN]")
 
         try {
-            ldapConnection.bind(bindDN,bindPwd)
+            ldapConnection.bind(bindDN, bindPwd)
             log.debug("Successfully bind to (${config.host},${config.port}) with $bindDN")
-        }
-        catch (e: LDAPException) {
+        } catch (e: LDAPException) {
             log.error("Authorization will fail! " +
                     "Exception during bind of $bindDN to (${config.host},${config.port}) - ${e.diagnosticMessage}")
         }
     }
 
     private fun getGroupDN(groupName: String): String =
-            try{
+            try {
                 val filter = Filter.createEqualityFilter(config.grpUid, groupName)
 
                 ldapConnection
@@ -40,8 +44,7 @@ class LDAPAuthorization private constructor(val config: LDAPConfig.Config) : LDA
                             else
                                 ""
                         }
-            }
-            catch (e: LDAPSearchException){
+            } catch (e: LDAPSearchException) {
                 log.error("Cannot resolve group DN for $groupName under ${config.grpBaseDN}")
                 ""
             }
@@ -58,10 +61,8 @@ class LDAPAuthorization private constructor(val config: LDAPConfig.Config) : LDA
                     ldapConnection
                             .compare(CompareRequest(groupDN, config.grpAttrName, userDN))
                             .compareMatched()
-                }
-                else false
-            }
-            catch(e: LDAPException) {
+                } else false
+            } catch (e: LDAPException) {
                 log.error("Compare-matched exception - invalid group $groupName, ${e.exceptionMessage} ($uuid)")
                 false
             }
@@ -88,7 +89,7 @@ class LDAPAuthorization private constructor(val config: LDAPConfig.Config) : LDA
 
         private val log: Logger = LoggerFactory.getLogger(LDAPAuthorization::class.java)
 
-        fun init(configFile: String = ""): LDAPAuthorization = when(configFile.isEmpty()) {
+        fun init(configFile: String = ""): LDAPAuthorization = when (configFile.isEmpty()) {
             true -> LDAPAuthorization(LDAPConfig.getByClasspath())
             else -> LDAPAuthorization(LDAPConfig.getBySource(configFile))
         }

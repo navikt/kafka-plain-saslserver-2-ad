@@ -20,10 +20,10 @@ object LDAPConfigSpec : Spek({
                 it("should return host as localhost") {
                     config.host.`should be equal to`("localhost")
                 }
-                it("should return port as 11636"){
+                it("should return port as 11636") {
                     config.port.`should be equal to`(11636)
                 }
-                it("should return connTimeout as 500"){
+                it("should return connTimeout as 500") {
                     config.connTimeout.`should be equal to`(500)
                 }
                 it("should return usrBaseDN as ou=ServiceAccounts,dc=adeo,dc=example,dc=com") {
@@ -32,19 +32,19 @@ object LDAPConfigSpec : Spek({
                 it("should return usrUid as uid") {
                     config.usrUid.`should be equal to`("uid")
                 }
-                it("should return grpBaseDN as ou=KafkaGroups,dc=adeo,dc=example,dc=com"){
+                it("should return grpBaseDN as ou=KafkaGroups,dc=adeo,dc=example,dc=com") {
                     config.grpBaseDN.`should be equal to`("ou=KafkaGroups,dc=adeo,dc=example,dc=com")
                 }
-                it("should return grpUid as cn"){
+                it("should return grpUid as cn") {
                     config.grpUid.`should be equal to`("cn")
                 }
-                it("should return grpAttrName as uniqueMember"){
+                it("should return grpAttrName as uniqueMember") {
                     config.grpAttrName.`should be equal to`("uniqueMember")
                 }
-                it("should return usrCacheExpire as 2"){
+                it("should return usrCacheExpire as 2") {
                     config.usrCacheExpire.`should be equal to`(2)
                 }
-                it("should return grpCacheExpire as 4"){
+                it("should return grpCacheExpire as 4") {
                     config.grpCacheExpire.`should be equal to`(4)
                 }
             }
@@ -76,7 +76,7 @@ object LDAPConfigSpec : Spek({
 
                 val config = LDAPConfig.getBySource("src/test/resources/adcEmptyusrUid.yaml")
 
-                it("should return usrUid as empty"){
+                it("should return usrUid as empty") {
                     config.usrUid.`should be equal to`("")
                 }
             }
@@ -86,7 +86,7 @@ object LDAPConfigSpec : Spek({
 
                 val config = LDAPConfig.getBySource("src/test/resources/adcMissingusrUid.yaml")
 
-                it("should return usrUid as empty"){
+                it("should return usrUid as empty") {
                     config.usrUid.`should be equal to`("")
                 }
             }
@@ -103,10 +103,10 @@ object LDAPConfigSpec : Spek({
                 it("should return host as empty") {
                     config.host.`should be equal to`("")
                 }
-                it("should return port as 0"){
+                it("should return port as 0") {
                     config.port.`should be equal to`(0)
                 }
-                it("should return connTimeout as 3000"){
+                it("should return connTimeout as 3000") {
                     config.connTimeout.`should be equal to`(3000)
                 }
                 it("should return usrBaseDN as empty") {
@@ -115,19 +115,19 @@ object LDAPConfigSpec : Spek({
                 it("should return usrUid as empty") {
                     config.usrUid.`should be equal to`("")
                 }
-                it("should return grpBaseDN as empty"){
+                it("should return grpBaseDN as empty") {
                     config.grpBaseDN.`should be equal to`("")
                 }
-                it("should return grpUid as empty"){
+                it("should return grpUid as empty") {
                     config.grpUid.`should be equal to`("")
                 }
-                it("should return grpAttrName as empty"){
+                it("should return grpAttrName as empty") {
                     config.grpAttrName.`should be equal to`("")
                 }
-                it("should return usrCacheExpire as 2"){
+                it("should return usrCacheExpire as 2") {
                     config.usrCacheExpire.`should be equal to`(2)
                 }
-                it("should return grpCacheExpire as 4"){
+                it("should return grpCacheExpire as 4") {
                     config.grpCacheExpire.`should be equal to`(4)
                 }
             }
@@ -135,7 +135,7 @@ object LDAPConfigSpec : Spek({
 
         given("getByClasspath - load of default yaml config") {
 
-            //will find ldapconfig.yaml resource under build/resources/ldapconfig.yaml...
+            // will find ldapconfig.yaml resource under build/resources/ldapconfig.yaml...
 
             val config = LDAPConfig.getByClasspath()
 
@@ -144,10 +144,10 @@ object LDAPConfigSpec : Spek({
                 it("should return host as localhost") {
                     config.host.`should be equal to`("localhost")
                 }
-                it("should return port as 11636"){
+                it("should return port as 11636") {
                     config.port.`should be equal to`(11636)
                 }
-                it("should return connTimeout as 500"){
+                it("should return connTimeout as 500") {
                     config.connTimeout.`should be equal to`(500)
                 }
                 it("should return usrBaseDN as ou=ServiceAccounts,dc=adeo,dc=example,dc=com") {
@@ -156,23 +156,22 @@ object LDAPConfigSpec : Spek({
                 it("should return usrUid as uid") {
                     config.usrUid.`should be equal to`("uid")
                 }
-                it("should return grpBaseDN as ou=KafkaGroups,dc=adeo,dc=example,dc=com"){
+                it("should return grpBaseDN as ou=KafkaGroups,dc=adeo,dc=example,dc=com") {
                     config.grpBaseDN.`should be equal to`("ou=KafkaGroups,dc=adeo,dc=example,dc=com")
                 }
-                it("should return grpUid as cn"){
+                it("should return grpUid as cn") {
                     config.grpUid.`should be equal to`("cn")
                 }
-                it("should return grpAttrName as uniqueMember"){
+                it("should return grpAttrName as uniqueMember") {
                     config.grpAttrName.`should be equal to`("uniqueMember")
                 }
-                it("should return usrCacheExpire as 2"){
+                it("should return usrCacheExpire as 2") {
                     config.usrCacheExpire.`should be equal to`(2)
                 }
-                it("should return grpCacheExpire as 4"){
+                it("should return grpCacheExpire as 4") {
                     config.grpCacheExpire.`should be equal to`(4)
                 }
             }
-
         }
     }
 })

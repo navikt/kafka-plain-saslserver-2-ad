@@ -1,6 +1,10 @@
 package no.nav.common.security.plain
 
-import no.nav.common.security.ldap.*
+import no.nav.common.security.ldap.LDAPConfig
+import no.nav.common.security.ldap.LDAPAuthentication
+import no.nav.common.security.ldap.LDAPCache
+import no.nav.common.security.ldap.toUserDN
+import no.nav.common.security.ldap.toUserDNBasta
 import javax.security.sasl.Sasl
 import javax.security.sasl.SaslException
 import javax.security.auth.callback.CallbackHandler
@@ -69,8 +73,7 @@ class PlainSaslServer(val jaasContext: JaasContext) : SaslServer {
         }
         */
 
-
-        //TTN ADDED
+        // TTN ADDED
         log.debug("Authentication Start - $username")
 
         LDAPConfig.getByClasspath()
@@ -86,8 +89,7 @@ class PlainSaslServer(val jaasContext: JaasContext) : SaslServer {
                                                 if (authenResult.authenticated) {
                                                     LDAPCache.userAdd(authenResult.userDN, password)
                                                     log.info("Bind cache updated for ${authenResult.userDN}")
-                                                }
-                                                else
+                                                } else
                                                     log.error("Cannot authenticate $username, please verify AD")
                                             }
                                 }.authenticated
@@ -104,7 +106,7 @@ class PlainSaslServer(val jaasContext: JaasContext) : SaslServer {
                         throw SaslAuthenticationException("Authentication failed! Please verify $username in AD")
                     }
                 }
-        //NTT
+        // NTT
 
         if (!authorizationIdFromClient.isEmpty() && authorizationIdFromClient != username)
             throw SaslException("Authentication failed: " +
@@ -160,11 +162,12 @@ class PlainSaslServer(val jaasContext: JaasContext) : SaslServer {
 
         @Throws(SaslException::class)
         override fun createSaslServer(
-                mechanism: String,
-                protocol: String,
-                serverName: String,
-                props: Map<String, *>,
-                cbh: CallbackHandler): SaslServer {
+            mechanism: String,
+            protocol: String,
+            serverName: String,
+            props: Map<String, *>,
+            cbh: CallbackHandler
+        ): SaslServer {
 
             if (PLAIN_MECHANISM != mechanism)
                 throw SaslException(String.format("Mechanism \'%s\' is not supported. " +
@@ -189,11 +192,11 @@ class PlainSaslServer(val jaasContext: JaasContext) : SaslServer {
 
     companion object {
 
-        //TTN added const
+        // TTN added const
         const val PLAIN_MECHANISM = "PLAIN"
-        //TTN private val JAAS_USER_PREFIX = "user_"
+        // TTN private val JAAS_USER_PREFIX = "user_"
 
-        //TTN ADDED logging capabilities
+        // TTN ADDED logging capabilities
         private val log = LoggerFactory.getLogger(PlainSaslServer::class.java)
     }
 }

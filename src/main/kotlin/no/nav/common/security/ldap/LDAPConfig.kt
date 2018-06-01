@@ -6,7 +6,9 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.slf4j.LoggerFactory
 import java.lang.IllegalArgumentException
 import java.net.URL
-import java.nio.file.*
+import java.nio.file.FileSystemNotFoundException
+import java.nio.file.Files
+import java.nio.file.Paths
 
 /**
  * A Singleton class returning a data class for all config parameters
@@ -20,16 +22,16 @@ import java.nio.file.*
 object LDAPConfig {
 
     data class Config(
-            val host: String,
-            val port: Int,
-            val connTimeout: Int,
-            val usrBaseDN: String,
-            val usrUid: String,
-            val grpBaseDN: String,
-            val grpUid: String,
-            val grpAttrName:String,
-            val usrCacheExpire: Int,
-            val grpCacheExpire: Int
+        val host: String,
+        val port: Int,
+        val connTimeout: Int,
+        val usrBaseDN: String,
+        val usrUid: String,
+        val grpBaseDN: String,
+        val grpUid: String,
+        val grpAttrName: String,
+        val usrCacheExpire: Int,
+        val grpCacheExpire: Int
     )
 
     private val log = LoggerFactory.getLogger(LDAPConfig::class.java)
@@ -57,16 +59,13 @@ object LDAPConfig {
         val defaultDir = Paths.get("").toAbsolutePath()
         val filePath = try {
             Paths.get(configFile.toURI())
-        }
-        catch (e: IllegalArgumentException) {
+        } catch (e: IllegalArgumentException) {
             log.error(errMsg + e.message)
             defaultDir
-        }
-        catch (e: FileSystemNotFoundException){
+        } catch (e: FileSystemNotFoundException) {
             log.error(errMsg + e.message)
             defaultDir
-        }
-        catch (e: SecurityException) {
+        } catch (e: SecurityException) {
             log.error(errMsg + e.message)
             defaultDir
         }
