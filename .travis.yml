@@ -1,8 +1,11 @@
 language: java
 jdk:
-  - oraclejdk8
+- oraclejdk8
 before_install:
-  - chmod +x gradlew
-  - chmod +x gradle/wrapper/gradle-wrapper.jar
+- chmod +x gradlew
+- chmod +x gradle/wrapper/gradle-wrapper.jar
 script:
-  - ./gradlew test build
+- "./gradlew test build"
+notifications:
+  slack:
+    secure: D6bOOR88KGzDybAWR1+nNwAvtXduyGa2Maz40D96y6xCf3W0t36xxEY44Mn9A75QgvczO6TwwO03OSZzg8yr2crVT9T7UJpgyyZE6izDpLD3l7D5RT8mEidhhZtjpcneU17tMzrcZ7gUbQPOYkMfTbwLHju+q3zE2FpPs117kQo3+4gwNogb46S8wOGXbcZ+ActQ8iARLdBkzw53Tix1pz65KTp49DTc2ZVhhg9c/RtJ2ubmSYwsoDBSxm6VhOehKKJdk/e/bWA7YoBRpsNR9Av3O6gdspRmNOJdkhPTJQMoYdVdrHlfA/6UExFcUxp6XkCg1HHyP5Kppd6QaEy9jW1wmLiUYLQbr0QmxgCtmsienPJuS4TLqdPhMcpLTAG9Rk+LgyArkV3cSii8mGwapIsY1tBZrpHWgqse96xnA7Eo7ZVFcqAOM7AKe4lgBJy7Wm53LH0Zy4QoJYUISG5M4LVRbROkXn5OMtbRmjJeWX7MhHd6N7/hPbTaZ+EIUgBu9kpGU0cROzOFJRQwgLVZULyTOsrSW1UBOSxaIhyFWDeTHd/zeCbuu6TDqgHxKXhnsYlFSzwZS72Ps6JABRex8sg96r0+WaqwrwDt61yYjYuKuFVQm3FF7HoOtgaUZ3hcecgDcNf8XfPpVqNz9TnE+1XU+uWj5DofA3T02ImZs5Q=
