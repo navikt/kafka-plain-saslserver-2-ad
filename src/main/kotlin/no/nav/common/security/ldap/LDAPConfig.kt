@@ -38,7 +38,8 @@ object LDAPConfig {
     private val cache: Config
 
     init {
-        cache = loadConfig(ClassLoader.getSystemResource("ldapconfig.yaml") ?: URL(""))
+        cache = loadConfig(ClassLoader.getSystemResource("ldapconfig.yaml")
+                ?: URL(""))
         log.info("LDAPConfig for classpath is cached")
     }
 
@@ -81,7 +82,7 @@ object LDAPConfig {
         return try {
             Files.newBufferedReader(filePath)
                     .use {
-                        mapper.readValue(it, LDAPConfig.Config::class.java)
+                        mapper.readValue(it, Config::class.java)
                     }
                     .also {
                         log.info("$configFile read")

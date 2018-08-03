@@ -35,7 +35,12 @@ class SimpleLDAPAuthentication : AuthenticateCallbackHandler {
 
             when (it) {
                 is NameCallback -> username = it.defaultName
-                is PlainAuthenticateCallback -> it.authenticated(authenticate(username, it.password().toString()))
+                is PlainAuthenticateCallback -> it.authenticated(
+                        authenticate(
+                                username,
+                                it.password().joinToString("")
+                        )
+                )
                 else -> throw UnsupportedCallbackException(it)
             }
         }
