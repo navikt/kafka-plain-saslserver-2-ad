@@ -107,7 +107,7 @@ object LDAPConfigSpec : Spek({
                     config.port.`should be equal to`(0)
                 }
                 it("should return connTimeout as 3000") {
-                    config.connTimeout.`should be equal to`(3000)
+                    config.connTimeout.`should be equal to`(0)
                 }
                 it("should return usrBaseDN as empty") {
                     config.usrBaseDN.`should be equal to`("")
@@ -125,10 +125,10 @@ object LDAPConfigSpec : Spek({
                     config.grpAttrName.`should be equal to`("")
                 }
                 it("should return usrCacheExpire as 2") {
-                    config.usrCacheExpire.`should be equal to`(2)
+                    config.usrCacheExpire.`should be equal to`(0)
                 }
                 it("should return grpCacheExpire as 4") {
-                    config.grpCacheExpire.`should be equal to`(4)
+                    config.grpCacheExpire.`should be equal to`(0)
                 }
             }
         }

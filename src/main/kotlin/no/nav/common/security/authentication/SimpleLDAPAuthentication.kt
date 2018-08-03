@@ -17,12 +17,16 @@ import javax.security.auth.login.AppConfigurationEntry
 /**
  * A simple class for performing authentication
  * See KIP-86 for details
- * https://cwiki-test.apache.org/confluence/display/KAFKA/KIP-86%3A+Configurable+SASL+callback+handlers
+ * https://cwiki.apache.org/confluence/display/KAFKA/KIP-86%3A+Configurable+SASL+callback+handlers
  *
  * Also see a kind of framework
  * https://github.com/apache/kafka/blob/2.0/clients/src/main/java/org/apache/kafka/common/security/plain/internals/PlainServerCallbackHandler.java
  */
 class SimpleLDAPAuthentication : AuthenticateCallbackHandler {
+
+    init {
+        log.debug("${SimpleLDAPAuthentication::class.java.canonicalName} object created")
+    }
 
     private var jaasConfigEntries: MutableList<AppConfigurationEntry> = mutableListOf()
 
