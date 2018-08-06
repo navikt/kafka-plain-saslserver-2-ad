@@ -7,7 +7,6 @@ import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.context
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
-import javax.security.auth.callback.Callback
 import javax.security.auth.callback.NameCallback
 
 object SimpleLDAPAuthenticationSpec : Spek({
@@ -21,7 +20,7 @@ object SimpleLDAPAuthenticationSpec : Spek({
         context("authentication should work correctly") {
 
             // kind of misuse of the prompt field in NameCallback... Ok in test context
-            val tests = mapOf<Array<Callback>, Boolean>(
+            val tests = mapOf(
                     arrayOf(
                             NameCallback("invalid user and pwd", "dontexist"),
                             PlainAuthenticateCallback("wrong".toCharArray())

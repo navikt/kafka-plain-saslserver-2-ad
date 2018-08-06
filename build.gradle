@@ -94,7 +94,7 @@ shadowJar {
     }
 }
 
-/*publishing {
+publishing {
     publications {
         shadow(MavenPublication) { publication ->
             project.shadow.component(publication)
@@ -111,7 +111,7 @@ shadowJar {
     }
 }
 
-*/
+
 
 task copyJarToKafka(type: Copy) {
     from kafkaJARSrc

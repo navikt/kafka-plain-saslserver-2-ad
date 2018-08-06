@@ -30,24 +30,24 @@ class SimpleLDAPAuthentication : AuthenticateCallbackHandler {
 
     private var jaasConfigEntries: MutableList<AppConfigurationEntry> = mutableListOf()
 
+    private inline fun <reified T> Array<out Callback>.getFirst(): T? = this.firstOrNull { it is T } as T
+
+    private inline fun <reified T, reified U> Array<out Callback>.other(): Callback? =
+            this.firstOrNull { it !is T && it !is U }
+
     @Throws(IOException::class, UnsupportedCallbackException::class)
     override fun handle(callbacks: Array<out Callback>?) {
 
-        var username = ""
-
-        callbacks?.forEach {
-
-            when (it) {
-                is NameCallback -> username = it.defaultName
-                is PlainAuthenticateCallback -> it.authenticated(
-                        authenticate(
-                                username,
-                                it.password().joinToString("")
-                        )
-                )
-                else -> throw UnsupportedCallbackException(it)
-            }
+        callbacks?.getFirst<PlainAuthenticateCallback>()?.let { plainCB ->
+            plainCB.authenticated(
+                    authenticate(
+                            callbacks.getFirst<NameCallback>()?.defaultName ?: "",
+                            plainCB.password().joinToString("")
+                    )
+            )
         }
+
+        callbacks?.other<NameCallback, PlainAuthenticateCallback>()?.let { throw UnsupportedCallbackException(it) }
     }
 
     private fun userInCache(username: String, password: String): Boolean =

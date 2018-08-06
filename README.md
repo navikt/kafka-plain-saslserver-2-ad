@@ -1,12 +1,12 @@
 # kafka-plain-saslserver-2-ad [![Build Status](https://travis-ci.org/navikt/kafka-plain-saslserver-2-ad.svg?branch=master)](https://travis-ci.org/navikt/kafka-plain-saslserver-2-ad)
-Enhancing kafka with
-- customized PlainSaslServer using LDAPS simple bind for authentication
+Enhancing kafka 2.x with
+- customized SimpleLDAPAuthentication using LDAPS simple bind for authentication
 - customized SimpleACLAuthorizer using LDAPS compare-matched for group membership verification
 
-Thus, avoiding user and passwords in JAAS context file on kafka brokers
+Thus, moving authentication from user and passwords in JAAS context file on kafka brokers to LDAP server
 
-By defining Read/Write allowance with Active Directory groups, authorization is moved from 
-Zookeeper Access Control Lists to group membership.
+By defining Read/Write allowance with LDAP groups, authorization is moved from 
+Zookeeper Access Control Lists to group membership verification.
 
 Binding and group membership information is cached (limited lifetime after write),
 giving minor performance penalty and reduced LDAPS traffic.
@@ -26,21 +26,29 @@ giving minor performance penalty and reduced LDAPS traffic.
 
 ## Kafka configuration examples
 
-Example of JAAS context file on Kafka broker using the customized class for
-authentication.
+JAAS context file on Kafka broker use the standard class for plain login module during authentication
 
 ```
 KafkaServer{
-no.nav.common.security.plain.PlainLoginModule required
+org.apache.kafka.common.security.plain.PlainLoginModule required
 username="x"
 password="y";
 };
 ```
 
-Example of Kafka server.properties for using the customized class for authorization.
+Example of Kafka server.properties for using the customized classes for authentication and authorization. The example
+focus on minimum configuration only (sasl plaintext). A production environment utilize plain with TLS.
 
 ```
+...
+listeners=SASL_PLAINTEXT://localhost:9092
+security.inter.broker.protocol=SASL_PLAINTEXT
+sasl.mechanism.inter.broker.protocol=PLAIN
+sasl.enabled.mechanisms=PLAIN 
+
+listener.name.sasl_plaintext.plain.sasl.server.callback.handler.class=no.nav.common.security.authentication.SimpleLDAPAuthentication
 authorizer.class.name=no.nav.common.security.authorization.SimpleLDAPAuthorizer
+...
 ```
 
 
@@ -48,7 +56,7 @@ authorizer.class.name=no.nav.common.security.authorization.SimpleLDAPAuthorizer
 
 Use of Unboundid in-memory LDAP server for all test cases.
 
-Tested on confluent.io version 4.0.0.
+Tested on confluent.io version 5.x (related to apache kafka 2.x)
 
 See [Confluent Open Source distribution](https://www.confluent.io/product/confluent-open-source/) in order to test locally.
 
@@ -60,7 +68,7 @@ The related [Wiki](https://github.com/navikt/KafkaPlainSaslServer2AD/wiki) has a
 ./gradlew clean build
 ./gradlew shadowJar
 
-The result is KafkaPlainSaslServer2AD-<version>-all.jar both authentication and authorization logic.
+The result is kafka-plain-salserver-2-ad-2.0_<version>.jar hosting authentication and authorization classes.
 ```
 **Observe** that the directory hosting the given JAR file must be in CLASSPATH.
 
