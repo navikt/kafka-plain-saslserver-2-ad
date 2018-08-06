@@ -103,17 +103,15 @@ publishing {
     repositories {
         maven {
             credentials {
-                username nexusUser
-                password nexusPassword
+                username findProperty("nexusUser")
+                password findProperty("nexusPassword")
             }
-            url nexusURL
+            url findProperty("nexusURL")
         }
     }
 }
 
-
-
 task copyJarToKafka(type: Copy) {
-    from kafkaJARSrc
-    into kafkaJARDest
+    from findProperty("kafkaJARSrc") ?: ''
+    into findProperty("kafkaJARDest") ?: ''
 }
