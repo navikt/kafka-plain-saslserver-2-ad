@@ -59,7 +59,7 @@ object GroupAuthorizerSpec : Spek({
     }
 
     // helper function for creating KafkaPrincipal
-    fun createKP (userName: String): KafkaPrincipal {
+    fun createKP(userName: String): KafkaPrincipal {
         return KafkaPrincipal(KafkaPrincipal.USER_TYPE, userName)
     }
 

@@ -32,9 +32,8 @@ class LDAPAuthentication private constructor(val config: LDAPConfig.Config) : LD
             log.debug("Trying bind for $userDN/$userDNBasta and given password")
 
             // as long as at least one user DN can authenticate, no error report in log
-            listOf(userDN, userDNBasta).fold(
-                    AuthenResult(false, ""), { res, uDN -> res.combine(bindOk(uDN, pwd)) }
-            )
+            listOf(userDN, userDNBasta)
+                    .fold(AuthenResult(false, "")) { res, uDN -> res.combine(bindOk(uDN, pwd)) }
         }
 
     companion object {

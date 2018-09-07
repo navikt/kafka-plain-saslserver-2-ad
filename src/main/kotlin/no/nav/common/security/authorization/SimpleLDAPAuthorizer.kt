@@ -17,6 +17,8 @@ import org.slf4j.LoggerFactory
  * - A principal is authorized through membership in group
  * - No group considerations, thus, empty ACL for group resource yield authorization
  * - No deny considerations, implicitly through non-membership
+ *
+ * See https://github.com/apache/kafka/tree/2.0/core/src/main/scala/kafka/security/auth
  */
 
 class SimpleLDAPAuthorizer : SimpleAclAuthorizer() {
@@ -24,6 +26,7 @@ class SimpleLDAPAuthorizer : SimpleAclAuthorizer() {
     override fun authorize(session: RequestChannel.Session?, operation: Operation?, resource: Resource?): Boolean {
 
         // nothing to do if already authorized
+        // this includes the configurable default handling for non ACLs case - ' allow.everyone.if.no.acl.found'
         if (super.authorize(session, operation, resource)) return true
 
         val principal = session?.principal()

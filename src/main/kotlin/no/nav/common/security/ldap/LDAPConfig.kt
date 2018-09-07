@@ -37,9 +37,23 @@ object LDAPConfig {
     private val log = LoggerFactory.getLogger(LDAPConfig::class.java)
     private val cache: Config
 
+    private val emptyConfig = Config(
+            "", 0, 0,
+            "", "",
+            "", "", "",
+            0, 0
+    )
+
     init {
-        cache = loadConfig(ClassLoader.getSystemResource("ldapconfig.yaml") ?: URL(""))
-        log.info("LDAPConfig for classpath is cached")
+        cache = try {
+            loadConfig(ClassLoader.getSystemResource("ldapconfig.yaml") ?: URL("")).also {
+                log.info("LDAPConfig for classpath is cached")
+                log.info("ldap configuration values: $it")
+            }
+        } catch (e: Exception) {
+            log.error("${e.message} - authentication and authorization will fail! ")
+            emptyConfig
+        }
     }
 
     fun getBySource(configFile: String): Config {
@@ -68,20 +82,17 @@ object LDAPConfig {
         } catch (e: SecurityException) {
             log.error(errMsg + e.message)
             defaultDir
+        } catch (e: Exception) {
+            log.error(errMsg + e.message)
+            defaultDir
         }
-
-        val emptyConfig = Config(
-                "", 0, 3000,
-                "", "",
-                "", "", "",
-                2, 4)
 
         if (filePath == defaultDir) return emptyConfig
 
         return try {
             Files.newBufferedReader(filePath)
                     .use {
-                        mapper.readValue(it, LDAPConfig.Config::class.java)
+                        mapper.readValue(it, Config::class.java)
                     }
                     .also {
                         log.info("$configFile read")
@@ -90,6 +101,9 @@ object LDAPConfig {
             log.error(errMsg + e.message)
             emptyConfig
         } catch (e: SecurityException) {
+            log.error(errMsg + e.message)
+            emptyConfig
+        } catch (e: Exception) {
             log.error(errMsg + e.message)
             emptyConfig
         }
