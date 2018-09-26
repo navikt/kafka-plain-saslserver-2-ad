@@ -35,13 +35,14 @@ class SimpleLDAPAuthorizer : SimpleAclAuthorizer() {
         val lResource = resource?.toString()
 
         val uuid = java.util.UUID.randomUUID().toString()
+        val authContext = "$principal trying $lOperation from $host on $lResource ($uuid)"
 
-        log.debug("Authorization Start -  $principal trying $lOperation from $host on $lResource ($uuid)")
+        log.debug("Authorization Start -  $authContext")
 
         // TODO ResourceType.GROUP - under change in minor version - CAREFUL!
         // Warning! Assuming no group considerations, thus implicitly, always empty group access control lists
         if (resource?.resourceType()?.toJava() == ResourceType.GROUP) {
-            log.debug("Authorization End - $principal trying $lOperation from $host on $lResource is authorized ($uuid)")
+            log.debug("Authorization End - $authContext")
             return true
         }
 
@@ -58,7 +59,7 @@ class SimpleLDAPAuthorizer : SimpleAclAuthorizer() {
 
         // nothing to do if empty acl set
         if (acls.isEmpty()) {
-            log.debug("Authorization End - empty ALLOW ACL for [$lResource,$lOperation], not authorized ($uuid)")
+            log.error("Authorization End - empty ALLOW ACL for [$lResource,$lOperation], not authorized ($uuid)")
             return false
         }
 
@@ -69,8 +70,8 @@ class SimpleLDAPAuthorizer : SimpleAclAuthorizer() {
                     uuid
             ).let { isAuthorized ->
                 when (isAuthorized) {
-                    true -> log.debug("Authorization End - $principal is authorized! ($uuid)")
-                    false -> log.debug("Authorization End - $principal is not authorized! ($uuid)")
+                    true -> log.debug("Authorization End - $authContext is authorized!")
+                    false -> log.error("Authorization End - $authContext is not authorized!")
                 }
                 isAuthorized
             }

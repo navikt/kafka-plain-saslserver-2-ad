@@ -26,83 +26,74 @@ object LDAPAuthorizationSpec : Spek({
 
             on("user and membership group") {
                 it("should return true") {
-                    val ldap = LDAPAuthorization.init()
+                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString())
                     ldap.isUserMemberOfAny(
                             "bdoe",
-                            listOf("ktACons"),
-                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be true`()
+                            listOf("ktACons")).isNotEmpty().`should be true`()
                 }
             }
             on("user and non-membership group") {
                 it("should return false") {
-                    val ldap = LDAPAuthorization.init()
+                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString())
                     ldap.isUserMemberOfAny(
                             "adoe",
-                            listOf("ktACons"),
-                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be false`()
+                            listOf("ktACons")).isNotEmpty().`should be false`()
                 }
             }
             on("user and membership group") {
                 it("should return true") {
-                    val ldap = LDAPAuthorization.init()
+                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString())
                     ldap.isUserMemberOfAny(
                             "adoe",
-                            listOf("ktAProd"),
-                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be true`()
+                            listOf("ktAProd")).isNotEmpty().`should be true`()
                 }
             }
             on("invalid user and existing group") {
                 it("should return false") {
-                    val ldap = LDAPAuthorization.init()
+                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString())
                     ldap.isUserMemberOfAny(
                             "invalid",
-                            listOf("ktACons"),
-                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be false`()
+                            listOf("ktACons")).isNotEmpty().`should be false`()
                 }
             }
             on("existing user and invalid group") {
                 it("should return false") {
-                    val ldap = LDAPAuthorization.init()
+                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString())
                     ldap.isUserMemberOfAny(
                             "bdoe",
-                            listOf("invalid"),
-                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be false`()
+                            listOf("invalid")).isNotEmpty().`should be false`()
                 }
             }
             on("user and {invalid group,membership group}") {
                 it("should return true") {
-                    val ldap = LDAPAuthorization.init()
+                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString())
                     ldap.isUserMemberOfAny(
                             "bdoe",
-                            listOf("invalid", "ktACons"),
-                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be true`()
+                            listOf("invalid", "ktACons")).isNotEmpty().`should be true`()
                 }
             }
             on("user and {non-membership group,membership group}") {
                 it("should return true") {
-                    val ldap = LDAPAuthorization.init()
+                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString())
                     ldap.isUserMemberOfAny(
                             "bdoe",
-                            listOf("ktAProd", "ktACons"),
-                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be true`()
+                            listOf("ktAProd", "ktACons")).isNotEmpty().`should be true`()
                 }
             }
             on("user and {membership group,non-membership group}") {
                 it("should return true for srv user in sub group ApplAccounts") {
-                    val ldap = LDAPAuthorization.init()
+                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString())
                     ldap.isUserMemberOfAny(
                             "srvaltinnkanal",
-                            listOf("ktAProd", "ktACons"),
-                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be true`()
+                            listOf("ktAProd", "ktACons")).isNotEmpty().`should be true`()
                 }
             }
             on("user and {non-membership group,invalid group}") {
                 it("should return false") {
-                    val ldap = LDAPAuthorization.init()
+                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString())
                     ldap.isUserMemberOfAny(
                             "bdoe",
-                            listOf("ktAProd", "invalid"),
-                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be false`()
+                            listOf("ktAProd", "invalid")).isNotEmpty().`should be false`()
                 }
             }
         }
@@ -113,74 +104,66 @@ object LDAPAuthorizationSpec : Spek({
 
             on("user and membership group") {
                 it("should return true") {
-                    val ldap = LDAPAuthorization.init(root)
+                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString(), root)
                     ldap.isUserMemberOfAny(
                             "bdoe",
-                            listOf("ktACons"),
-                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be true`()
+                            listOf("ktACons")).isNotEmpty().`should be true`()
                 }
             }
             on("user and non-membership group") {
                 it("should return false") {
-                    val ldap = LDAPAuthorization.init(root)
+                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString(), root)
                     ldap.isUserMemberOfAny(
                             "adoe",
-                            listOf("ktACons"),
-                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be false`()
+                            listOf("ktACons")).isNotEmpty().`should be false`()
                 }
             }
             on("user and membership group") {
                 it("should return true") {
-                    val ldap = LDAPAuthorization.init(root)
+                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString(), root)
                     ldap.isUserMemberOfAny(
                             "adoe",
-                            listOf("ktAProd"),
-                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be true`()
+                            listOf("ktAProd")).isNotEmpty().`should be true`()
                 }
             }
             on("invalid user and existing group") {
                 it("should return false") {
-                    val ldap = LDAPAuthorization.init(root)
+                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString(), root)
                     ldap.isUserMemberOfAny(
                             "invalid",
-                            listOf("ktACons"),
-                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be false`()
+                            listOf("ktACons")).isNotEmpty().`should be false`()
                 }
             }
             on("existing user and invalid group") {
                 it("should return false") {
-                    val ldap = LDAPAuthorization.init(root)
+                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString(), root)
                     ldap.isUserMemberOfAny(
                             "bdoe",
-                            listOf("invalid"),
-                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be false`()
+                            listOf("invalid")).isNotEmpty().`should be false`()
                 }
             }
             on("user and {invalid group,membership group}") {
                 it("should return true") {
-                    val ldap = LDAPAuthorization.init(root)
+                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString(), root)
                     ldap.isUserMemberOfAny(
                             "bdoe",
-                            listOf("invalid", "ktACons"),
-                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be true`()
+                            listOf("invalid", "ktACons")).isNotEmpty().`should be true`()
                 }
             }
             on("user and {non-membership group,membership group}") {
                 it("should return true") {
-                    val ldap = LDAPAuthorization.init(root)
+                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString(), root)
                     ldap.isUserMemberOfAny(
                             "bdoe",
-                            listOf("ktAProd", "ktACons"),
-                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be true`()
+                            listOf("ktAProd", "ktACons")).isNotEmpty().`should be true`()
                 }
             }
             on("user and {non-membership group,invalid group}") {
                 it("should return false") {
-                    val ldap = LDAPAuthorization.init(root)
+                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString(), root)
                     ldap.isUserMemberOfAny(
                             "bdoe",
-                            listOf("ktAProd", "invalid"),
-                            java.util.UUID.randomUUID().toString()).isNotEmpty().`should be false`()
+                            listOf("ktAProd", "invalid")).isNotEmpty().`should be false`()
                 }
             }
         }

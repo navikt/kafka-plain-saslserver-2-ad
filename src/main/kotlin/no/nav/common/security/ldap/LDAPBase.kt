@@ -55,7 +55,7 @@ abstract class LDAPBase protected constructor(config: LDAPConfig.Config) : AutoC
 
     data class AuthorResult(val groupName: String, val userDN: String)
 
-    open fun isUserMemberOfAny(user: String, groups: List<String>, uuid: String): Set<AuthorResult> = emptySet()
+    open fun isUserMemberOfAny(user: String, groups: List<String>): Set<AuthorResult> = emptySet()
 
     companion object {
 

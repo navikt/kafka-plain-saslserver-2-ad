@@ -5,7 +5,6 @@ import com.unboundid.ldap.sdk.Filter
 import com.unboundid.ldap.sdk.SearchRequest
 import com.unboundid.ldap.sdk.SearchScope
 import com.unboundid.ldap.sdk.LDAPSearchException
-import com.unboundid.ldap.sdk.CompareRequest
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -13,7 +12,10 @@ import org.slf4j.LoggerFactory
  * A class verifying group membership with LDAP compare-matched
  */
 
-class LDAPAuthorization private constructor(val config: LDAPConfig.Config) : LDAPBase(config) {
+class LDAPAuthorization private constructor(
+    private val uuid: String,
+    val config: LDAPConfig.Config
+) : LDAPBase(config) {
 
     // In authorization context, needs to bind the connection before compare-match between group and user
     // due to no anonymous access allowed for LDAP operations like search, compare, ...
@@ -45,41 +47,36 @@ class LDAPAuthorization private constructor(val config: LDAPConfig.Config) : LDA
                                 ""
                         }
             } catch (e: LDAPSearchException) {
-                log.error("Cannot resolve group DN for $groupName under ${config.grpBaseDN}")
+                log.error("Cannot resolve group DN for $groupName under ${config.grpBaseDN} ($uuid)")
                 ""
             }
 
-    private fun userInGroup(userDN: String, groupName: String, uuid: String): Boolean =
+    private fun getGroupMembers(groupDN: String): List<String> =
             try {
-
-                val groupDN = getGroupDN(groupName)
-
-                if (!groupDN.isEmpty()) {
-
-                    log.debug("Trying compare-matched for $groupDN - ${config.grpAttrName} - $userDN ($uuid)")
-
-                    ldapConnection
-                            .compare(CompareRequest(groupDN, config.grpAttrName, userDN))
-                            .compareMatched()
-                } else false
+                if (groupDN.isNotEmpty())
+                    ldapConnection.getEntry(groupDN)
+                        ?.getAttributeValues(config.grpAttrName)
+                        ?.asList() ?: emptyList()
+                else
+                    emptyList()
             } catch (e: LDAPException) {
-                log.error("Compare-matched exception - invalid group $groupName, ${e.exceptionMessage} ($uuid)")
-                false
+                log.error("Cannot get group members - ${config.grpAttrName} - for $groupDN ($uuid)")
+                emptyList()
             }
 
-    override fun isUserMemberOfAny(user: String, groups: List<String>, uuid: String): Set<AuthorResult> =
+    override fun isUserMemberOfAny(user: String, groups: List<String>): Set<AuthorResult> =
 
             if (!ldapConnection.isConnected)
                 emptySet()
             else {
-                val userDN = config.toUserDN(user)
-                val userDNBasta = config.toUserDNBasta(user)
+                val userTypes = listOf(config.toUserDN(user), config.toUserDNBasta(user))
 
                 val result = mutableSetOf<AuthorResult>()
 
                 groups.forEach { groupName ->
-                    if (userInGroup(userDN, groupName, uuid)) result.add(AuthorResult(groupName, userDN))
-                    if (userInGroup(userDNBasta, groupName, uuid)) result.add(AuthorResult(groupName, userDNBasta))
+                    getGroupMembers(getGroupDN(groupName)).intersect(userTypes).forEach {
+                        result.add(AuthorResult(groupName, it))
+                    }
                 }
 
                 result.toSet()
@@ -89,9 +86,9 @@ class LDAPAuthorization private constructor(val config: LDAPConfig.Config) : LDA
 
         private val log: Logger = LoggerFactory.getLogger(LDAPAuthorization::class.java)
 
-        fun init(configFile: String = ""): LDAPAuthorization = when (configFile.isEmpty()) {
-            true -> LDAPAuthorization(LDAPConfig.getByClasspath())
-            else -> LDAPAuthorization(LDAPConfig.getBySource(configFile))
+        fun init(uuid: String, configFile: String = ""): LDAPAuthorization = when (configFile.isEmpty()) {
+            true -> LDAPAuthorization(uuid, LDAPConfig.getByClasspath())
+            else -> LDAPAuthorization(uuid, LDAPConfig.getBySource(configFile))
         }
     }
 }

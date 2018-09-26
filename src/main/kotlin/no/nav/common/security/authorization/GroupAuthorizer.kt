@@ -41,8 +41,8 @@ class GroupAuthorizer : AutoCloseable {
                     log.debug("[${cachedUserInGroups.map { it.second }},${principal.name}] is cached ($uuid)")
                     true
                 } else
-                    LDAPAuthorization.init()
-                            .use { ldap -> ldap.isUserMemberOfAny(principal.name, groups, uuid) }
+                    LDAPAuthorization.init(uuid)
+                            .use { ldap -> ldap.isUserMemberOfAny(principal.name, groups) }
                             .let { uInGSet ->
                                 uInGSet.forEach {
                                     LDAPCache.groupAndUserAdd(it.groupName, it.userDN)
