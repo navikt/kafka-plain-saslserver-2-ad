@@ -57,8 +57,8 @@ class LDAPAuthorization private constructor(
             try {
                 if (groupDN.isNotEmpty())
                     ldapConnection.getEntry(groupDN)
-                        ?.getAttributeValues(config.grpAttrName)
-                        ?.asList() ?: emptyList()
+                            ?.getAttributeValues(config.grpAttrName)
+                            ?.map { it.toLowerCase() } ?: emptyList()
                 else
                     emptyList()
             } catch (e: LDAPException) {
@@ -79,9 +79,7 @@ class LDAPAuthorization private constructor(
                 groups.forEach { groupName ->
                     val members = getGroupMembers(getGroupDN(groupName))
                     log.debug("Group membership, intersection of $members and $userTypes ($uuid)")
-                    getGroupMembers(getGroupDN(groupName)).intersect(userTypes).forEach {
-                        result.add(AuthorResult(groupName, it))
-                    }
+                    members.intersect(userTypes).forEach { result.add(AuthorResult(groupName, it)) }
                 }
                 log.debug("Intersection result - $result ($uuid)")
                 result.toSet()
