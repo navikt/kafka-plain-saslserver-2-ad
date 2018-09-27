@@ -43,8 +43,10 @@ class LDAPAuthorization private constructor(
                         .let {
                             if (it.entryCount == 1)
                                 it.searchEntries[0].dn
-                            else
+                            else {
+                                log.error("LDAP search couldn't resolve group DN for $groupName under ${config.grpBaseDN} ($uuid)")
                                 ""
+                            }
                         }
             } catch (e: LDAPSearchException) {
                 log.error("Cannot resolve group DN for $groupName under ${config.grpBaseDN} ($uuid)")
@@ -66,19 +68,22 @@ class LDAPAuthorization private constructor(
 
     override fun isUserMemberOfAny(user: String, groups: List<String>): Set<AuthorResult> =
 
-            if (!ldapConnection.isConnected)
+            if (!ldapConnection.isConnected) {
+                log.error("No LDAP connection, cannot verify $user membership in $groups ($uuid)")
                 emptySet()
-            else {
+            } else {
                 val userTypes = listOf(config.toUserDN(user), config.toUserDNBasta(user))
 
                 val result = mutableSetOf<AuthorResult>()
 
                 groups.forEach { groupName ->
+                    val members = getGroupMembers(getGroupDN(groupName))
+                    log.debug("Group membership, intersection of $members and $userTypes ($uuid)")
                     getGroupMembers(getGroupDN(groupName)).intersect(userTypes).forEach {
                         result.add(AuthorResult(groupName, it))
                     }
                 }
-
+                log.debug("Intersection result - $result ($uuid)")
                 result.toSet()
             }
 

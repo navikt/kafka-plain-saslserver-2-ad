@@ -42,7 +42,7 @@ class SimpleLDAPAuthorizer : SimpleAclAuthorizer() {
         // TODO ResourceType.GROUP - under change in minor version - CAREFUL!
         // Warning! Assuming no group considerations, thus implicitly, always empty group access control lists
         if (resource?.resourceType()?.toJava() == ResourceType.GROUP) {
-            log.debug("Authorization End - $authContext")
+            log.debug("Authorization End - $authContext is authorized!")
             return true
         }
 
