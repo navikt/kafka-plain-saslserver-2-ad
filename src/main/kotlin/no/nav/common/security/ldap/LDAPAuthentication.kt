@@ -15,17 +15,21 @@ class LDAPAuthentication private constructor(val config: LDAPConfig.Config) : LD
             try {
                 if (ldapConnection.bind(user, pwd).resultCode == ResultCode.SUCCESS)
                     AuthenResult(true, user)
-                else
+                else {
+                    log.error("LDAP bind unsuccessful for $user - unknown situation :-(")
                     AuthenResult(false, "")
+                }
             } catch (e: LDAPException) {
+                log.error("LDAP bind exception for $user - ${e.diagnosticMessage}")
                 AuthenResult(false, "")
             }
 
     override fun canUserAuthenticate(user: String, pwd: String): AuthenResult =
 
-        if (!ldapConnection.isConnected)
+        if (!ldapConnection.isConnected) {
+            log.error("No LDAP connection, cannot authenticate $user and related password!")
             AuthenResult(false, "")
-        else {
+        } else {
             val userDN = config.toUserDN(user)
             val userDNBasta = config.toUserDNBasta(user)
 

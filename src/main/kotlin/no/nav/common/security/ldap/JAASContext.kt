@@ -2,6 +2,11 @@ package no.nav.common.security.ldap
 
 import org.slf4j.LoggerFactory
 
+/**
+ * A singleton object for getting username and password from KafkaServer JAAS context
+ * This object is only valid on kafka broker running PLAIN SASL
+ */
+
 object JAASContext {
 
     private val log = LoggerFactory.getLogger(JAASContext::class.java)

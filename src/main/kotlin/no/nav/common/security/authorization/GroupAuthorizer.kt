@@ -14,43 +14,43 @@ import org.slf4j.LoggerFactory
  * Instance of Kafka SimpleAuthorizer require logging to different server logs
  */
 
-class GroupAuthorizer : AutoCloseable {
+class GroupAuthorizer(private val uuid: String) : AutoCloseable {
 
-    fun authorize(principal: KafkaPrincipal, acls: Set<Acl>, uuid: String): Boolean =
+    private fun userGroupMembershipIsCached(groups: List<String>, user: String): Boolean {
 
-            acls.map { it.principal().name }.let { groups ->
+        val ldapConfig = LDAPConfig.getByClasspath()
 
-                val ldapConfig = LDAPConfig.getByClasspath()
+        val userDN = ldapConfig.toUserDN(user)
+        val userDNBasta = ldapConfig.toUserDNBasta(user)
 
-                val userDN = ldapConfig.toUserDN(principal.name)
-                val userDNBasta = ldapConfig.toUserDNBasta(principal.name)
+        return groups.fold(false) { res, groupName ->
+            res || (LDAPCache.groupAndUserExists(groupName, userDN) || LDAPCache.groupAndUserExists(groupName, userDNBasta))
+                    .also { if (it) log.debug("[$groupName,$user] is cached ($uuid)") }
+        }
+    }
 
-                val cachedUserInGroups = groups
-                        .map { groupName ->
-                            if (
-                                    LDAPCache.groupAndUserExists(groupName, userDN) ||
-                                    LDAPCache.groupAndUserExists(groupName, userDNBasta)
-                            )
-                                Pair(true, groupName)
-                            else
-                                Pair(false, groupName)
-                        }
-                        .filter { pair -> pair.first }
+    private fun userGroupMembershipInLDAP(groups: List<String>, user: String): Boolean {
 
-                if (cachedUserInGroups.isNotEmpty()) {
-                    log.debug("[${cachedUserInGroups.map { it.second }},${principal.name}] is cached ($uuid)")
-                    true
-                } else
-                    LDAPAuthorization.init(uuid)
-                            .use { ldap -> ldap.isUserMemberOfAny(principal.name, groups) }
-                            .let { uInGSet ->
-                                uInGSet.forEach {
-                                    LDAPCache.groupAndUserAdd(it.groupName, it.userDN)
-                                    log.info("Group cache updated for [${it.groupName},${it.userDN}] ($uuid)")
-                                }
-                                uInGSet.isNotEmpty()
-                            }
-            }
+        val memberships = LDAPAuthorization.init(uuid).use { ldap -> ldap.isUserMemberOfAny(user, groups) }
+
+        memberships.forEach {
+            LDAPCache.groupAndUserAdd(it.groupName, it.userDN)
+            log.info("Group cache updated for [${it.groupName},${it.userDN}] ($uuid)")
+        }
+
+        return memberships.isNotEmpty()
+    }
+
+    fun authorize(principal: KafkaPrincipal, acls: Set<Acl>): Boolean {
+
+        val groups = acls.map { it.principal().name }
+        val user = principal.name
+
+        return when (userGroupMembershipIsCached(groups, user)) {
+            true -> true
+            else -> userGroupMembershipInLDAP(groups, user)
+        }
+    }
 
     override fun close() {
         // no need for cleanup

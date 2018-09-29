@@ -6,17 +6,17 @@ port: 11636
 connTimeout: 500
 # userDN is <usrUid>=<usr>,<usrBaseDN>
 # Placement of users in LDAP tree
-usrBaseDN: ou=ServiceAccounts,dc=adeo,dc=example,dc=com
+usrBaseDN: ou=ServiceAccounts,dc=test,dc=local
 # User attribute for DN completion
 usrUid: uid
 # groupDN is <grpUid>=<group>,<grpBaseDN>
 # Placement of groups in LDAP tree
-grpBaseDN: ou=KafkaGroups,dc=adeo,dc=example,dc=com
+grpBaseDN: ou=Groups,ou=NAV,ou=BusinessUnits,dc=test,dc=local
 # Group attribute for DN completion
 grpUid: cn
 # Group membership is LDAP CompareRequest(groupDN, <grpAttrName>, userDN)
 # Group membership attribute name
-grpAttrName: uniqueMember
+grpAttrName: member
 # Lifetime of user entry in cache after cache-write - IN MINUTES
 usrCacheExpire: 2
 # Lifetime of group entry in cache after cache-write - IN MINUTES

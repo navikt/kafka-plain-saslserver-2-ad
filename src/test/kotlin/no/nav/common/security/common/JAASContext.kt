@@ -4,7 +4,7 @@ import javax.security.auth.login.AppConfigurationEntry
 import javax.security.auth.login.Configuration
 
 /**
- *  An object for setting minimum JAAS context as on Kafka server in PLAINSASL scenario
+ *  An object for setting minimum JAAS context as on Kafka server in PLAIN SASL scenario
  *  - username and password for kafka broker
  *
  *  This is used for getting bindDN  in LDAP authorization context
@@ -17,15 +17,13 @@ object JAASContext {
 
     fun setUp() {
 
-        class ReallyDoesntMatter // a dummy class implementing a SASL mechanism - not used
-
         val config = object : Configuration() {
             override fun getAppConfigurationEntry(name: String): Array<AppConfigurationEntry> {
                 return arrayOf(
                         AppConfigurationEntry(
-                                ReallyDoesntMatter::class.java.name,
+                                "org.apache.kafka.common.security.plain.PlainLoginModule required",
                                 AppConfigurationEntry.LoginModuleControlFlag.REQUIRED,
-                                hashMapOf<String, Any>("username" to "srvkafkabroker", "password" to "broker")
+                                hashMapOf<String, Any>("username" to "igroup", "password" to "itest")
                         )
                 )
             }

@@ -1,176 +1,64 @@
 package no.nav.common.security.ldap
 
-import org.amshove.kluent.`should be equal to`
-import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.given
-import org.jetbrains.spek.api.dsl.it
-import org.jetbrains.spek.api.dsl.on
+import org.amshove.kluent.shouldEqual
+import org.spekframework.spek2.Spek
+import org.spekframework.spek2.style.specification.describe
 
 object LDAPConfigSpec : Spek({
 
-    describe("LDAPAuthentication class test specifications") {
+    describe("LDAPConfig class test specifications") {
 
-        given("getBySource - correct path to different YAML configs") {
+        val refLDAPConfig = LDAPConfig.Config(
+                "localhost",
+                11636,
+                500,
+                "ou=ServiceAccounts,dc=test,dc=local",
+                "uid",
+                "ou=Groups,ou=NAV,ou=BusinessUnits,dc=test,dc=local",
+                "cn",
+                "member",
+                2,
+                4)
 
-            on("yaml - default file") {
+        describe("getBySource - correct path to different YAML configs") {
 
-                val config = LDAPConfig.getBySource("src/test/resources/ldapconfig.yaml")
+            val refLDAPConfigOther = LDAPConfig.Config(
+                    "host",
+                    11636,
+                    500,
+                    "usrbasedn",
+                    "usruid",
+                    "grpbasedn",
+                    "grpuid",
+                    "grpattrname",
+                    2,
+                    4)
 
-                it("should return host as localhost") {
-                    config.host.`should be equal to`("localhost")
-                }
-                it("should return port as 11636") {
-                    config.port.`should be equal to`(11636)
-                }
-                it("should return connTimeout as 500") {
-                    config.connTimeout.`should be equal to`(500)
-                }
-                it("should return usrBaseDN as ou=ServiceAccounts,dc=adeo,dc=example,dc=com") {
-                    config.usrBaseDN.`should be equal to`("ou=ServiceAccounts,dc=adeo,dc=example,dc=com")
-                }
-                it("should return usrUid as uid") {
-                    config.usrUid.`should be equal to`("uid")
-                }
-                it("should return grpBaseDN as ou=KafkaGroups,dc=adeo,dc=example,dc=com") {
-                    config.grpBaseDN.`should be equal to`("ou=KafkaGroups,dc=adeo,dc=example,dc=com")
-                }
-                it("should return grpUid as cn") {
-                    config.grpUid.`should be equal to`("cn")
-                }
-                it("should return grpAttrName as uniqueMember") {
-                    config.grpAttrName.`should be equal to`("uniqueMember")
-                }
-                it("should return usrCacheExpire as 2") {
-                    config.usrCacheExpire.`should be equal to`(2)
-                }
-                it("should return grpCacheExpire as 4") {
-                    config.grpCacheExpire.`should be equal to`(4)
-                }
-            }
-            on("yaml - invalid port type") {
+            val yamlFiles = mapOf(
+                    Pair("correct content", "src/test/resources/ldapconfig.yaml") to refLDAPConfig,
+                    Pair("correct content", "src/test/resources/ldapconfigother.yaml") to refLDAPConfigOther,
+                    Pair("empty config", "src/test/resources/ldapconfigpartial.yaml") to LDAPConfig.emptyConfig
+            )
 
-                // will return default value
-
-                val config = LDAPConfig.getBySource("src/test/resources/adcInvalidPortType.yaml")
-
-                it("should return port as 0") {
-                    config.port.`should be equal to`(0)
-                }
-
-                // all the other INT based parameters use same logic - not testing of those
-            }
-            on("yaml - missing port") {
-
-                // will return default value
-
-                val config = LDAPConfig.getBySource("src/test/resources/adcMissingPort.yaml")
-
-                it("should return port as 0") {
-                    config.port.`should be equal to`(0)
-                }
-            }
-            on("yaml - empty usrUid") {
-
-                // will return default value
-
-                val config = LDAPConfig.getBySource("src/test/resources/adcEmptyusrUid.yaml")
-
-                it("should return usrUid as empty") {
-                    config.usrUid.`should be equal to`("")
-                }
-            }
-            on("yaml - missing usrUid") {
-
-                // will return default value
-
-                val config = LDAPConfig.getBySource("src/test/resources/adcMissingusrUid.yaml")
-
-                it("should return usrUid as empty") {
-                    config.usrUid.`should be equal to`("")
-                }
-            }
-
-            // all the other parameters use same logic - not testing those
-        }
-
-        given("getBySource - incorrect path to YAML config") {
-
-            on("no file found, use default values") {
-
-                val config = LDAPConfig.getBySource("invalid.yaml")
-
-                it("should return host as empty") {
-                    config.host.`should be equal to`("")
-                }
-                it("should return port as 0") {
-                    config.port.`should be equal to`(0)
-                }
-                it("should return connTimeout as 3000") {
-                    config.connTimeout.`should be equal to`(0)
-                }
-                it("should return usrBaseDN as empty") {
-                    config.usrBaseDN.`should be equal to`("")
-                }
-                it("should return usrUid as empty") {
-                    config.usrUid.`should be equal to`("")
-                }
-                it("should return grpBaseDN as empty") {
-                    config.grpBaseDN.`should be equal to`("")
-                }
-                it("should return grpUid as empty") {
-                    config.grpUid.`should be equal to`("")
-                }
-                it("should return grpAttrName as empty") {
-                    config.grpAttrName.`should be equal to`("")
-                }
-                it("should return usrCacheExpire as 2") {
-                    config.usrCacheExpire.`should be equal to`(0)
-                }
-                it("should return grpCacheExpire as 4") {
-                    config.grpCacheExpire.`should be equal to`(0)
+            yamlFiles.forEach { pair, refConfig ->
+                it("should return ${pair.first} for ${pair.second}") {
+                    LDAPConfig.getBySource(pair.second) shouldEqual refConfig
                 }
             }
         }
 
-        given("getByClasspath - load of default yaml config") {
+        describe("getBySource - incorrect path to YAML config") {
 
-            // will find ldapconfig.yaml resource under build/resources/ldapconfig.yaml...
+            it("should return empty config") {
+                LDAPConfig.getBySource("invalid.yaml") shouldEqual LDAPConfig.emptyConfig
+            }
+        }
 
-            val config = LDAPConfig.getByClasspath()
+        describe("getByClasspath - load of default yaml config") {
 
-            on("yaml - default file") {
-
-                it("should return host as localhost") {
-                    config.host.`should be equal to`("localhost")
-                }
-                it("should return port as 11636") {
-                    config.port.`should be equal to`(11636)
-                }
-                it("should return connTimeout as 500") {
-                    config.connTimeout.`should be equal to`(500)
-                }
-                it("should return usrBaseDN as ou=ServiceAccounts,dc=adeo,dc=example,dc=com") {
-                    config.usrBaseDN.`should be equal to`("ou=ServiceAccounts,dc=adeo,dc=example,dc=com")
-                }
-                it("should return usrUid as uid") {
-                    config.usrUid.`should be equal to`("uid")
-                }
-                it("should return grpBaseDN as ou=KafkaGroups,dc=adeo,dc=example,dc=com") {
-                    config.grpBaseDN.`should be equal to`("ou=KafkaGroups,dc=adeo,dc=example,dc=com")
-                }
-                it("should return grpUid as cn") {
-                    config.grpUid.`should be equal to`("cn")
-                }
-                it("should return grpAttrName as uniqueMember") {
-                    config.grpAttrName.`should be equal to`("uniqueMember")
-                }
-                it("should return usrCacheExpire as 2") {
-                    config.usrCacheExpire.`should be equal to`(2)
-                }
-                it("should return grpCacheExpire as 4") {
-                    config.grpCacheExpire.`should be equal to`(4)
-                }
+            it("should return default yaml config") {
+                // will find ldapconfig.yaml resource under build/resources/ldapconfig.yaml...
+                LDAPConfig.getByClasspath() shouldEqual refLDAPConfig
             }
         }
     }

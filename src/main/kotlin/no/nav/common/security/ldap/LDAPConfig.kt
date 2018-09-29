@@ -11,7 +11,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 /**
- * A Singleton class returning a data class for all config parameters
+ * A singleton class returning a data class for all config parameters
  * The configuration can be loaded in two different ways
  * - by source, used in test scenarios
  * - by classpath, used when running of kafka brokers
@@ -37,7 +37,7 @@ object LDAPConfig {
     private val log = LoggerFactory.getLogger(LDAPConfig::class.java)
     private val cache: Config
 
-    private val emptyConfig = Config(
+    val emptyConfig = Config(
             "", 0, 0,
             "", "",
             "", "", "",

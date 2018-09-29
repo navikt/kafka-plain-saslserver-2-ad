@@ -1,14 +1,10 @@
 package no.nav.common.security.ldap
 
-import org.amshove.kluent.`should be false`
-import org.amshove.kluent.`should be true`
-import org.jetbrains.spek.api.Spek
 import no.nav.common.security.common.InMemoryLDAPServer
 import no.nav.common.security.common.JAASContext
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.given
-import org.jetbrains.spek.api.dsl.it
-import org.jetbrains.spek.api.dsl.on
+import org.amshove.kluent.shouldEqual
+import org.spekframework.spek2.Spek
+import org.spekframework.spek2.style.specification.describe
 
 object LDAPAuthorizationSpec : Spek({
 
@@ -17,158 +13,58 @@ object LDAPAuthorizationSpec : Spek({
 
     describe("LDAPAuthorization class test specifications") {
 
+        /**
+         * Test scope
+         * Group membership must be tested for 2 different group - and 2 user levels
+         * group levels - AccountGroupNotInRemedy and kafka
+         * user levels - ServiceAccounts and ApplAccounts
+         *
+         * Good enough testing
+         *
+         * NOT testing a lot of different wrong configurations in yaml
+         * invalid host, port, grpBaseDN, ...
+         * Those will return 0 anyway
+         */
+
         beforeGroup {
             InMemoryLDAPServer.start()
             LDAPCache.invalidateAllGroups()
         }
 
-        given("Classpath to  YAML config - verification of membership") {
+        val refUserGroup = mapOf(
+                Pair("srvc01", listOf("rmy-01")) to 1,
+                Pair("srvc02", listOf("rmy-02")) to 1,
+                Pair("srvp01", listOf("rmy-01", "rmy-02")) to 1,
+                Pair("srvp02", listOf("rmy-02", "rmy-01")) to 0,
+                Pair("srvp01", listOf("KC-tpc-02", "KP-tpc-02")) to 1,
+                Pair("srvc02", listOf("KC-tpc-02", "rmy-02")) to 2,
+                Pair("srvp02", listOf("KC-tpc-02", "rmy-02", "KP-tpc-03")) to 1,
+                Pair("srvc02", listOf("KC-tpc-02", "rmy-02", "KP-tpc-03")) to 2
+        )
 
-            on("user and membership group") {
-                it("should return true") {
-                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString())
-                    ldap.isUserMemberOfAny(
-                            "bdoe",
-                            listOf("ktACons")).isNotEmpty().`should be true`()
-                }
-            }
-            on("user and non-membership group") {
-                it("should return false") {
-                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString())
-                    ldap.isUserMemberOfAny(
-                            "adoe",
-                            listOf("ktACons")).isNotEmpty().`should be false`()
-                }
-            }
-            on("user and membership group") {
-                it("should return true") {
-                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString())
-                    ldap.isUserMemberOfAny(
-                            "adoe",
-                            listOf("ktAProd")).isNotEmpty().`should be true`()
-                }
-            }
-            on("invalid user and existing group") {
-                it("should return false") {
-                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString())
-                    ldap.isUserMemberOfAny(
-                            "invalid",
-                            listOf("ktACons")).isNotEmpty().`should be false`()
-                }
-            }
-            on("existing user and invalid group") {
-                it("should return false") {
-                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString())
-                    ldap.isUserMemberOfAny(
-                            "bdoe",
-                            listOf("invalid")).isNotEmpty().`should be false`()
-                }
-            }
-            on("user and {invalid group,membership group}") {
-                it("should return true") {
-                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString())
-                    ldap.isUserMemberOfAny(
-                            "bdoe",
-                            listOf("invalid", "ktACons")).isNotEmpty().`should be true`()
-                }
-            }
-            on("user and {non-membership group,membership group}") {
-                it("should return true") {
-                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString())
-                    ldap.isUserMemberOfAny(
-                            "bdoe",
-                            listOf("ktAProd", "ktACons")).isNotEmpty().`should be true`()
-                }
-            }
-            on("user and {membership group,non-membership group}") {
-                it("should return true for srv user in sub group ApplAccounts") {
-                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString())
-                    ldap.isUserMemberOfAny(
-                            "srvaltinnkanal",
-                            listOf("ktAProd", "ktACons")).isNotEmpty().`should be true`()
-                }
-            }
-            on("user and {non-membership group,invalid group}") {
-                it("should return false") {
-                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString())
-                    ldap.isUserMemberOfAny(
-                            "bdoe",
-                            listOf("ktAProd", "invalid")).isNotEmpty().`should be false`()
+        describe("correct path to default YAML config") {
+
+            refUserGroup.forEach { usrGrp, size ->
+
+                it("should return $size membership(s) for user ${usrGrp.first} in ${usrGrp.second}") {
+                    LDAPAuthorization.init(
+                            java.util.UUID.randomUUID().toString(),
+                            "src/test/resources/ldapconfig.yaml")
+                            .isUserMemberOfAny(usrGrp.first, usrGrp.second).size shouldEqual size
                 }
             }
         }
 
-        given("YAML config with root grpBaseDN  - verification of membership") {
+        describe("classpath to  YAML config") {
 
-            val root = "src/test/resources/adcRootgrpBaseDN.yaml"
+            refUserGroup.forEach { usrGrp, size ->
 
-            on("user and membership group") {
-                it("should return true") {
-                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString(), root)
-                    ldap.isUserMemberOfAny(
-                            "bdoe",
-                            listOf("ktACons")).isNotEmpty().`should be true`()
-                }
-            }
-            on("user and non-membership group") {
-                it("should return false") {
-                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString(), root)
-                    ldap.isUserMemberOfAny(
-                            "adoe",
-                            listOf("ktACons")).isNotEmpty().`should be false`()
-                }
-            }
-            on("user and membership group") {
-                it("should return true") {
-                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString(), root)
-                    ldap.isUserMemberOfAny(
-                            "adoe",
-                            listOf("ktAProd")).isNotEmpty().`should be true`()
-                }
-            }
-            on("invalid user and existing group") {
-                it("should return false") {
-                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString(), root)
-                    ldap.isUserMemberOfAny(
-                            "invalid",
-                            listOf("ktACons")).isNotEmpty().`should be false`()
-                }
-            }
-            on("existing user and invalid group") {
-                it("should return false") {
-                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString(), root)
-                    ldap.isUserMemberOfAny(
-                            "bdoe",
-                            listOf("invalid")).isNotEmpty().`should be false`()
-                }
-            }
-            on("user and {invalid group,membership group}") {
-                it("should return true") {
-                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString(), root)
-                    ldap.isUserMemberOfAny(
-                            "bdoe",
-                            listOf("invalid", "ktACons")).isNotEmpty().`should be true`()
-                }
-            }
-            on("user and {non-membership group,membership group}") {
-                it("should return true") {
-                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString(), root)
-                    ldap.isUserMemberOfAny(
-                            "bdoe",
-                            listOf("ktAProd", "ktACons")).isNotEmpty().`should be true`()
-                }
-            }
-            on("user and {non-membership group,invalid group}") {
-                it("should return false") {
-                    val ldap = LDAPAuthorization.init(java.util.UUID.randomUUID().toString(), root)
-                    ldap.isUserMemberOfAny(
-                            "bdoe",
-                            listOf("ktAProd", "invalid")).isNotEmpty().`should be false`()
+                it("should return $size membership(s) for user ${usrGrp.first} in ${usrGrp.second}") {
+                    LDAPAuthorization.init(java.util.UUID.randomUUID().toString())
+                            .isUserMemberOfAny(usrGrp.first, usrGrp.second).size shouldEqual size
                 }
             }
         }
-
-        // all cases with grpBaseDN and the other parameters will return false... not tested
 
         afterGroup {
             InMemoryLDAPServer.stop()

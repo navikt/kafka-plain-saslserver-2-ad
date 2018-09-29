@@ -1,116 +1,61 @@
 package no.nav.common.security.ldap
 
-import org.amshove.kluent.`should be false`
-import org.amshove.kluent.`should be true`
-import org.jetbrains.spek.api.Spek
 import no.nav.common.security.common.InMemoryLDAPServer
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.given
-import org.jetbrains.spek.api.dsl.it
-import org.jetbrains.spek.api.dsl.on
+import org.amshove.kluent.shouldEqual
+import org.spekframework.spek2.Spek
+import org.spekframework.spek2.style.specification.describe
 
 object LDAPAuthenticationSpec : Spek({
 
     describe("LDAPAuthentication class test specifications") {
+
+        /**
+         * Test scope
+         * - Test correct and incorrect users in ServiceAccounts
+         * - Test correct and incorrect users in ApplAccounts
+         *
+         * Good enough testing
+         *
+         * NOT testing a lot of different wrong configurations in yaml
+         * invalid host, port, usrBaseDN, usrUid, ...
+         * Those will return false anyway
+         */
 
         beforeGroup {
             InMemoryLDAPServer.start()
             LDAPCache.invalidateAllBinds()
         }
 
-        given("correct path to different YAML configs and correct LDAP user,pwd") {
+        // users from both nodes, ServiceAccounts and ApplAccounts
 
-            on("yaml - invalid host") {
-                it("should return true") {
+        val refUsers = mapOf(
+                Pair("srvp01", "srvp01") to true,
+                Pair("srvc01", "srvc01") to true,
+                Pair("srvp02", "srvp02") to true,
+                Pair("srvc02", "srvc02") to true,
+                Pair("srvp01", "invalidpwd") to false,
+                Pair("srvp02", "invalidpwd") to false,
+                Pair("invalid", "srvc01") to false
+        )
 
-                    val ldap = LDAPAuthentication.init("src/test/resources/adcInvalidHost.yaml")
-                    ldap.canUserAuthenticate("adoe", "alice").authenticated.`should be false`()
-                }
-            }
+        describe("correct path to default YAML config") {
 
-            on("yaml - correct") {
-                it("should return true") {
+            refUsers.forEach { user, result ->
 
-                    val ldap = LDAPAuthentication.init("src/test/resources/ldapconfig.yaml")
-                    ldap.canUserAuthenticate("adoe", "alice").authenticated.`should be true`()
-                }
-                it("should return true for user in sub group ApplAccounts") {
-
-                    val ldap = LDAPAuthentication.init("src/test/resources/ldapconfig.yaml")
-                    ldap.canUserAuthenticate("srvaltinnkanal", "kanal").authenticated.`should be true`()
-                }
-            }
-            on("yaml - invalid usrBaseDN") {
-                it("should return false") {
-                    val ldap = LDAPAuthentication.init("src/test/resources/adcInvalidusrBaseDN.yaml")
-                    ldap.canUserAuthenticate("adoe", "alice").authenticated.`should be false`()
-                }
-            }
-            on("yaml - empty usrBaseDN") {
-                it("should return false") {
-                    val ldap = LDAPAuthentication.init("src/test/resources/adcEmptyusrBaseDN.yaml")
-                    ldap.canUserAuthenticate("adoe", "alice").authenticated.`should be false`()
-                }
-            }
-            on("yaml - missing usrBaseDN") {
-                it("should return false") {
-                    val ldap = LDAPAuthentication.init("src/test/resources/adcMissingusrBaseDN.yaml")
-                    ldap.canUserAuthenticate("adoe", "alice").authenticated.`should be false`()
-                }
-            }
-            on("yaml - usrBaseDN as root of tree") {
-                it("should return false") {
-                    val ldap = LDAPAuthentication.init("src/test/resources/adcRootusrBaseDN.yaml")
-                    ldap.canUserAuthenticate("adoe", "alice").authenticated.`should be false`()
-                }
-            }
-            on("yaml - invalid usrUid") {
-                it("should return false") {
-                    val ldap = LDAPAuthentication.init("src/test/resources/adcInvalidusrUid.yaml")
-                    ldap.canUserAuthenticate("adoe", "alice").authenticated.`should be false`()
-                }
-            }
-            on("yaml - empty usrUid") {
-                it("should return false") {
-                    val ldap = LDAPAuthentication.init("src/test/resources/adcEmptyusrBaseDN.yaml")
-                    ldap.canUserAuthenticate("adoe", "alice").authenticated.`should be false`()
-                }
-            }
-            on("yaml - missing usrUid") {
-                it("should return false") {
-                    val ldap = LDAPAuthentication.init("src/test/resources/adcMissingusrBaseDN.yaml")
-                    ldap.canUserAuthenticate("adoe", "alice").authenticated.`should be false`()
+                it("should return $result for user ${user.first} with pwd ${user.second}") {
+                    LDAPAuthentication.init("src/test/resources/ldapconfig.yaml")
+                            .canUserAuthenticate(user.first, user.second).authenticated shouldEqual result
                 }
             }
         }
 
-        given("incorrect path to YAML config and correct user, pwd") {
-            on("as given") {
-                it("should return false") {
-                    val ldap = LDAPAuthentication.init("invalid.yaml")
-                    ldap.canUserAuthenticate("adoe", "alice").authenticated.`should be false`()
-                }
-            }
-        }
+        describe("classpath to YAML config") {
 
-        given("classpath to YAML config - verification of user and pwd") {
+            refUsers.forEach { user, result ->
 
-            on("invalid user and correct pwd") {
-                it("should return false") {
-                    val ldap = LDAPAuthentication.init()
-                    ldap.canUserAuthenticate("invalid", "alice").authenticated.`should be false`()
-                }
-            }
-            on("correct user and invalid pwd") {
-                it("should return false") {
-                    val ldap = LDAPAuthentication.init()
-                    ldap.canUserAuthenticate("adoe", "invalid").authenticated.`should be false`()
-                }
-            }
-            on("correct user and pwd") {
-                it("should return true") {
-                    val ldap = LDAPAuthentication.init()
-                    ldap.canUserAuthenticate("adoe", "alice").authenticated.`should be true`()
+                it("should return $result for user ${user.first} with pwd ${user.second}") {
+                    LDAPAuthentication.init("src/test/resources/ldapconfig.yaml")
+                            .canUserAuthenticate(user.first, user.second).authenticated shouldEqual result
                 }
             }
         }

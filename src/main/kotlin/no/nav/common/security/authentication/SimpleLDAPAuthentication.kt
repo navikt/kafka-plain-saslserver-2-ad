@@ -68,8 +68,7 @@ class SimpleLDAPAuthentication : AuthenticateCallbackHandler {
                                     if (authenResult.authenticated) {
                                         LDAPCache.userAdd(authenResult.userDN, password)
                                         log.info("Bind cache updated for ${authenResult.userDN}")
-                                    } else
-                                        log.error("Cannot authenticate $username, please verify LDAP config")
+                                    } // no else since all scenarios are covered in LDAPAuthentication
                                 }
                     }.authenticated
         else {
@@ -78,7 +77,7 @@ class SimpleLDAPAuthentication : AuthenticateCallbackHandler {
         }
 
         if (authenticated)
-            log.debug("Authentication End - successful authentication of $username")
+            log.info("Authentication End - successful authentication of $username")
         else {
             log.error("Authentication End - authentication failed for $username")
         }

@@ -63,19 +63,16 @@ class SimpleLDAPAuthorizer : SimpleAclAuthorizer() {
             return false
         }
 
-        return GroupAuthorizer().use { navAuthorizer ->
-            navAuthorizer.authorize(
-                    session?.principal() ?: KafkaPrincipal(KafkaPrincipal.USER_TYPE, "ANONYMOUS"),
-                    acls,
-                    uuid
-            ).let { isAuthorized ->
-                when (isAuthorized) {
-                    true -> log.debug("Authorization End - $authContext is authorized!")
-                    false -> log.error("Authorization End - $authContext is not authorized!")
-                }
-                isAuthorized
-            }
+        // verify membership, either cached or through LDAP - see GroupAuthorizer
+        val anonymous = KafkaPrincipal(KafkaPrincipal.USER_TYPE, "ANONYMOUS")
+        val isAuthorized = GroupAuthorizer(uuid).use { it.authorize(session?.principal() ?: anonymous, acls) }
+
+        when (isAuthorized) {
+            true -> log.debug("Authorization End - $authContext is authorized!")
+            false -> log.error("Authorization End - $authContext is not authorized!")
         }
+
+        return isAuthorized
     }
 
     companion object {

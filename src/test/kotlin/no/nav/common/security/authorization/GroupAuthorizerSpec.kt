@@ -3,65 +3,57 @@ package no.nav.common.security.authorization
 import kafka.security.auth.Acl
 import kafka.security.auth.Operation
 import kafka.security.auth.PermissionType
-import org.amshove.kluent.`should be`
 import org.apache.kafka.common.acl.AclOperation
 import org.apache.kafka.common.security.auth.KafkaPrincipal
-import org.jetbrains.spek.api.Spek
 import no.nav.common.security.common.InMemoryLDAPServer
 import no.nav.common.security.common.JAASContext
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.given
-import org.jetbrains.spek.api.dsl.it
-import org.jetbrains.spek.api.dsl.on
+import org.amshove.kluent.shouldEqualTo
+import org.spekframework.spek2.Spek
+import org.spekframework.spek2.style.specification.describe
 
 object GroupAuthorizerSpec : Spek({
 
     // create read allowance for ldap group
-    fun cReadAS(ldapGroup: String): Set<Acl> {
-        return setOf(
-                Acl(
-                        KafkaPrincipal(KafkaPrincipal.USER_TYPE, ldapGroup),
-                        PermissionType.fromString("Allow"),
-                        "*",
-                        Operation.fromJava(AclOperation.READ)
-                )
-        )
-    }
+    fun cReadAS(ldapGroup: String): Set<Acl> =
+            setOf(
+                    Acl(
+                            KafkaPrincipal(KafkaPrincipal.USER_TYPE, ldapGroup),
+                            PermissionType.fromString("Allow"),
+                            "*",
+                            Operation.fromJava(AclOperation.READ)
+                    )
+            )
 
-    // create describe allowance for 2 ldap groups
-    fun cDescribeAS(ldapGroup1: String, ldapGroup2: String): Set<Acl> {
-        return setOf(
-                Acl(
-                        KafkaPrincipal(KafkaPrincipal.USER_TYPE, ldapGroup1),
-                        PermissionType.fromString("Allow"),
-                        "*",
-                        Operation.fromJava(AclOperation.DESCRIBE)
-                ),
-                Acl(
-                        KafkaPrincipal(KafkaPrincipal.USER_TYPE, ldapGroup2),
-                        PermissionType.fromString("Allow"),
-                        "*",
-                        Operation.fromJava(AclOperation.DESCRIBE)
-                )
-        )
-    }
+    // create describe allowance for ldap group
+    fun cDescribeAS(ldapGroup1: String, ldapGroup2: String): Set<Acl> =
+            setOf(
+                    Acl(
+                            KafkaPrincipal(KafkaPrincipal.USER_TYPE, ldapGroup1),
+                            PermissionType.fromString("Allow"),
+                            "*",
+                            Operation.fromJava(AclOperation.DESCRIBE)
+                    ),
+                    Acl(
+                            KafkaPrincipal(KafkaPrincipal.USER_TYPE, ldapGroup2),
+                            PermissionType.fromString("Allow"),
+                            "*",
+                            Operation.fromJava(AclOperation.DESCRIBE)
+                    )
+            )
 
     // create write allowance for ldap group
-    fun cWriteAS(ldapGroup: String): Set<Acl> {
-        return setOf(
-                Acl(
-                        KafkaPrincipal(KafkaPrincipal.USER_TYPE, ldapGroup),
-                        PermissionType.fromString("Allow"),
-                        "*",
-                        Operation.fromJava(AclOperation.WRITE)
-                )
-        )
-    }
+    fun cWriteAS(ldapGroup: String): Set<Acl> =
+            setOf(
+                    Acl(
+                            KafkaPrincipal(KafkaPrincipal.USER_TYPE, ldapGroup),
+                            PermissionType.fromString("Allow"),
+                            "*",
+                            Operation.fromJava(AclOperation.WRITE)
+                    )
+            )
 
     // helper function for creating KafkaPrincipal
-    fun createKP(userName: String): KafkaPrincipal {
-        return KafkaPrincipal(KafkaPrincipal.USER_TYPE, userName)
-    }
+    fun createKP(userName: String): KafkaPrincipal = KafkaPrincipal(KafkaPrincipal.USER_TYPE, userName)
 
     // set the JAAS config in order to do successful init of LDAPAuthorization
     JAASContext.setUp()
@@ -72,93 +64,84 @@ object GroupAuthorizerSpec : Spek({
             InMemoryLDAPServer.start()
         }
 
-        given("a acls with describe allowance - 2 ldap groups") {
+        val refUserDescribeACL = mapOf(
+                Triple("srvp01", listOf("KC-tpc-01", "KP-tpc-01"), "tpc-01") to false,
+                Triple("srvc01", listOf("KC-tpc-01", "KP-tpc-01"), "tpc-01") to false,
+                Triple("srvp02", listOf("KC-tpc-01", "KP-tpc-01"), "tpc-01") to false,
+                Triple("srvc02", listOf("KC-tpc-01", "KP-tpc-01"), "tpc-01") to false,
 
-            val aclDescribe = cDescribeAS("ktACons", "ktAProd")
+                Triple("srvp01", listOf("KC-tpc-02", "KP-tpc-02"), "tpc-02") to true,
+                Triple("srvc01", listOf("KC-tpc-02", "KP-tpc-02"), "tpc-02") to false,
+                Triple("srvp02", listOf("KC-tpc-02", "KP-tpc-02"), "tpc-02") to false,
+                Triple("srvc02", listOf("KC-tpc-02", "KP-tpc-02"), "tpc-02") to true,
 
-            on("a member user in group 1") {
-                it("should retrn true") {
-                    val authorizer = GroupAuthorizer()
-                    val authorized = authorizer.authorize(
-                            createKP("cdoe"), aclDescribe, java.util.UUID.randomUUID().toString())
+                Triple("srvp01", listOf("KC-tpc-03", "KP-tpc-03"), "tpc-03") to false,
+                Triple("srvc01", listOf("KC-tpc-03", "KP-tpc-03"), "tpc-03") to true,
+                Triple("srvp02", listOf("KC-tpc-03", "KP-tpc-03"), "tpc-03") to true,
+                Triple("srvc02", listOf("KC-tpc-03", "KP-tpc-03"), "tpc-03") to false
+        )
 
-                    authorized.`should be`(true)
-                }
-            }
-            on("a member user in group 2") {
-                it("should retrn true") {
-                    val authorizer = GroupAuthorizer()
-                    val authorized = authorizer.authorize(
-                            createKP("adoe"), aclDescribe, java.util.UUID.randomUUID().toString())
+        val refUserWriteACL = mapOf(
+                Triple("srvp01", "KP-tpc-01", "tpc-01") to false,
+                Triple("srvp01", "KP-tpc-02", "tpc-02") to true,
+                Triple("srvp01", "KP-tpc-03", "tpc-03") to false,
 
-                    authorized.`should be`(true)
-                }
-            }
-            on("a non-member user in any group") {
-                it("should retrn false") {
-                    val authorizer = GroupAuthorizer()
-                    val authorized = authorizer.authorize(
-                            createKP("ddoe"), aclDescribe, java.util.UUID.randomUUID().toString())
+                Triple("srvp02", "KP-tpc-01", "tpc-01") to false,
+                Triple("srvp02", "KP-tpc-02", "tpc-02") to false,
+                Triple("srvp02", "KP-tpc-03", "tpc-03") to true
+        )
 
-                    authorized.`should be`(false)
-                }
-            }
-        }
+        val refUserReadACL = mapOf(
+                Triple("srvc01", "KC-tpc-01", "tpc-01") to false,
+                Triple("srvc01", "KC-tpc-02", "tpc-02") to false,
+                Triple("srvc01", "KC-tpc-03", "tpc-03") to true,
 
-        given("a acls with read allowance ") {
+                Triple("srvc02", "KC-tpc-01", "tpc-01") to false,
+                Triple("srvc02", "KC-tpc-02", "tpc-02") to true,
+                Triple("srvc02", "KC-tpc-03", "tpc-03") to false
+                )
 
-            val aclRead = cReadAS("ktACons")
+        describe("describe allowance") {
 
-            on("a member user") {
+            refUserDescribeACL.forEach { tr, result ->
 
-                it("should return true") {
+                it("should return $result for user ${tr.first} trying describe on topic ${tr.third}") {
 
-                    val authorizer = GroupAuthorizer()
-                    val authorized = authorizer.authorize(
-                            createKP("bdoe"), aclRead, java.util.UUID.randomUUID().toString())
-
-                    authorized.`should be`(true)
-                }
-            }
-
-            on("a non-member user") {
-
-                it("should return false") {
-
-                    val authorizer = GroupAuthorizer()
-                    val authorized = authorizer.authorize(
-                            createKP("adoe"), aclRead, java.util.UUID.randomUUID().toString())
-
-                    authorized.`should be`(false)
+                    GroupAuthorizer(java.util.UUID.randomUUID().toString())
+                            .authorize(
+                                    createKP(tr.first),
+                                    cDescribeAS(tr.second.first(), tr.second.last())
+                            ) shouldEqualTo result
                 }
             }
         }
 
-        given("a acls with write allowance ") {
+        describe("write allowance") {
 
-            val aclWrite = cWriteAS("ktAProd")
+            refUserWriteACL.forEach { tr, result ->
 
-            on("a non-member user") {
+                it("should return $result for user ${tr.first} trying write on topic ${tr.third}") {
 
-                it("should return false") {
-
-                    val authorizer = GroupAuthorizer()
-                    val authorized = authorizer.authorize(
-                            createKP("bdoe"), aclWrite, java.util.UUID.randomUUID().toString())
-
-                    authorized.`should be`(false)
+                    GroupAuthorizer(java.util.UUID.randomUUID().toString())
+                            .authorize(
+                                    createKP(tr.first),
+                                    cWriteAS(tr.second)
+                            ) shouldEqualTo result
                 }
             }
+        }
 
-            on("a member user") {
+        describe("read allowance") {
 
-                it("should return true") {
+            refUserReadACL.forEach { tr, result ->
 
-                    val authorizer = GroupAuthorizer()
-                    val authorized = authorizer.authorize(
-                            createKP("adoe"), aclWrite, java.util.UUID.randomUUID().toString())
+                it("should return $result for user ${tr.first} trying read on topic ${tr.third}") {
 
-                    authorized.`should be`(true)
+                    GroupAuthorizer(java.util.UUID.randomUUID().toString())
+                            .authorize(
+                                    createKP(tr.first),
+                                    cReadAS(tr.second)
+                            ) shouldEqualTo result
                 }
             }
         }
