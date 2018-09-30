@@ -43,15 +43,10 @@ abstract class LDAPBase protected constructor(config: LDAPConfig.Config) : AutoC
         ldapConnection.close()
     }
 
-    data class AuthenResult(val authenticated: Boolean, val userDN: String)
+    data class AuthenResult(val authenticated: Boolean, val userDN: String, val errMsg: String)
 
-    // assuming that a service user cannot be 2 places in LDAP hierarchy
-    fun AuthenResult.combine(other: AuthenResult): AuthenResult =
-            AuthenResult(
-                    this.authenticated || other.authenticated,
-                    this.userDN + other.userDN)
-
-    open fun canUserAuthenticate(user: String, pwd: String): AuthenResult = AuthenResult(false, "")
+    open fun canUserAuthenticate(user: String, pwd: String): AuthenResult =
+            AuthenResult(false, "", "")
 
     data class AuthorResult(val groupName: String, val userDN: String)
 

@@ -21,11 +21,10 @@ object JAASContext {
 
         val options: Map<String, String> = try {
             val jaasFile = javax.security.auth.login.Configuration.getConfiguration()
-            val entries = jaasFile.getAppConfigurationEntry("KafkaServer")
-            entries
+            jaasFile.getAppConfigurationEntry("KafkaServer")
                     ?.get(0)
                     ?.options
-                    ?.let { it.map { Pair<String, String>(it.key, it.value.toString()) }.toMap() } ?: emptyMap()
+                    ?.map { kv -> Pair<String, String>(kv.key, kv.value.toString()) }?.toMap() ?: emptyMap()
         } catch (e: SecurityException) {
             log.error("JAAS Context read exception - ${e.message}")
             emptyMap()

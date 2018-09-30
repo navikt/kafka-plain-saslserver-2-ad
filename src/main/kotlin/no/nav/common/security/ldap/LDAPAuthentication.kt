@@ -14,30 +14,33 @@ class LDAPAuthentication private constructor(val config: LDAPConfig.Config) : LD
     private fun bindOk(user: String, pwd: String): AuthenResult =
             try {
                 if (ldapConnection.bind(user, pwd).resultCode == ResultCode.SUCCESS)
-                    AuthenResult(true, user)
+                    AuthenResult(true, user, "")
                 else {
-                    log.error("LDAP bind unsuccessful for $user - unknown situation :-(")
-                    AuthenResult(false, "")
+                    AuthenResult(false, user, "LDAP bind unsuccessful for $user - unknown situation :-(")
                 }
             } catch (e: LDAPException) {
-                log.error("LDAP bind exception for $user - ${e.diagnosticMessage}")
-                AuthenResult(false, "")
+                AuthenResult(false, user, "LDAP bind exception for $user - ${e.diagnosticMessage}")
             }
 
-    override fun canUserAuthenticate(user: String, pwd: String): AuthenResult =
+    private fun userNodesBindOk(userNodes: List<String>, pwd: String): AuthenResult =
+        // as long as at least one user DN can authenticate, no error report in log
+        userNodes.map { uDN -> bindOk(uDN, pwd) }.let { result ->
+            if (result.any { it.authenticated })
+                result.first { it.authenticated }
+            else {
+                result.forEach { log.error(it.errMsg) }
+                result.first { !it.authenticated }
+            }
+        }
 
+    override fun canUserAuthenticate(user: String, pwd: String): AuthenResult =
         if (!ldapConnection.isConnected) {
             log.error("No LDAP connection, cannot authenticate $user and related password!")
-            AuthenResult(false, "")
+            AuthenResult(false, "", "")
         } else {
-            val userDN = config.toUserDN(user)
-            val userDNBasta = config.toUserDNBasta(user)
-
-            log.debug("Trying bind for $userDN/$userDNBasta and given password")
-
-            // as long as at least one user DN can authenticate, no error report in log
-            listOf(userDN, userDNBasta)
-                    .fold(AuthenResult(false, "")) { res, uDN -> res.combine(bindOk(uDN, pwd)) }
+            val userNodes = config.toUserDNNodes(user)
+            log.debug("Trying bind for $userNodes and given password")
+            userNodesBindOk(userNodes, pwd)
         }
 
     companion object {

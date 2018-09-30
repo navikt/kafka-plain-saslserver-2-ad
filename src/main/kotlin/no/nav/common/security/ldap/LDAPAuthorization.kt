@@ -67,22 +67,20 @@ class LDAPAuthorization private constructor(
             }
 
     override fun isUserMemberOfAny(user: String, groups: List<String>): Set<AuthorResult> =
-
             if (!ldapConnection.isConnected) {
                 log.error("No LDAP connection, cannot verify $user membership in $groups ($uuid)")
                 emptySet()
             } else {
-                val userTypes = listOf(config.toUserDN(user), config.toUserDNBasta(user))
+                val userNodes = config.toUserDNNodes(user)
 
-                val result = mutableSetOf<AuthorResult>()
-
-                groups.forEach { groupName ->
+                groups.flatMap { groupName ->
                     val members = getGroupMembers(getGroupDN(groupName))
-                    log.debug("Group membership, intersection of $members and $userTypes ($uuid)")
-                    members.intersect(userTypes).forEach { result.add(AuthorResult(groupName, it)) }
+                    log.debug("Group membership, intersection of $members and $userNodes ($uuid)")
+                    members.intersect(userNodes).map { AuthorResult(groupName, it) }
+                }.let { result ->
+                    log.debug("Intersection result - $result ($uuid)")
+                    result.toSet()
                 }
-                log.debug("Intersection result - $result ($uuid)")
-                result.toSet()
             }
 
     companion object {

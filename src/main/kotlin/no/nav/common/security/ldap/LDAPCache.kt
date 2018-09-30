@@ -73,13 +73,13 @@ object LDAPCache {
             else -> false
         }
 
-    fun groupAndUserAdd(groupDN: String, userDN: String) {
+    fun groupAndUserAdd(groupDN: String, userDN: String): String =
         try {
-            groupCache.get(Group(groupDN, userDN))
+            groupCache.get(Group(groupDN, userDN))?.other ?: ""
         } catch (e: java.util.concurrent.ExecutionException) {
             log.error("Exception in groupAndUserAdd - ${e.cause}")
+            ""
         }
-    }
 
     // for test purpose
 

@@ -3,8 +3,7 @@ package no.nav.common.security.authentication
 import no.nav.common.security.ldap.LDAPAuthentication
 import no.nav.common.security.ldap.LDAPCache
 import no.nav.common.security.ldap.LDAPConfig
-import no.nav.common.security.ldap.toUserDN
-import no.nav.common.security.ldap.toUserDNBasta
+import no.nav.common.security.ldap.toUserDNNodes
 import org.apache.kafka.common.security.auth.AuthenticateCallbackHandler
 import org.apache.kafka.common.security.plain.PlainAuthenticateCallback
 import org.slf4j.LoggerFactory
@@ -52,15 +51,11 @@ class SimpleLDAPAuthentication : AuthenticateCallbackHandler {
 
     private fun userInCache(username: String, password: String): Boolean =
             LDAPConfig.getByClasspath().let { ldapConfig ->
-                LDAPCache.userExists(ldapConfig.toUserDN(username), password) ||
-                        LDAPCache.userExists(ldapConfig.toUserDNBasta(username), password)
+                ldapConfig.toUserDNNodes(username).fold(false) { exists, uDN ->
+                    exists || LDAPCache.userExists(uDN, password) }.also { if (it) log.debug("$username is cached") }
             }
 
-    private fun authenticate(username: String, password: String): Boolean {
-
-        log.debug("Authentication Start - $username")
-
-        val authenticated = if (!userInCache(username, password))
+    private fun userBoundedInLDAP(username: String, password: String): Boolean =
             LDAPAuthentication.init()
                     .use { ldap ->
                         ldap.canUserAuthenticate(username, password)
@@ -71,19 +66,20 @@ class SimpleLDAPAuthentication : AuthenticateCallbackHandler {
                                     } // no else since all scenarios are covered in LDAPAuthentication
                                 }
                     }.authenticated
-        else {
-            log.debug("$username is cached")
-            true
-        }
 
-        if (authenticated)
-            log.info("Authentication End - successful authentication of $username")
-        else {
-            log.error("Authentication End - authentication failed for $username")
+    private fun authenticate(username: String, password: String): Boolean =
+        "Authentication Start - $username".let { logTxt ->
+            log.debug(logTxt)
+            when (userInCache(username, password)) {
+                true -> true
+                else -> userBoundedInLDAP(username, password)
+            }.also {
+                if (it)
+                    log.info("Authentication End - successful authentication of $username")
+                else
+                    log.error("Authentication End - authentication failed for $username")
+            }
         }
-
-        return authenticated
-    }
 
     override fun configure(
         configs: MutableMap<String, *>?,
