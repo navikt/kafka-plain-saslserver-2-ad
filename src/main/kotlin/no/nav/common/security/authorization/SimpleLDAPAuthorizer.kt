@@ -59,7 +59,7 @@ class SimpleLDAPAuthorizer : SimpleAclAuthorizer() {
 
         // nothing to do if empty acl set
         if (acls.isEmpty()) {
-            log.error("Authorization End - empty ALLOW ACL for [$lResource,$lOperation], not authorized ($uuid)")
+            log.error("Authorization End - $authContext - empty ALLOW ACL for [$lResource,$lOperation], is not authorized ($uuid)")
             return false
         }
 
