@@ -51,6 +51,10 @@ authorizer.class.name=no.nav.common.security.authorization.SimpleLDAPAuthorizer
 ...
 ```
 
+## Using the docker image
+The docker image can't currently be used standalone, the Dockerfile is supposed to be extended by adding the config file
+`/etc/kafka/ldapconfig.yaml` and the jaas configuration `/etc/kafka/kafka_server_jaas.conf`, examples of these 
+config files can be found in [NAVs kafka docker compose project](https://github.com/navikt/navkafka-docker-compose)
 
 ## Testing
 
