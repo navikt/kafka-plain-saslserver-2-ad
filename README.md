@@ -1,4 +1,9 @@
-# kafka-plain-saslserver-2-ad [![Build Status](https://travis-ci.org/navikt/kafka-plain-saslserver-2-ad.svg?branch=master)](https://travis-ci.org/navikt/kafka-plain-saslserver-2-ad)
+# kafka-plain-saslserver-2-ad 
+
+[![Build Status](https://travis-ci.org/navikt/kafka-plain-saslserver-2-ad.svg?branch=master)](https://travis-ci.org/navikt/kafka-plain-saslserver-2-ad/builds/)
+[![Docker Build Status](https://img.shields.io/docker/build/navikt/kafka-plain-saslserver-2-ad.svg)](https://hub.docker.com/r/navikt/kafka-plain-saslserver-2-ad/builds/)
+[![Docker Automated build](https://img.shields.io/docker/automated/navikt/kafka-plain-saslserver-2-ad.svg)](https://hub.docker.com/r/navikt/kafka-plain-saslserver-2-ad/)
+
 Enhancing kafka 2.x with
 - customized SimpleLDAPAuthentication using LDAPS simple bind for authentication
 - customized SimpleACLAuthorizer using LDAPS compare-matched for group membership verification
