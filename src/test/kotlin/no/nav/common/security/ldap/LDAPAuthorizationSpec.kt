@@ -47,10 +47,14 @@ object LDAPAuthorizationSpec : Spek({
             refUserGroup.forEach { usrGrp, size ->
 
                 it("should return $size membership(s) for user ${usrGrp.first} in ${usrGrp.second}") {
+
+                    val src = "src/test/resources/ldapconfig.yaml"
+                    val userDNs = LDAPConfig.getBySource(src).toUserDNNodes(usrGrp.first)
+
                     LDAPAuthorization.init(
                             java.util.UUID.randomUUID().toString(),
-                            "src/test/resources/ldapconfig.yaml")
-                            .isUserMemberOfAny(usrGrp.first, usrGrp.second).size shouldEqual size
+                            src)
+                            .isUserMemberOfAny(userDNs, usrGrp.second).size shouldEqual size
                 }
             }
         }
@@ -60,8 +64,11 @@ object LDAPAuthorizationSpec : Spek({
             refUserGroup.forEach { usrGrp, size ->
 
                 it("should return $size membership(s) for user ${usrGrp.first} in ${usrGrp.second}") {
+
+                    val userDNs = LDAPConfig.getByClasspath().toUserDNNodes(usrGrp.first)
+
                     LDAPAuthorization.init(java.util.UUID.randomUUID().toString())
-                            .isUserMemberOfAny(usrGrp.first, usrGrp.second).size shouldEqual size
+                            .isUserMemberOfAny(userDNs, usrGrp.second).size shouldEqual size
                 }
             }
         }

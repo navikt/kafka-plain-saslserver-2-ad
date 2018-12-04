@@ -8,6 +8,7 @@ import com.unboundid.util.ssl.SSLUtil
 import com.unboundid.util.ssl.TrustAllTrustManager
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import kotlin.system.measureTimeMillis
 
 /**
  * A base class for LDAPAuthentication and LDAPAuthorization
@@ -27,8 +28,9 @@ abstract class LDAPBase protected constructor(config: LDAPConfig.Config) : AutoC
     init {
         // initialize LDAP connection
         try {
-            ldapConnection.connect(config.host, config.port)
+            val connTime = measureTimeMillis { ldapConnection.connect(config.host, config.port) }
             log.debug("Successfully connected to (${config.host},${config.port})")
+            log.info("Connection time: $connTime")
         } catch (e: LDAPException) {
             log.error("Authentication and authorization will fail! " +
                     "Exception when connecting to (${config.host},${config.port}) - ${e.diagnosticMessage}")
@@ -45,12 +47,11 @@ abstract class LDAPBase protected constructor(config: LDAPConfig.Config) : AutoC
 
     data class AuthenResult(val authenticated: Boolean, val userDN: String, val errMsg: String)
 
-    open fun canUserAuthenticate(user: String, pwd: String): AuthenResult =
-            AuthenResult(false, "", "")
+    open fun canUserAuthenticate(userDNs: List<String>, pwd: String): Set<AuthenResult> = emptySet()
 
     data class AuthorResult(val groupName: String, val userDN: String)
 
-    open fun isUserMemberOfAny(user: String, groups: List<String>): Set<AuthorResult> = emptySet()
+    open fun isUserMemberOfAny(userDNs: List<String>, groups: List<String>): Set<AuthorResult> = emptySet()
 
     companion object {
 

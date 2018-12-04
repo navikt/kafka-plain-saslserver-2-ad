@@ -55,27 +55,35 @@ object LDAPCache {
 
     fun userExists(userDN: String, pwd: String): Boolean =
         when (bindCache.getIfPresent(Bind(userDN, pwd))) {
-            is Bind -> true
+            is Bind -> {
+                log.debug("$userDN is cached")
+                true
+            }
             else -> false
         }
 
     fun userAdd(userDN: String, pwd: String) {
         try {
             bindCache.get(Bind(userDN, pwd))
+                    .also { log.info("Bind cache updated for $userDN") }
         } catch (e: java.util.concurrent.ExecutionException) {
             log.error("Exception in userAdd - ${e.cause}")
         }
     }
 
-    fun groupAndUserExists(groupDN: String, userDN: String): Boolean =
-        when (groupCache.getIfPresent(Group(groupDN, userDN))) {
-            is Group -> true
+    fun groupAndUserExists(groupName: String, userDN: String, uuid: String): Boolean =
+        when (groupCache.getIfPresent(Group(groupName, userDN))) {
+            is Group -> {
+                log.debug("[$groupName,$userDN] is cached ($uuid)")
+                true
+            }
             else -> false
         }
 
-    fun groupAndUserAdd(groupDN: String, userDN: String): String =
+    fun groupAndUserAdd(groupName: String, userDN: String, uuid: String): String =
         try {
-            groupCache.get(Group(groupDN, userDN))?.other ?: ""
+            (groupCache.get(Group(groupName, userDN))?.other ?: "")
+                    .also { log.info("Group cache updated for [$groupName,$userDN] ($uuid)") }
         } catch (e: java.util.concurrent.ExecutionException) {
             log.error("Exception in groupAndUserAdd - ${e.cause}")
             ""

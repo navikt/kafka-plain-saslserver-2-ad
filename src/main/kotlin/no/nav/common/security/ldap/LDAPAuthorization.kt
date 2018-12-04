@@ -21,17 +21,23 @@ class LDAPAuthorization private constructor(
     // due to no anonymous access allowed for LDAP operations like search, compare, ...
     private val bindDN = config.toUserDN(JAASContext.username)
     private val bindPwd = JAASContext.password
+    private val connectionAndBindIsOk: Boolean
 
     init {
         log.debug("Binding information for authorization fetched from JAAS config file [$bindDN]")
 
-        try {
-            ldapConnection.bind(bindDN, bindPwd)
-            log.debug("Successfully bind to (${config.host},${config.port}) with $bindDN")
-        } catch (e: LDAPException) {
-            log.error("Authorization will fail! " +
-                    "Exception during bind of $bindDN to (${config.host},${config.port}) - ${e.diagnosticMessage}")
-        }
+        connectionAndBindIsOk = if (ldapConnection.isConnected) {
+            try {
+                ldapConnection.bind(bindDN, bindPwd)
+                log.debug("Successfully bind to (${config.host},${config.port}) with $bindDN")
+                true
+            } catch (e: LDAPException) {
+                log.error("Authorization will fail! " +
+                        "Exception during bind of $bindDN to (${config.host},${config.port}) - ${e.diagnosticMessage}")
+                false
+            }
+        } else
+            false
     }
 
     private fun getGroupDN(groupName: String): String =
@@ -66,22 +72,18 @@ class LDAPAuthorization private constructor(
                 emptyList()
             }
 
-    override fun isUserMemberOfAny(user: String, groups: List<String>): Set<AuthorResult> =
-            if (!ldapConnection.isConnected) {
-                log.error("No LDAP connection, cannot verify $user membership in $groups ($uuid)")
+    override fun isUserMemberOfAny(userDNs: List<String>, groups: List<String>): Set<AuthorResult> =
+            if (!connectionAndBindIsOk) {
+                log.error("No LDAP connection, cannot verify $userDNs membership in $groups ($uuid)")
                 emptySet()
-            } else {
-                val userNodes = config.toUserDNNodes(user)
-
+            } else
                 groups.flatMap { groupName ->
                     val members = getGroupMembers(getGroupDN(groupName))
-                    log.debug("Group membership, intersection of $members and $userNodes ($uuid)")
-                    members.intersect(userNodes).map { AuthorResult(groupName, it) }
-                }.let { result ->
-                    log.debug("Intersection result - $result ($uuid)")
-                    result.toSet()
+                    log.debug("Group membership, intersection of $members and $userDNs ($uuid)")
+                    members.intersect(userDNs).map { uDN -> AuthorResult(groupName, uDN) }
                 }
-            }
+                        .also { result -> log.debug("Intersection result - $result ($uuid)") }
+                        .toSet()
 
     companion object {
 

@@ -11,36 +11,28 @@ import org.slf4j.LoggerFactory
 
 class LDAPAuthentication private constructor(val config: LDAPConfig.Config) : LDAPBase(config) {
 
-    private fun bindOk(user: String, pwd: String): AuthenResult =
+    private fun bindOk(uDN: String, pwd: String): AuthenResult =
             try {
-                if (ldapConnection.bind(user, pwd).resultCode == ResultCode.SUCCESS)
-                    AuthenResult(true, user, "")
+                if (ldapConnection.bind(uDN, pwd).resultCode == ResultCode.SUCCESS)
+                    AuthenResult(true, uDN, "")
                 else {
-                    AuthenResult(false, user, "LDAP bind unsuccessful for $user - unknown situation :-(")
+                    AuthenResult(false, uDN, "LDAP bind unsuccessful for $uDN - unknown situation :-(")
                 }
             } catch (e: LDAPException) {
-                AuthenResult(false, user, "LDAP bind exception for $user - ${e.diagnosticMessage}")
+                AuthenResult(false, uDN, "LDAP bind exception for $uDN - ${e.diagnosticMessage}")
             }
 
-    private fun userNodesBindOk(userNodes: List<String>, pwd: String): AuthenResult =
-        // as long as at least one user DN can authenticate, no error report in log
-        userNodes.map { uDN -> bindOk(uDN, pwd) }.let { result ->
-            if (result.any { it.authenticated })
-                result.first { it.authenticated }
-            else {
-                result.forEach { log.error(it.errMsg) }
-                result.first { !it.authenticated }
-            }
-        }
-
-    override fun canUserAuthenticate(user: String, pwd: String): AuthenResult =
+    override fun canUserAuthenticate(userDNs: List<String>, pwd: String): Set<AuthenResult> =
         if (!ldapConnection.isConnected) {
-            log.error("No LDAP connection, cannot authenticate $user and related password!")
-            AuthenResult(false, "", "")
+            log.error("No LDAP connection, cannot authenticate $userDNs and related password!")
+            emptySet()
         } else {
-            val userNodes = config.toUserDNNodes(user)
-            log.debug("Trying bind for $userNodes and given password")
-            userNodesBindOk(userNodes, pwd)
+            log.debug("Trying bind for $userDNs and given password")
+            userDNs
+                    .map { uDN -> bindOk(uDN, pwd) }
+                    .also { result -> if (result.all { !it.authenticated }) result.forEach { log.error(it.errMsg) } }
+                    .filter { it.authenticated }
+                    .toSet()
         }
 
     companion object {
