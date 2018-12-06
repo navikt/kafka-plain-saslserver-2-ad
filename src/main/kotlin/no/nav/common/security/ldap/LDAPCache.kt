@@ -3,6 +3,7 @@ package no.nav.common.security.ldap
 import com.github.benmanes.caffeine.cache.CacheLoader
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.benmanes.caffeine.cache.LoadingCache
+import no.nav.common.security.Monitoring
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
@@ -62,14 +63,14 @@ object LDAPCache {
             else -> false
         }
 
-    fun userAdd(userDN: String, pwd: String) {
+    fun userAdd(userDN: String, pwd: String): String =
         try {
-            bindCache.get(Bind(userDN, pwd))
-                    .also { log.info("Bind cache updated for $userDN") }
+            (bindCache.get(Bind(userDN, pwd))?.other ?: "")
+                    .also { log.info("${Monitoring.AUTHENTICATION_CACHE_UPDATED.txt} for $userDN") }
         } catch (e: java.util.concurrent.ExecutionException) {
-            log.error("Exception in userAdd - ${e.cause}")
+            log.error("${Monitoring.AUTHENTICATION_CACHE_UPDATE_FAILED.txt} - ${e.cause}")
+            ""
         }
-    }
 
     fun groupAndUserExists(groupName: String, userDN: String, uuid: String): Boolean =
         when (groupCache.getIfPresent(Group(groupName, userDN))) {
@@ -83,9 +84,9 @@ object LDAPCache {
     fun groupAndUserAdd(groupName: String, userDN: String, uuid: String): String =
         try {
             (groupCache.get(Group(groupName, userDN))?.other ?: "")
-                    .also { log.info("Group cache updated for [$groupName,$userDN] ($uuid)") }
+                    .also { log.info("${Monitoring.AUTHORIZATION_CACHE_UPDATED.txt} for [$groupName,$userDN] ($uuid)") }
         } catch (e: java.util.concurrent.ExecutionException) {
-            log.error("Exception in groupAndUserAdd - ${e.cause}")
+            log.error("${Monitoring.AUTHORIZATION_CACHE_UPDATE_FAILED.txt} - ${e.cause}")
             ""
         }
 

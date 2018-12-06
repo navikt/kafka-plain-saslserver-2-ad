@@ -38,7 +38,7 @@ object LDAPAuthenticationSpec : Spek({
                 Pair("invalid", "srvc01") to false
         )
 
-        describe("correct path to default YAML config") {
+        context("correct path to default YAML config") {
 
             refUsers.forEach { user, result ->
 
@@ -53,7 +53,7 @@ object LDAPAuthenticationSpec : Spek({
             }
         }
 
-        describe("classpath to YAML config") {
+        context("classpath to YAML config") {
 
             refUsers.forEach { user, result ->
 

@@ -2,6 +2,7 @@ package no.nav.common.security.ldap
 
 import com.unboundid.ldap.sdk.LDAPException
 import com.unboundid.ldap.sdk.ResultCode
+import no.nav.common.security.Monitoring
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -24,7 +25,7 @@ class LDAPAuthentication private constructor(val config: LDAPConfig.Config) : LD
 
     override fun canUserAuthenticate(userDNs: List<String>, pwd: String): Set<AuthenResult> =
         if (!ldapConnection.isConnected) {
-            log.error("No LDAP connection, cannot authenticate $userDNs and related password!")
+            log.error("${Monitoring.AUTHENTICATION_LDAP_FAILURE.txt} $userDNs and related password!")
             emptySet()
         } else {
             log.debug("Trying bind for $userDNs and given password")

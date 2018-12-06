@@ -20,7 +20,7 @@ object LDAPConfigSpec : Spek({
                 2,
                 4)
 
-        describe("getBySource - correct path to different YAML configs") {
+        context("getBySource - correct path to different YAML configs") {
 
             val refLDAPConfigOther = LDAPConfig.Config(
                     "host",
@@ -47,14 +47,14 @@ object LDAPConfigSpec : Spek({
             }
         }
 
-        describe("getBySource - incorrect path to YAML config") {
+        context("getBySource - incorrect path to YAML config") {
 
             it("should return empty config") {
                 LDAPConfig.getBySource("invalid.yaml") shouldEqual LDAPConfig.emptyConfig
             }
         }
 
-        describe("getByClasspath - load of default yaml config") {
+        context("getByClasspath - load of default yaml config") {
 
             it("should return default yaml config") {
                 // will find ldapconfig.yaml resource under build/resources/ldapconfig.yaml...

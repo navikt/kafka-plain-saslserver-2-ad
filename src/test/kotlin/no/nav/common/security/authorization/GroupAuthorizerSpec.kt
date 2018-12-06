@@ -101,7 +101,7 @@ object GroupAuthorizerSpec : Spek({
                 Triple("srvc02", "KC-tpc-03", "tpc-03") to false
                 )
 
-        describe("describe allowance") {
+        context("describe allowance") {
 
             refUserDescribeACL.forEach { tr, result ->
 
@@ -116,7 +116,7 @@ object GroupAuthorizerSpec : Spek({
             }
         }
 
-        describe("write allowance") {
+        context("write allowance") {
 
             refUserWriteACL.forEach { tr, result ->
 
@@ -131,7 +131,7 @@ object GroupAuthorizerSpec : Spek({
             }
         }
 
-        describe("read allowance") {
+        context("read allowance") {
 
             refUserReadACL.forEach { tr, result ->
 

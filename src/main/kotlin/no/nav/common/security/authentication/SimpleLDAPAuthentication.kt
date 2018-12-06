@@ -1,5 +1,6 @@
 package no.nav.common.security.authentication
 
+import no.nav.common.security.Monitoring
 import no.nav.common.security.ldap.LDAPAuthentication
 import no.nav.common.security.ldap.LDAPCache
 import no.nav.common.security.ldap.LDAPConfig
@@ -64,8 +65,8 @@ class SimpleLDAPAuthentication : AuthenticateCallbackHandler {
                 (userInCache(userDNs, password) || userBoundedInLDAP(userDNs, password))
                         .also { isAuthenticated ->
                             log.debug("Authentication Start - $username")
-                            if (isAuthenticated) log.info("Authentication End - successful authentication of $username")
-                            else log.error("Authentication End - authentication failed for $username")
+                            if (isAuthenticated) log.info("${Monitoring.AUTHENTICATION_SUCCESS.txt} of $username")
+                            else log.error("${Monitoring.AUTHENTICATION_FAILED.txt} for $username")
                         }
             }
 

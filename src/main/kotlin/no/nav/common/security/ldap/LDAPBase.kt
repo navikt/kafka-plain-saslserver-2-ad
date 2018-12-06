@@ -6,6 +6,7 @@ import com.unboundid.ldap.sdk.LDAPException
 import com.unboundid.ldap.sdk.DisconnectType
 import com.unboundid.util.ssl.SSLUtil
 import com.unboundid.util.ssl.TrustAllTrustManager
+import no.nav.common.security.Monitoring
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import kotlin.system.measureTimeMillis
@@ -30,10 +31,9 @@ abstract class LDAPBase protected constructor(config: LDAPConfig.Config) : AutoC
         try {
             val connTime = measureTimeMillis { ldapConnection.connect(config.host, config.port) }
             log.debug("Successfully connected to (${config.host},${config.port})")
-            log.info("Connection time: $connTime")
+            log.info("${Monitoring.LDAP_BASE_TIME.txt} $connTime")
         } catch (e: LDAPException) {
-            log.error("Authentication and authorization will fail! " +
-                    "Exception when connecting to (${config.host},${config.port}) - ${e.diagnosticMessage}")
+            log.error("${Monitoring.LDAP_BASE_FAILURE.txt} (${config.host},${config.port}) - ${e.diagnosticMessage}")
             ldapConnection.setDisconnectInfo(
                     DisconnectType.IO_ERROR,
                     "Exception when connecting to LDAP(${config.host},${config.port})", e)

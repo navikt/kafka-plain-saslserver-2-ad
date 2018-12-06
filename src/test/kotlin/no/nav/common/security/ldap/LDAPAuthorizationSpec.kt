@@ -42,7 +42,7 @@ object LDAPAuthorizationSpec : Spek({
                 Pair("srvc02", listOf("KC-tpc-02", "rmy-02", "KP-tpc-03")) to 2
         )
 
-        describe("correct path to default YAML config") {
+        context("correct path to default YAML config") {
 
             refUserGroup.forEach { usrGrp, size ->
 
@@ -59,7 +59,7 @@ object LDAPAuthorizationSpec : Spek({
             }
         }
 
-        describe("classpath to  YAML config") {
+        context("classpath to  YAML config") {
 
             refUserGroup.forEach { usrGrp, size ->
 

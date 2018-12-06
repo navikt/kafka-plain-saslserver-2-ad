@@ -5,6 +5,7 @@ import kafka.security.auth.Acl
 import kafka.security.auth.Operation
 import kafka.security.auth.Resource
 import kafka.security.auth.SimpleAclAuthorizer
+import no.nav.common.security.Monitoring
 import org.apache.kafka.common.acl.AclPermissionType
 import org.apache.kafka.common.resource.ResourceType
 import org.apache.kafka.common.security.auth.KafkaPrincipal
@@ -59,7 +60,7 @@ class SimpleLDAPAuthorizer : SimpleAclAuthorizer() {
 
         // nothing to do if empty acl set
         if (acls.isEmpty()) {
-            log.error("Authorization End - $authContext - empty ALLOW ACL for [$lResource,$lOperation], is not authorized ($uuid)")
+            log.error("${Monitoring.AUTHORIZATION_FAILED.txt} - $authContext - empty ALLOW ACL for [$lResource,$lOperation], is not authorized ($uuid)")
             return false
         }
 
@@ -69,7 +70,7 @@ class SimpleLDAPAuthorizer : SimpleAclAuthorizer() {
 
         when (isAuthorized) {
             true -> log.debug("Authorization End - $authContext is authorized!")
-            false -> log.error("Authorization End - $authContext is not authorized!")
+            false -> log.error("${Monitoring.AUTHORIZATION_FAILED.txt} - $authContext is not authorized!")
         }
 
         return isAuthorized

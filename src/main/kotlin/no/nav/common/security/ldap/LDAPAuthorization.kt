@@ -5,8 +5,10 @@ import com.unboundid.ldap.sdk.Filter
 import com.unboundid.ldap.sdk.SearchRequest
 import com.unboundid.ldap.sdk.SearchScope
 import com.unboundid.ldap.sdk.LDAPSearchException
+import no.nav.common.security.Monitoring
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import kotlin.system.measureTimeMillis
 
 /**
  * A class verifying group membership with LDAP compare-matched
@@ -28,12 +30,12 @@ class LDAPAuthorization private constructor(
 
         connectionAndBindIsOk = if (ldapConnection.isConnected) {
             try {
-                ldapConnection.bind(bindDN, bindPwd)
+                val connTime = measureTimeMillis { ldapConnection.bind(bindDN, bindPwd) }
                 log.debug("Successfully bind to (${config.host},${config.port}) with $bindDN")
+                log.info("${Monitoring.AUTHORIZATION_BIND_TIME.txt} $connTime")
                 true
             } catch (e: LDAPException) {
-                log.error("Authorization will fail! " +
-                        "Exception during bind of $bindDN to (${config.host},${config.port}) - ${e.diagnosticMessage}")
+                log.error("${Monitoring.AUTHORIZATION_BIND_FAILED.txt} $bindDN to (${config.host},${config.port}) - ${e.diagnosticMessage}")
                 false
             }
         } else
@@ -50,12 +52,12 @@ class LDAPAuthorization private constructor(
                             if (it.entryCount == 1)
                                 it.searchEntries[0].dn
                             else {
-                                log.error("LDAP search couldn't resolve group DN for $groupName under ${config.grpBaseDN} ($uuid)")
+                                log.error("${Monitoring.AUTHORIZATION_SEARCH_MISS.txt} $groupName under ${config.grpBaseDN} ($uuid)")
                                 ""
                             }
                         }
             } catch (e: LDAPSearchException) {
-                log.error("Cannot resolve group DN for $groupName under ${config.grpBaseDN} ($uuid)")
+                log.error("${Monitoring.AUTHORIZATION_SEARCH_FAILURE.txt} $groupName under ${config.grpBaseDN} ($uuid)")
                 ""
             }
 
@@ -68,13 +70,13 @@ class LDAPAuthorization private constructor(
                 else
                     emptyList()
             } catch (e: LDAPException) {
-                log.error("Cannot get group members - ${config.grpAttrName} - for $groupDN ($uuid)")
+                log.error("${Monitoring.AUTHORIZATION_GROUP_FAILURE.txt} - ${config.grpAttrName} - for $groupDN ($uuid)")
                 emptyList()
             }
 
     override fun isUserMemberOfAny(userDNs: List<String>, groups: List<String>): Set<AuthorResult> =
             if (!connectionAndBindIsOk) {
-                log.error("No LDAP connection, cannot verify $userDNs membership in $groups ($uuid)")
+                log.error("${Monitoring.AUTHORIZATION_LDAP_FAILURE.txt} $userDNs membership in $groups ($uuid)")
                 emptySet()
             } else
                 groups.flatMap { groupName ->
