@@ -5,11 +5,13 @@ import com.unboundid.ldap.sdk.Filter
 import com.unboundid.ldap.sdk.SearchRequest
 import com.unboundid.ldap.sdk.SearchScope
 import com.unboundid.ldap.sdk.LDAPSearchException
+import no.nav.common.security.Monitoring
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import kotlin.system.measureTimeMillis
 
 /**
- * A class verifying group membership with LDAP compare-matched
+ * A class verifying group membership with LDAP
  */
 
 class LDAPAuthorization private constructor(
@@ -19,20 +21,29 @@ class LDAPAuthorization private constructor(
 
     // In authorization context, needs to bind the connection before compare-match between group and user
     // due to no anonymous access allowed for LDAP operations like search, compare, ...
-    private val bindDN = config.toUserDN(JAASContext.username)
-    private val bindPwd = JAASContext.password
+    private val connectionAndBindIsOk: Boolean
 
     init {
-        log.debug("Binding information for authorization fetched from JAAS config file [$bindDN]")
-
-        try {
-            ldapConnection.bind(bindDN, bindPwd)
-            log.debug("Successfully bind to (${config.host},${config.port}) with $bindDN")
-        } catch (e: LDAPException) {
-            log.error("Authorization will fail! " +
-                    "Exception during bind of $bindDN to (${config.host},${config.port}) - ${e.diagnosticMessage}")
+        connectionAndBindIsOk = when {
+            JAASContext.username.isEmpty() || JAASContext.password.isEmpty() -> false
+            !ldapConnection.isConnected -> false
+            else -> doBind(config.toUserDN(JAASContext.username), JAASContext.password)
         }
     }
+
+    private fun doBind(userDN: String, pwd: String): Boolean =
+            try {
+                log.debug("Binding information for authorization fetched from JAAS config file [$userDN]")
+                measureTimeMillis { ldapConnection.bind(userDN, pwd) }
+                        .also {
+                            log.debug("Successfully bind to (${config.host},${config.port}) with $userDN")
+                            log.info("${Monitoring.AUTHORIZATION_BIND_TIME.txt} $it")
+                        }
+                true
+            } catch (e: LDAPException) {
+                log.error("${Monitoring.AUTHORIZATION_BIND_FAILED.txt} $userDN to (${config.host},${config.port}) - ${e.diagnosticMessage}")
+                false
+            }
 
     private fun getGroupDN(groupName: String): String =
             try {
@@ -44,12 +55,12 @@ class LDAPAuthorization private constructor(
                             if (it.entryCount == 1)
                                 it.searchEntries[0].dn
                             else {
-                                log.error("LDAP search couldn't resolve group DN for $groupName under ${config.grpBaseDN} ($uuid)")
+                                log.error("${Monitoring.AUTHORIZATION_SEARCH_MISS.txt} $groupName under ${config.grpBaseDN} ($uuid)")
                                 ""
                             }
                         }
             } catch (e: LDAPSearchException) {
-                log.error("Cannot resolve group DN for $groupName under ${config.grpBaseDN} ($uuid)")
+                log.error("${Monitoring.AUTHORIZATION_SEARCH_FAILURE.txt} $groupName under ${config.grpBaseDN} ($uuid)")
                 ""
             }
 
@@ -62,26 +73,22 @@ class LDAPAuthorization private constructor(
                 else
                     emptyList()
             } catch (e: LDAPException) {
-                log.error("Cannot get group members - ${config.grpAttrName} - for $groupDN ($uuid)")
+                log.error("${Monitoring.AUTHORIZATION_GROUP_FAILURE.txt} - ${config.grpAttrName} - for $groupDN ($uuid)")
                 emptyList()
             }
 
-    override fun isUserMemberOfAny(user: String, groups: List<String>): Set<AuthorResult> =
-            if (!ldapConnection.isConnected) {
-                log.error("No LDAP connection, cannot verify $user membership in $groups ($uuid)")
+    override fun isUserMemberOfAny(userDNs: List<String>, groups: List<String>): Set<AuthorResult> =
+            if (!connectionAndBindIsOk) {
+                log.error("${Monitoring.AUTHORIZATION_LDAP_FAILURE.txt} $userDNs membership in $groups ($uuid)")
                 emptySet()
-            } else {
-                val userNodes = config.toUserDNNodes(user)
-
+            } else
                 groups.flatMap { groupName ->
                     val members = getGroupMembers(getGroupDN(groupName))
-                    log.debug("Group membership, intersection of $members and $userNodes ($uuid)")
-                    members.intersect(userNodes).map { AuthorResult(groupName, it) }
-                }.let { result ->
-                    log.debug("Intersection result - $result ($uuid)")
-                    result.toSet()
+                    log.debug("Group membership, intersection of $members and $userDNs ($uuid)")
+                    members.intersect(userDNs).map { uDN -> AuthorResult(groupName, uDN) }
                 }
-            }
+                        .also { result -> log.debug("Intersection result - $result ($uuid)") }
+                        .toSet()
 
     companion object {
 

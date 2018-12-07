@@ -17,7 +17,7 @@ object SimpleLDAPAuthenticationSpec : Spek({
             LDAPCache.invalidateAllBinds()
         }
 
-        describe("authentication should work correctly") {
+        context("authentication should work correctly") {
 
             // kind of misuse of the prompt field in NameCallback... Ok in test context
             val tests = mapOf(

@@ -30,7 +30,7 @@ object JAASContext {
             emptyMap()
         }
 
-        username = options["username"].toString()
-        password = options["password"].toString()
+        username = options["username"] ?: ""
+        password = options["password"] ?: ""
     }
 }

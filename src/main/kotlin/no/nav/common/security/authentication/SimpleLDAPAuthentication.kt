@@ -1,5 +1,6 @@
 package no.nav.common.security.authentication
 
+import no.nav.common.security.Monitoring
 import no.nav.common.security.ldap.LDAPAuthentication
 import no.nav.common.security.ldap.LDAPCache
 import no.nav.common.security.ldap.LDAPConfig
@@ -49,37 +50,25 @@ class SimpleLDAPAuthentication : AuthenticateCallbackHandler {
         callbacks?.other<NameCallback, PlainAuthenticateCallback>()?.let { throw UnsupportedCallbackException(it) }
     }
 
-    private fun userInCache(username: String, password: String): Boolean =
-            LDAPConfig.getByClasspath().let { ldapConfig ->
-                ldapConfig.toUserDNNodes(username).fold(false) { exists, uDN ->
-                    exists || LDAPCache.userExists(uDN, password) }.also { if (it) log.debug("$username is cached") }
-            }
+    private fun userInCache(userDNs: List<String>, password: String): Boolean =
+            userDNs.any { uDN -> LDAPCache.userExists(uDN, password) }
 
-    private fun userBoundedInLDAP(username: String, password: String): Boolean =
+    private fun userBoundedInLDAP(userDNs: List<String>, password: String): Boolean =
             LDAPAuthentication.init()
-                    .use { ldap ->
-                        ldap.canUserAuthenticate(username, password)
-                                .also { authenResult ->
-                                    if (authenResult.authenticated) {
-                                        LDAPCache.userAdd(authenResult.userDN, password)
-                                        log.info("Bind cache updated for ${authenResult.userDN}")
-                                    } // no else since all scenarios are covered in LDAPAuthentication
-                                }
-                    }.authenticated
+                    .use { ldap -> ldap.canUserAuthenticate(userDNs, password) }
+                    .map { LDAPCache.userAdd(it.userDN, password) }
+                    .isNotEmpty()
 
     private fun authenticate(username: String, password: String): Boolean =
-        "Authentication Start - $username".let { logTxt ->
-            log.debug(logTxt)
-            when (userInCache(username, password)) {
-                true -> true
-                else -> userBoundedInLDAP(username, password)
-            }.also {
-                if (it)
-                    log.info("Authentication End - successful authentication of $username")
-                else
-                    log.error("Authentication End - authentication failed for $username")
+            LDAPConfig.getByClasspath().toUserDNNodes(username).let { userDNs ->
+                // always check cache before ldap lookup
+                (userInCache(userDNs, password) || userBoundedInLDAP(userDNs, password))
+                        .also { isAuthenticated ->
+                            log.debug("Authentication Start - $username")
+                            if (isAuthenticated) log.info("${Monitoring.AUTHENTICATION_SUCCESS.txt} of $username")
+                            else log.error("${Monitoring.AUTHENTICATION_FAILED.txt} for $username")
+                        }
             }
-        }
 
     override fun configure(
         configs: MutableMap<String, *>?,

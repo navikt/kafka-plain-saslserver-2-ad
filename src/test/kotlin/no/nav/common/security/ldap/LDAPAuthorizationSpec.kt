@@ -42,26 +42,33 @@ object LDAPAuthorizationSpec : Spek({
                 Pair("srvc02", listOf("KC-tpc-02", "rmy-02", "KP-tpc-03")) to 2
         )
 
-        describe("correct path to default YAML config") {
+        context("correct path to default YAML config") {
 
             refUserGroup.forEach { usrGrp, size ->
 
                 it("should return $size membership(s) for user ${usrGrp.first} in ${usrGrp.second}") {
+
+                    val src = "src/test/resources/ldapconfig.yaml"
+                    val userDNs = LDAPConfig.getBySource(src).toUserDNNodes(usrGrp.first)
+
                     LDAPAuthorization.init(
                             java.util.UUID.randomUUID().toString(),
-                            "src/test/resources/ldapconfig.yaml")
-                            .isUserMemberOfAny(usrGrp.first, usrGrp.second).size shouldEqual size
+                            src)
+                            .isUserMemberOfAny(userDNs, usrGrp.second).size shouldEqual size
                 }
             }
         }
 
-        describe("classpath to  YAML config") {
+        context("classpath to  YAML config") {
 
             refUserGroup.forEach { usrGrp, size ->
 
                 it("should return $size membership(s) for user ${usrGrp.first} in ${usrGrp.second}") {
+
+                    val userDNs = LDAPConfig.getByClasspath().toUserDNNodes(usrGrp.first)
+
                     LDAPAuthorization.init(java.util.UUID.randomUUID().toString())
-                            .isUserMemberOfAny(usrGrp.first, usrGrp.second).size shouldEqual size
+                            .isUserMemberOfAny(userDNs, usrGrp.second).size shouldEqual size
                 }
             }
         }

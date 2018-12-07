@@ -3,6 +3,7 @@ package no.nav.common.security.ldap
 import com.github.benmanes.caffeine.cache.CacheLoader
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.benmanes.caffeine.cache.LoadingCache
+import no.nav.common.security.Monitoring
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
@@ -55,29 +56,37 @@ object LDAPCache {
 
     fun userExists(userDN: String, pwd: String): Boolean =
         when (bindCache.getIfPresent(Bind(userDN, pwd))) {
-            is Bind -> true
+            is Bind -> {
+                log.debug("$userDN is cached")
+                true
+            }
             else -> false
         }
 
-    fun userAdd(userDN: String, pwd: String) {
+    fun userAdd(userDN: String, pwd: String): String =
         try {
-            bindCache.get(Bind(userDN, pwd))
+            (bindCache.get(Bind(userDN, pwd))?.other ?: "")
+                    .also { log.info("${Monitoring.AUTHENTICATION_CACHE_UPDATED.txt} for $userDN") }
         } catch (e: java.util.concurrent.ExecutionException) {
-            log.error("Exception in userAdd - ${e.cause}")
+            log.error("${Monitoring.AUTHENTICATION_CACHE_UPDATE_FAILED.txt} - ${e.cause}")
+            ""
         }
-    }
 
-    fun groupAndUserExists(groupDN: String, userDN: String): Boolean =
-        when (groupCache.getIfPresent(Group(groupDN, userDN))) {
-            is Group -> true
+    fun groupAndUserExists(groupName: String, userDN: String, uuid: String): Boolean =
+        when (groupCache.getIfPresent(Group(groupName, userDN))) {
+            is Group -> {
+                log.debug("[$groupName,$userDN] is cached ($uuid)")
+                true
+            }
             else -> false
         }
 
-    fun groupAndUserAdd(groupDN: String, userDN: String): String =
+    fun groupAndUserAdd(groupName: String, userDN: String, uuid: String): String =
         try {
-            groupCache.get(Group(groupDN, userDN))?.other ?: ""
+            (groupCache.get(Group(groupName, userDN))?.other ?: "")
+                    .also { log.info("${Monitoring.AUTHORIZATION_CACHE_UPDATED.txt} for [$groupName,$userDN] ($uuid)") }
         } catch (e: java.util.concurrent.ExecutionException) {
-            log.error("Exception in groupAndUserAdd - ${e.cause}")
+            log.error("${Monitoring.AUTHORIZATION_CACHE_UPDATE_FAILED.txt} - ${e.cause}")
             ""
         }
 
