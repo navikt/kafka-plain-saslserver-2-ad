@@ -29,9 +29,11 @@ abstract class LDAPBase protected constructor(config: LDAPConfig.Config) : AutoC
     init {
         // initialize LDAP connection
         try {
-            val connTime = measureTimeMillis { ldapConnection.connect(config.host, config.port) }
-            log.debug("Successfully connected to (${config.host},${config.port})")
-            log.info("${Monitoring.LDAP_BASE_TIME.txt} $connTime")
+            measureTimeMillis { ldapConnection.connect(config.host, config.port) }
+                    .also {
+                        log.debug("Successfully connected to (${config.host},${config.port})")
+                        log.info("${Monitoring.LDAP_BASE_TIME.txt} $it")
+                    }
         } catch (e: LDAPException) {
             log.error("${Monitoring.LDAP_BASE_FAILURE.txt} (${config.host},${config.port}) - ${e.diagnosticMessage}")
             ldapConnection.setDisconnectInfo(

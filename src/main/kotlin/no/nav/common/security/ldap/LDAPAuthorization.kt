@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory
 import kotlin.system.measureTimeMillis
 
 /**
- * A class verifying group membership with LDAP compare-matched
+ * A class verifying group membership with LDAP
  */
 
 class LDAPAuthorization private constructor(
@@ -21,26 +21,29 @@ class LDAPAuthorization private constructor(
 
     // In authorization context, needs to bind the connection before compare-match between group and user
     // due to no anonymous access allowed for LDAP operations like search, compare, ...
-    private val bindDN = config.toUserDN(JAASContext.username)
-    private val bindPwd = JAASContext.password
     private val connectionAndBindIsOk: Boolean
 
     init {
-        log.debug("Binding information for authorization fetched from JAAS config file [$bindDN]")
+        connectionAndBindIsOk = when {
+            JAASContext.username.isEmpty() || JAASContext.password.isEmpty() -> false
+            !ldapConnection.isConnected -> false
+            else -> doBind(config.toUserDN(JAASContext.username), JAASContext.password)
+        }
+    }
 
-        connectionAndBindIsOk = if (ldapConnection.isConnected) {
+    private fun doBind(userDN: String, pwd: String): Boolean =
             try {
-                val connTime = measureTimeMillis { ldapConnection.bind(bindDN, bindPwd) }
-                log.debug("Successfully bind to (${config.host},${config.port}) with $bindDN")
-                log.info("${Monitoring.AUTHORIZATION_BIND_TIME.txt} $connTime")
+                log.debug("Binding information for authorization fetched from JAAS config file [$userDN]")
+                measureTimeMillis { ldapConnection.bind(userDN, pwd) }
+                        .also {
+                            log.debug("Successfully bind to (${config.host},${config.port}) with $userDN")
+                            log.info("${Monitoring.AUTHORIZATION_BIND_TIME.txt} $it")
+                        }
                 true
             } catch (e: LDAPException) {
-                log.error("${Monitoring.AUTHORIZATION_BIND_FAILED.txt} $bindDN to (${config.host},${config.port}) - ${e.diagnosticMessage}")
+                log.error("${Monitoring.AUTHORIZATION_BIND_FAILED.txt} $userDN to (${config.host},${config.port}) - ${e.diagnosticMessage}")
                 false
             }
-        } else
-            false
-    }
 
     private fun getGroupDN(groupName: String): String =
             try {
