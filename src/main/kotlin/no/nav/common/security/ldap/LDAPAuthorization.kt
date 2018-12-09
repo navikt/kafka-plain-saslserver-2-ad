@@ -60,7 +60,7 @@ class LDAPAuthorization private constructor(
                 if (groupDN.isNotEmpty())
                     ldapConnection.getEntry(groupDN)
                             ?.getAttributeValues(config.grpAttrName)
-                            ?.map { it.toLowerCase() } ?: emptyList()
+                            ?.map { DN(it).rdn.attributeValues.first().toLowerCase() } ?: emptyList()
                 else
                     emptyList()
             } catch (e: LDAPException) {
@@ -74,9 +74,10 @@ class LDAPAuthorization private constructor(
                         .also { log.error("${Monitoring.AUTHORIZATION_LDAP_FAILURE.txt} $username membership in $groups ($uuid)") }
             else
                 groups.flatMap { groupName ->
-                    val members = getGroupMembers(getGroupDN(groupName)).map { DN(it).rdn.attributeValues.first().toLowerCase() }
-                    log.debug("Group membership, intersection of $members and $username ($uuid)")
-                    members.intersect(listOf(username)).map { usr -> AuthorResult(groupName, usr) }
+                    getGroupMembers(getGroupDN(groupName)).let { members ->
+                        log.debug("Group membership, intersection of $members and $username ($uuid)")
+                        members.intersect(listOf(username)).map { usr -> AuthorResult(groupName, usr) }
+                    }
                 }
                         .also { result -> log.debug("Intersection result - $result ($uuid)") }
                         .toSet()
