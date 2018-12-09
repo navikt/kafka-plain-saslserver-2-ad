@@ -110,12 +110,3 @@ object LDAPConfig {
         }
     }
 }
-
-// A couple of extension functions for Config
-fun LDAPConfig.Config.toUserDN(user: String) = "$usrUid=$user,$usrBaseDN".toLowerCase()
-fun LDAPConfig.Config.toUserDNNodes(user: String) =
-        // assuming most use of Basta generated service accounts
-        listOf(
-                "$usrUid=$user,ou=ApplAccounts,$usrBaseDN".toLowerCase(),
-                "$usrUid=$user,$usrBaseDN".toLowerCase()
-        )

@@ -1,5 +1,6 @@
 package no.nav.common.security.ldap
 
+import com.unboundid.ldap.sdk.DN
 import com.unboundid.ldap.sdk.LDAPException
 import com.unboundid.ldap.sdk.Filter
 import com.unboundid.ldap.sdk.SearchRequest
@@ -8,7 +9,6 @@ import com.unboundid.ldap.sdk.LDAPSearchException
 import no.nav.common.security.Monitoring
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import kotlin.system.measureTimeMillis
 
 /**
  * A class verifying group membership with LDAP
@@ -21,29 +21,20 @@ class LDAPAuthorization private constructor(
 
     // In authorization context, needs to bind the connection before compare-match between group and user
     // due to no anonymous access allowed for LDAP operations like search, compare, ...
-    private val connectionAndBindIsOk: Boolean
-
-    init {
-        connectionAndBindIsOk = when {
-            JAASContext.username.isEmpty() || JAASContext.password.isEmpty() -> false
-            !ldapConnection.isConnected -> false
-            else -> doBind(config.toUserDN(JAASContext.username), JAASContext.password)
-        }
+    private val connectionAndBindIsOk = when {
+        JAASContext.username.isEmpty() || JAASContext.password.isEmpty() -> false
+        !ldapConnection.isConnected -> false
+        else -> bindOk(JAASContext.username, JAASContext.password)
+                .also {
+                    when (it) {
+                        true -> log.debug("Successfully bind to (${config.host},${config.port}) with ${JAASContext.username}")
+                        false -> log.error(
+                            "${Monitoring.AUTHORIZATION_BIND_FAILED.txt} ${JAASContext.username} to " +
+                                    "(${config.host},${config.port})"
+                        )
+                    }
+                }
     }
-
-    private fun doBind(userDN: String, pwd: String): Boolean =
-            try {
-                log.debug("Binding information for authorization fetched from JAAS config file [$userDN]")
-                measureTimeMillis { ldapConnection.bind(userDN, pwd) }
-                        .also {
-                            log.debug("Successfully bind to (${config.host},${config.port}) with $userDN")
-                            log.info("${Monitoring.AUTHORIZATION_BIND_TIME.txt} $it")
-                        }
-                true
-            } catch (e: LDAPException) {
-                log.error("${Monitoring.AUTHORIZATION_BIND_FAILED.txt} $userDN to (${config.host},${config.port}) - ${e.diagnosticMessage}")
-                false
-            }
 
     private fun getGroupDN(groupName: String): String =
             try {
@@ -77,15 +68,15 @@ class LDAPAuthorization private constructor(
                 emptyList()
             }
 
-    override fun isUserMemberOfAny(userDNs: List<String>, groups: List<String>): Set<AuthorResult> =
-            if (!connectionAndBindIsOk) {
-                log.error("${Monitoring.AUTHORIZATION_LDAP_FAILURE.txt} $userDNs membership in $groups ($uuid)")
-                emptySet()
-            } else
+    override fun isUserMemberOfAny(username: String, groups: List<String>): Set<AuthorResult> =
+            if (!connectionAndBindIsOk)
+                emptySet<AuthorResult>()
+                        .also { log.error("${Monitoring.AUTHORIZATION_LDAP_FAILURE.txt} $username membership in $groups ($uuid)") }
+            else
                 groups.flatMap { groupName ->
-                    val members = getGroupMembers(getGroupDN(groupName))
-                    log.debug("Group membership, intersection of $members and $userDNs ($uuid)")
-                    members.intersect(userDNs).map { uDN -> AuthorResult(groupName, uDN) }
+                    val members = getGroupMembers(getGroupDN(groupName)).map { DN(it).rdn.attributeValues.first().toLowerCase() }
+                    log.debug("Group membership, intersection of $members and $username ($uuid)")
+                    members.intersect(listOf(username)).map { usr -> AuthorResult(groupName, usr) }
                 }
                         .also { result -> log.debug("Intersection result - $result ($uuid)") }
                         .toSet()

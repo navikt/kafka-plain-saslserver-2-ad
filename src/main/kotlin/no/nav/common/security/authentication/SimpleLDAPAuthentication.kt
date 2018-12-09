@@ -3,8 +3,6 @@ package no.nav.common.security.authentication
 import no.nav.common.security.Monitoring
 import no.nav.common.security.ldap.LDAPAuthentication
 import no.nav.common.security.ldap.LDAPCache
-import no.nav.common.security.ldap.LDAPConfig
-import no.nav.common.security.ldap.toUserDNNodes
 import org.apache.kafka.common.security.auth.AuthenticateCallbackHandler
 import org.apache.kafka.common.security.plain.PlainAuthenticateCallback
 import org.slf4j.LoggerFactory
@@ -50,25 +48,19 @@ class SimpleLDAPAuthentication : AuthenticateCallbackHandler {
         callbacks?.other<NameCallback, PlainAuthenticateCallback>()?.let { throw UnsupportedCallbackException(it) }
     }
 
-    private fun userInCache(userDNs: List<String>, password: String): Boolean =
-            userDNs.any { uDN -> LDAPCache.userExists(uDN, password) }
-
-    private fun userBoundedInLDAP(userDNs: List<String>, password: String): Boolean =
-            LDAPAuthentication.init()
-                    .use { ldap -> ldap.canUserAuthenticate(userDNs, password) }
-                    .map { LDAPCache.userAdd(it.userDN, password) }
-                    .isNotEmpty()
-
     private fun authenticate(username: String, password: String): Boolean =
-            LDAPConfig.getByClasspath().toUserDNNodes(username).let { userDNs ->
-                // always check cache before ldap lookup
-                (userInCache(userDNs, password) || userBoundedInLDAP(userDNs, password))
-                        .also { isAuthenticated ->
-                            log.debug("Authentication Start - $username")
-                            if (isAuthenticated) log.info("${Monitoring.AUTHENTICATION_SUCCESS.txt} of $username")
-                            else log.error("${Monitoring.AUTHENTICATION_FAILED.txt} for $username")
-                        }
-            }
+            // always check cache before ldap lookup
+            (
+                    LDAPCache.userExists(username, password) ||
+                    LDAPAuthentication.init()
+                            .use { ldap -> ldap.canUserAuthenticate(username, password) }
+                            .also { if (it) LDAPCache.userAdd(username, password) }
+                    )
+                    .also { isAuthenticated ->
+                        log.debug("Authentication Start - $username")
+                        if (isAuthenticated) log.info("${Monitoring.AUTHENTICATION_SUCCESS.txt} of $username")
+                        else log.error("${Monitoring.AUTHENTICATION_FAILED.txt} for $username")
+                    }
 
     override fun configure(
         configs: MutableMap<String, *>?,

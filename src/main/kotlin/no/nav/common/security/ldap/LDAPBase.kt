@@ -4,6 +4,8 @@ import com.unboundid.ldap.sdk.LDAPConnectionOptions
 import com.unboundid.ldap.sdk.LDAPConnection
 import com.unboundid.ldap.sdk.LDAPException
 import com.unboundid.ldap.sdk.DisconnectType
+import com.unboundid.ldap.sdk.PLAINBindRequest
+import com.unboundid.ldap.sdk.ResultCode
 import com.unboundid.util.ssl.SSLUtil
 import com.unboundid.util.ssl.TrustAllTrustManager
 import no.nav.common.security.Monitoring
@@ -47,13 +49,22 @@ abstract class LDAPBase protected constructor(config: LDAPConfig.Config) : AutoC
         ldapConnection.close()
     }
 
-    data class AuthenResult(val authenticated: Boolean, val userDN: String, val errMsg: String)
+    protected fun bindOk(username: String, pwd: String): Boolean =
+            try {
+                log.debug("Trying bind for $username and given password")
+                when (ldapConnection.bind(PLAINBindRequest("u:$username", pwd)).resultCode) {
+                    ResultCode.SUCCESS -> true
+                    else -> false.also { log.error("LDAP bind unsuccessful for $username - unknown situation :-(") }
+                }
+            } catch (e: LDAPException) {
+                false.also { log.error("LDAP bind exception for $username - ${e.diagnosticMessage}") }
+            }
 
-    open fun canUserAuthenticate(userDNs: List<String>, pwd: String): Set<AuthenResult> = emptySet()
+    open fun canUserAuthenticate(username: String, pwd: String): Boolean = false
 
-    data class AuthorResult(val groupName: String, val userDN: String)
+    data class AuthorResult(val groupName: String, val user: String)
 
-    open fun isUserMemberOfAny(userDNs: List<String>, groups: List<String>): Set<AuthorResult> = emptySet()
+    open fun isUserMemberOfAny(username: String, groups: List<String>): Set<AuthorResult> = emptySet()
 
     companion object {
 
