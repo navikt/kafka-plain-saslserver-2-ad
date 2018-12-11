@@ -1,7 +1,8 @@
 package no.nav.common.security.authentication
 
+import no.nav.common.security.AuthenticationResult
 import no.nav.common.security.Monitoring
-import no.nav.common.security.ldap.LDAPAuthentication
+import no.nav.common.security.ldap.LDAPBase
 import no.nav.common.security.ldap.LDAPCache
 import org.apache.kafka.common.security.auth.AuthenticateCallbackHandler
 import org.apache.kafka.common.security.plain.PlainAuthenticateCallback
@@ -44,23 +45,22 @@ class SimpleLDAPAuthentication : AuthenticateCallbackHandler {
                     )
             )
         }
-
         callbacks?.other<NameCallback, PlainAuthenticateCallback>()?.let { throw UnsupportedCallbackException(it) }
     }
 
     private fun authenticate(username: String, password: String): Boolean =
-            // always check cache before ldap lookup
-            (
-                    LDAPCache.userExists(username, password) ||
-                    LDAPAuthentication.init()
-                            .use { ldap -> ldap.canUserAuthenticate(username, password) }
-                            .also { if (it) LDAPCache.userAdd(username, password) }
-                    )
-                    .also { isAuthenticated ->
-                        log.debug("Authentication Start - $username")
-                        if (isAuthenticated) log.info("${Monitoring.AUTHENTICATION_SUCCESS.txt} of $username")
-                        else log.error("${Monitoring.AUTHENTICATION_FAILED.txt} for $username")
-                    }
+
+        when (LDAPCache.userCredentialsExists(username, password)) {
+            true -> true.also { log.debug("$username is cached") }
+            else -> when (LDAPBase().use { ldap -> ldap.authenticationOk(username, password) }) {
+                is AuthenticationResult.SuccessfulBind -> true
+                        .also { LDAPCache.userCredentialsAdd(username, password) }
+                is AuthenticationResult.NoLDAPConnection -> false
+                        .also { log.error("${Monitoring.AUTHENTICATION_FAILED.txt} for $username") }
+                is AuthenticationResult.UnsuccessfulBind -> false
+                        .also { log.error("${Monitoring.AUTHENTICATION_FAILED.txt} for $username") }
+            }
+        }
 
     override fun configure(
         configs: MutableMap<String, *>?,

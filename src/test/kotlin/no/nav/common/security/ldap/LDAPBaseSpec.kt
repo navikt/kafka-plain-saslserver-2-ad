@@ -1,13 +1,14 @@
 package no.nav.common.security.ldap
 
+import no.nav.common.security.AuthenticationResult
 import no.nav.common.security.common.InMemoryLDAPServer
 import org.amshove.kluent.shouldEqual
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
-object LDAPAuthenticationSpec : Spek({
+object LDAPBaseSpec : Spek({
 
-    describe("LDAPAuthentication class test specifications") {
+    describe("LDAPBase class test specifications") {
 
         /**
          * Test scope
@@ -29,13 +30,13 @@ object LDAPAuthenticationSpec : Spek({
         // users from both nodes, ServiceAccounts and ApplAccounts
 
         val refUsers = mapOf(
-                Pair("srvp01", "srvp01") to true,
-                Pair("srvc01", "srvc01") to true,
-                Pair("srvp02", "srvp02") to true,
-                Pair("srvc02", "srvc02") to true,
-                Pair("srvp01", "invalidpwd") to false,
-                Pair("srvp02", "invalidpwd") to false,
-                Pair("invalid", "srvc01") to false
+                Pair("srvp01", "srvp01") to AuthenticationResult.SuccessfulBind,
+                Pair("srvc01", "srvc01") to AuthenticationResult.SuccessfulBind,
+                Pair("srvp02", "srvp02") to AuthenticationResult.SuccessfulBind,
+                Pair("srvc02", "srvc02") to AuthenticationResult.SuccessfulBind,
+                Pair("srvp01", "invalidpwd") to AuthenticationResult.UnsuccessfulBind("LDAP bind exception for srvp01 - null"),
+                Pair("srvp02", "invalidpwd") to AuthenticationResult.UnsuccessfulBind("LDAP bind exception for srvp02 - null"),
+                Pair("invalid", "srvc01") to AuthenticationResult.UnsuccessfulBind("LDAP bind exception for invalid - The requested identity 'u:invalid' could not be mapped to a user defined in the server.")
         )
 
         context("correct path to default YAML config") {
@@ -44,8 +45,8 @@ object LDAPAuthenticationSpec : Spek({
 
                 it("should return $result for user ${user.first} with pwd ${user.second}") {
 
-                    val src = "src/test/resources/ldapconfig.yaml"
-                    LDAPAuthentication.init(src).canUserAuthenticate(user.first, user.second) shouldEqual result
+                    val config = LDAPConfig.getBySource("src/test/resources/ldapconfig.yaml")
+                    LDAPBase(config).authenticationOk(user.first, user.second) shouldEqual result
                 }
             }
         }
@@ -55,7 +56,7 @@ object LDAPAuthenticationSpec : Spek({
             refUsers.forEach { user, result ->
 
                 it("should return $result for user ${user.first} with pwd ${user.second}") {
-                    LDAPAuthentication.init().canUserAuthenticate(user.first, user.second) shouldEqual result
+                    LDAPBase().authenticationOk(user.first, user.second) shouldEqual result
                 }
             }
         }

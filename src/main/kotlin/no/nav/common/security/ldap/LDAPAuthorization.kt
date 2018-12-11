@@ -6,6 +6,7 @@ import com.unboundid.ldap.sdk.Filter
 import com.unboundid.ldap.sdk.SearchRequest
 import com.unboundid.ldap.sdk.SearchScope
 import com.unboundid.ldap.sdk.LDAPSearchException
+import no.nav.common.security.AuthenticationResult
 import no.nav.common.security.Monitoring
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -14,9 +15,9 @@ import org.slf4j.LoggerFactory
  * A class verifying group membership with LDAP
  */
 
-class LDAPAuthorization private constructor(
+class LDAPAuthorization(
     private val uuid: String,
-    val config: LDAPConfig.Config
+    val config: LDAPConfig.Config = LDAPConfig.getByClasspath()
 ) : LDAPBase(config) {
 
     // In authorization context, needs to bind the connection before compare-match between group and user
@@ -24,16 +25,18 @@ class LDAPAuthorization private constructor(
     private val connectionAndBindIsOk = when {
         JAASContext.username.isEmpty() || JAASContext.password.isEmpty() -> false
         !ldapConnection.isConnected -> false
-        else -> bindOk(JAASContext.username, JAASContext.password)
-                .also {
-                    when (it) {
-                        true -> log.debug("Successfully bind to (${config.host},${config.port}) with ${JAASContext.username}")
-                        false -> log.error(
-                            "${Monitoring.AUTHORIZATION_BIND_FAILED.txt} ${JAASContext.username} to " +
-                                    "(${config.host},${config.port})"
-                        )
-                    }
-                }
+        else -> authenticationOk(JAASContext.username, JAASContext.password).let { authenticationResult ->
+            when (authenticationResult) {
+                is AuthenticationResult.SuccessfulBind -> true
+                        .also { log.debug("Successfully bind to (${config.host},${config.port}) with ${JAASContext.username}") }
+                is AuthenticationResult.NoLDAPConnection -> false
+                        .also { log.error("${Monitoring.AUTHORIZATION_BIND_FAILED.txt} ${JAASContext.username} to " +
+                                "(${config.host},${config.port})") }
+                is AuthenticationResult.UnsuccessfulBind -> false
+                        .also { log.error("${Monitoring.AUTHORIZATION_BIND_FAILED.txt} ${JAASContext.username} to " +
+                                "(${config.host},${config.port})") }
+            }
+        }
     }
 
     private fun getGroupDN(groupName: String): String =
@@ -68,7 +71,9 @@ class LDAPAuthorization private constructor(
                 emptyList()
             }
 
-    override fun isUserMemberOfAny(username: String, groups: List<String>): Set<AuthorResult> =
+    data class AuthorResult(val groupName: String, val user: String)
+
+    fun isUserMemberOfAny(username: String, groups: List<String>): Set<AuthorResult> =
             if (!connectionAndBindIsOk)
                 emptySet<AuthorResult>()
                         .also { log.error("${Monitoring.AUTHORIZATION_LDAP_FAILURE.txt} $username membership in $groups ($uuid)") }
@@ -85,10 +90,5 @@ class LDAPAuthorization private constructor(
     companion object {
 
         private val log: Logger = LoggerFactory.getLogger(LDAPAuthorization::class.java)
-
-        fun init(uuid: String, configFile: String = ""): LDAPAuthorization = when (configFile.isEmpty()) {
-            true -> LDAPAuthorization(uuid, LDAPConfig.getByClasspath())
-            else -> LDAPAuthorization(uuid, LDAPConfig.getBySource(configFile))
-        }
     }
 }

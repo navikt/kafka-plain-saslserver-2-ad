@@ -48,10 +48,8 @@ object LDAPAuthorizationSpec : Spek({
 
                 it("should return $size membership(s) for user ${usrGrp.first} in ${usrGrp.second}") {
 
-                    val src = "src/test/resources/ldapconfig.yaml"
-                    LDAPAuthorization.init(
-                            java.util.UUID.randomUUID().toString(),
-                            src)
+                    val config = LDAPConfig.getBySource("src/test/resources/ldapconfig.yaml")
+                    LDAPAuthorization(java.util.UUID.randomUUID().toString(), config)
                             .isUserMemberOfAny(usrGrp.first, usrGrp.second).size shouldEqual size
                 }
             }
@@ -63,7 +61,7 @@ object LDAPAuthorizationSpec : Spek({
 
                 it("should return $size membership(s) for user ${usrGrp.first} in ${usrGrp.second}") {
 
-                    LDAPAuthorization.init(java.util.UUID.randomUUID().toString())
+                    LDAPAuthorization(java.util.UUID.randomUUID().toString())
                             .isUserMemberOfAny(usrGrp.first, usrGrp.second).size shouldEqual size
                 }
             }

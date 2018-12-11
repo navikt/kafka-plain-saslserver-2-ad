@@ -18,10 +18,10 @@ class GroupAuthorizer(private val uuid: String) : AutoCloseable {
                     .let { groups ->
                         val username = principal.name
                         // always check cache before ldap lookup
-                        groups.any { groupName -> LDAPCache.groupAndUserExists(groupName, username, uuid) } ||
-                                LDAPAuthorization.init(uuid)
+                        groups.any { groupName -> LDAPCache.membershipExists(groupName, username, uuid) } ||
+                                LDAPAuthorization(uuid)
                                         .use { ldap -> ldap.isUserMemberOfAny(username, groups) }
-                                        .map { LDAPCache.groupAndUserAdd(it.groupName, it.user, uuid) }
+                                        .map { LDAPCache.membershipAdd(it.groupName, it.user, uuid) }
                                         .isNotEmpty()
                     }
 
