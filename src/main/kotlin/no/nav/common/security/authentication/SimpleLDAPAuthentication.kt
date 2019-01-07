@@ -52,13 +52,13 @@ class SimpleLDAPAuthentication : AuthenticateCallbackHandler {
 
         when (LDAPCache.userCredentialsExists(username, password)) {
             true -> true.also { log.debug("$username is cached") }
-            else -> when (LDAPBase().use { ldap -> ldap.authenticationOk(username, password) }) {
+            else -> when (val authResult = LDAPBase().use { ldap -> ldap.authenticationOk(username, password) }) {
                 is AuthenticationResult.SuccessfulBind -> true
                         .also { LDAPCache.userCredentialsAdd(username, password) }
                 is AuthenticationResult.NoLDAPConnection -> false
-                        .also { log.error("${Monitoring.AUTHENTICATION_FAILED.txt} for $username") }
+                        .also { log.error("${Monitoring.AUTHENTICATION_FAILED.txt} for $username - no LDAP connection") }
                 is AuthenticationResult.UnsuccessfulBind -> false
-                        .also { log.error("${Monitoring.AUTHENTICATION_FAILED.txt} for $username") }
+                        .also { log.error("${Monitoring.AUTHENTICATION_FAILED.txt} for $username - ${authResult.error}") }
             }
         }
 
