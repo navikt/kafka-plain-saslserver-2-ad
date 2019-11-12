@@ -36,14 +36,14 @@ class SimpleLDAPAuthorizer : SimpleAclAuthorizer() {
         val lResource = resource?.toString()
 
         val uuid = java.util.UUID.randomUUID().toString()
-        val authContext = "$principal trying $lOperation from $host on $lResource ($uuid)"
+        val authContext = "principal=$principal, operation=$lOperation, remote_host=$host, resource=$lResource, uuid=$uuid"
 
         log.debug("Authorization Start -  $authContext")
 
         // TODO ResourceType.GROUP - under change in minor version - CAREFUL!
         // Warning! Assuming no group considerations, thus implicitly, always empty group access control lists
         if (resource?.resourceType()?.toJava() == ResourceType.GROUP) {
-            log.debug("Authorization End - $authContext is authorized!")
+            log.debug("Authorization End - $authContext, status=authorized")
             return true
         }
 
@@ -56,11 +56,11 @@ class SimpleLDAPAuthorizer : SimpleAclAuthorizer() {
         val acls = mutableSetOf<Acl>()
         sacls.foreach { acls += it }
 
-        log.debug("$lOperation has following Allow ACLs for $lResource: ${acls.map { it.principal().name }} ($uuid)")
+        log.debug("$lOperation has following Allow ACLs for $lResource: ${acls.map { it.principal().name }} uuid=$uuid")
 
         // nothing to do if empty acl set
         if (acls.isEmpty()) {
-            log.error("${Monitoring.AUTHORIZATION_FAILED.txt} - $authContext - empty ALLOW ACL for [$lResource,$lOperation], is not authorized ($uuid)")
+            log.error("${Monitoring.AUTHORIZATION_FAILED.txt} - $authContext, status=denied, reason=EMPTY_ALLOW_ACL")
             return false
         }
 
@@ -69,8 +69,8 @@ class SimpleLDAPAuthorizer : SimpleAclAuthorizer() {
         val isAuthorized = GroupAuthorizer(uuid).use { it.authorize(session?.principal() ?: anonymous, acls) }
 
         when (isAuthorized) {
-            true -> log.debug("Authorization End - $authContext is authorized!")
-            false -> log.error("${Monitoring.AUTHORIZATION_FAILED.txt} - $authContext is not authorized!")
+            true -> log.debug("Authorization End - $authContext, status=authorized")
+            false -> log.error("${Monitoring.AUTHORIZATION_FAILED.txt} - $authContext, status=denied")
         }
 
         return isAuthorized

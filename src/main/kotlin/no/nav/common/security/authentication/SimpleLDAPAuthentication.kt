@@ -64,9 +64,9 @@ class SimpleLDAPAuthentication : AuthenticateCallbackHandler {
                 // always check cache before ldap lookup
                 (userInCache(userDNs, password) || userBoundedInLDAP(userDNs, password))
                         .also { isAuthenticated ->
-                            log.debug("Authentication Start - $username")
-                            if (isAuthenticated) log.info("${Monitoring.AUTHENTICATION_SUCCESS.txt} of $username")
-                            else log.error("${Monitoring.AUTHENTICATION_FAILED.txt} for $username")
+                            log.debug("Authentication Start - user=$username")
+                            if (isAuthenticated) log.info("${Monitoring.AUTHENTICATION_SUCCESS.txt} - user=$username")
+                            else log.error("${Monitoring.AUTHENTICATION_FAILED.txt} - user=$username")
                         }
             }
 
