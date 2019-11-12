@@ -65,8 +65,8 @@ class SimpleLDAPAuthentication : AuthenticateCallbackHandler {
                 (userInCache(userDNs, password) || userBoundedInLDAP(userDNs, password))
                         .also { isAuthenticated ->
                             log.debug("Authentication Start - user=$username")
-                            if (isAuthenticated) log.info("${Monitoring.AUTHENTICATION_SUCCESS.txt} - user=$username")
-                            else log.error("${Monitoring.AUTHENTICATION_FAILED.txt} - user=$username")
+                            if (isAuthenticated) log.info("${Monitoring.AUTHENTICATION_SUCCESS.txt} - user=$username, status=authenticated")
+                            else log.error("${Monitoring.AUTHENTICATION_FAILED.txt} - user=$username, status=denied")
                         }
             }
 
