@@ -1,5 +1,8 @@
 # kafka-plain-saslserver-2-ad 
 
+> [!WARNING]  
+> This project is not used by NAV anymore and is thus not maintained. Feel free to create a fork.
+
 [![Build Status](https://travis-ci.org/navikt/kafka-plain-saslserver-2-ad.svg?branch=master)](https://travis-ci.org/navikt/kafka-plain-saslserver-2-ad/builds/)
 [![Docker Build Status](https://img.shields.io/docker/build/navikt/kafka-plain-saslserver-2-ad.svg)](https://hub.docker.com/r/navikt/kafka-plain-saslserver-2-ad/builds/)
 [![Docker Automated build](https://img.shields.io/docker/automated/navikt/kafka-plain-saslserver-2-ad.svg)](https://hub.docker.com/r/navikt/kafka-plain-saslserver-2-ad/)
@@ -80,10 +83,3 @@ The related [Wiki](https://github.com/navikt/KafkaPlainSaslServer2AD/wiki) has a
 The result is kafka-plain-salserver-2-ad-2.0_<version>.jar hosting authentication and authorization classes.
 ```
 **Observe** that the directory hosting the given JAR file must be in CLASSPATH.
-
-### Contact us
-#### Code/project related questions can be sent to 
-* Torstein Nesby, `torstein.nesby@nav.no`
-* Trong Huu Nguyen, `trong.huu.nguyen@nav.no`
-
-For internal resources, send requests/questions to slack#kafka
